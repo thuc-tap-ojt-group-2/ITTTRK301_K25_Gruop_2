@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sách | Thư viện PTIT</title>
+    <link rel="stylesheet" href="books.css">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                Thư viện PTIT
+                <small>Hệ thống quản lý</small>
+            </div>
+
+            <div class="menu-title">Quản lý thư viện</div>
+
+            <nav class="nav">
+                <a href="#" class="active">Quản lý sách</a>
+                <a href="#">Quản lý mượn trả</a>
+                <a href="#">Quản lý tài khoản</a>
+                <a href="#">Thống kê</a>
+            </nav>
+
+            <div class="user">
+                <strong>Thủ thư</strong>
+                <span>Quản trị hệ thống</span>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="topbar">
+                <div>
+                    <h1>Quản lý sách</h1>
+                    <p>Thêm, chỉnh sửa, tìm kiếm và quản lý danh sách sách trong thư viện.</p>
+                </div>
+                <div class="admin">Xin chào, Thủ thư</div>
+            </header>
+
+            <section class="stats">
+                <div class="stat">
+                    <p>Tổng đầu sách</p>
+                    <strong id="totalTitles">0</strong>
+                </div>
+
+                <div class="stat">
+                    <p>Tổng số bản</p>
+                    <strong id="totalCopies">0</strong>
+                </div>
+
+                <div class="stat">
+                    <p>Thể loại</p>
+                    <strong id="totalCategories">0</strong>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Danh sách sách</h2>
+
+                    <div class="tools">
+                        <input
+                            class="search"
+                            id="searchInput"
+                            type="search"
+                            placeholder="Tìm tên sách hoặc tác giả..."
+                        >
+
+                        <button class="btn primary" onclick="openAddModal()">
+                            + Thêm sách
+                        </button>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã sách</th>
+                            <th>Tên sách</th>
+                            <th>Tác giả</th>
+                            <th>Thể loại</th>
+                            <th>Tổng số bản</th>
+                            <th>Còn lại</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="bookTable"></tbody>
+                </table>
+
+                <div class="notice">
+                    Dữ liệu hiện được lưu trên trình duyệt bằng LocalStorage.
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="overlay" id="bookModal">
+        <div class="modal">
+            <h2 id="modalTitle">Thêm sách</h2>
+
+            <form id="bookForm">
+                <div class="field">
+                    <label for="bookCode">Mã sách</label>
+                    <input id="bookCode" required maxlength="10" placeholder="Ví dụ: S001">
+                </div>
+
+                <div class="field">
+                    <label for="bookName">Tên sách</label>
+                    <input id="bookName" required maxlength="100" placeholder="Nhập tên sách">
+                </div>
+
+                <div class="field">
+                    <label for="bookAuthor">Tác giả</label>
+                    <input id="bookAuthor" required maxlength="80" placeholder="Nhập tên tác giả">
+                </div>
+
+                <div class="field">
+                    <label for="bookCategory">Thể loại</label>
+                    <select id="bookCategory" required>
+                        <option value="">Chọn thể loại</option>
+                        <option>Giáo trình</option>
+                        <option>Công nghệ thông tin</option>
+                        <option>Văn học</option>
+                        <option>Khoa học</option>
+                        <option>Kỹ năng</option>
+                        <option>Khác</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="bookQuantity">Tổng số bản</label>
+                    <input id="bookQuantity" type="number" min="1" required value="1">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn secondary" onclick="closeModal()">
+                        Hủy
+                    </button>
+
+                    <button type="submit" class="btn primary">
+                        Lưu sách
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="books.js"></script>
+</body>
+</html>
