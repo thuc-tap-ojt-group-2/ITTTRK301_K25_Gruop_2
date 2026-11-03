@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thư viện PTIT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <a href="#" class="brand">
+      <img class="brand-logo" src="assets/images/logo.png" alt="Logo PTIT">
+      <span class="brand-text">
+        <small>Học viện Công nghệ Bưu chính Viễn thông</small>
+        <strong>THƯ VIỆN PTIT</strong>
+      </span>
+    </a>
+
+    <nav class="nav-links" aria-label="Điều hướng chính">
+      <a href="#" class="active">Trang chủ</a>
+      <a href="#">Giới thiệu</a>
+      <a href="#">Nội dung</a>
+      <a href="#">Nội quy</a>
+      <a href="#">FAQs</a>
+      <a href="#">Liên hệ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="btn btn-outline" data-open="login">Đăng nhập</button>
+      <button class="btn btn-primary" data-open="register">Đăng ký</button>
+    </div>
+  </header>
+
+  <div class="accent-line"></div>
+
+  <!-- Modal dùng chung cho Đăng nhập / Đăng ký -->
+  <div class="overlay" id="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="close-btn" id="closeBtn" aria-label="Đóng">&times;</button>
+
+      <!-- ĐĂNG NHẬP -->
+      <section class="panel" id="panel-login">
+        <h2 id="modal-title">Chào mừng bạn trở lại</h2>
+        <p class="sub">Đăng nhập để tra cứu và quản lý sách của bạn.</p>
+
+        <div class="switch">
+          <button type="button" class="tab active" data-switch="login">Đăng nhập</button>
+          <button type="button" class="tab" data-switch="register">Đăng ký</button>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" autocomplete="email" required>
+
+          <label for="loginPassword">Mật khẩu</label>
+          <input type="password" id="loginPassword" autocomplete="current-password" required>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Đăng nhập</button>
+          </div>
+        </form>
+
+        <div class="demo">
+          <span>Tài khoản thử nghiệm:</span>
+          <div class="demo-list">
+            <button type="button" class="chip" data-email="admin@ptit.edu.vn" data-pass="123456">Quản trị viên</button>
+            <button type="button" class="chip" data-email="thuthu@ptit.edu.vn" data-pass="123456">Thủ thư</button>
+            <button type="button" class="chip" data-email="docgia@ptit.edu.vn" data-pass="123456">Độc giả</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ĐĂNG KÝ -->
+      <section class="panel" id="panel-register" hidden>
+        <h2>Tạo tài khoản độc giả</h2>
+        <p class="sub">Đăng ký bằng mã sinh viên để mượn sách trực tuyến.</p>
+
+        <div class="switch">
+          <button type="button" class="tab" data-switch="login">Đăng nhập</button>
+          <button type="button" class="tab active" data-switch="register">Đăng ký</button>
+        </div>
+
+        <form id="registerForm" novalidate>
+          <label for="regName">Họ và tên</label>
+          <input type="text" id="regName" autocomplete="name" required>
+
+          <label for="regId">Mã sinh viên</label>
+          <input type="text" id="regId" required>
+
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" autocomplete="email" required>
+
+          <label for="regPass">Mật khẩu (ít nhất 6 ký tự)</label>
+          <input type="password" id="regPass" minlength="6" autocomplete="new-password" required>
+
+          <label for="regPass2">Nhập lại mật khẩu</label>
+          <input type="password" id="regPass2" autocomplete="new-password" required>
+
+          <p class="error" id="regError" role="alert"></p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Tạo tài khoản độc giả</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
