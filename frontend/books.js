@@ -1,228 +1,253 @@
-
-const defaultBooks = [
-    {
-        code: "S001",
-        name: "Lập trình C cơ bản",
-        author: "Nguyễn Thanh Trà",
-        category: "Giáo trình",
-        quantity: 20,
-        available: 15
-    },
-    {
-        code: "S002",
-        name: "Cấu trúc dữ liệu và giải thuật",
-        author: "Nguyễn Đức Nghĩa",
-        category: "Công nghệ thông tin",
-        quantity: 15,
-        available: 10
-    },
-    {
-        code: "S003",
-        name: "Clean Code",
-        author: "Robert C. Martin",
-        category: "Công nghệ thông tin",
-        quantity: 12,
-        available: 8
-    },
-    {
-        code: "S004",
-        name: "Dế Mèn phiêu lưu ký",
-        author: "Tô Hoài",
-        category: "Văn học",
-        quantity: 10,
-        available: 10
-    }
-];
-
-let books = JSON.parse(localStorage.getItem("ptitBooks")) || defaultBooks;
-let editingCode = null;
+let books = [];
+let isSubmitting = false;
 
 const bookTable = document.getElementById("bookTable");
-const bookModal = document.getElementById("bookModal");
 const bookForm = document.getElementById("bookForm");
+const bookModal = document.getElementById("bookModal");
 const searchInput = document.getElementById("searchInput");
+const messageBox = document.getElementById("message");
+const formError = document.getElementById("formError");
+const submitButton = document.getElementById("submitBook");
 
-function saveBooks() {
-    localStorage.setItem("ptitBooks", JSON.stringify(books));
+function showMessage(message, type = "info") {
+    messageBox.textContent = message;
+    messageBox.className = `message ${type}`;
+    messageBox.hidden = false;
+}
+
+function clearMessage() {
+    messageBox.hidden = true;
+    messageBox.textContent = "";
+}
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
+
+function getBookList(response) {
+    if (Array.isArray(response)) return response;
+
+    if (Array.isArray(response?.content)) {
+        return response.content;
+    }
+
+    if (Array.isArray(response?.items)) {
+        return response.items;
+    }
+
+    if (Array.isArray(response?.books)) {
+        return response.books;
+    }
+
+    return [];
+}
+
+async function loadBooks() {
+    bookTable.innerHTML = `
+        <tr>
+            <td colspan="6" class="empty">Đang tải dữ liệu...</td>
+        </tr>
+    `;
+
+    try {
+        const response = await getBooks();
+
+        books = getBookList(response);
+
+        renderBooks();
+        updateStatistics();
+
+    } catch (error) {
+        bookTable.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty">
+                    Không thể tải dữ liệu sách.
+                </td>
+            </tr>
+        `;
+
+        updateStatistics();
+
+        showMessage(
+            `${error.message}. Kiểm tra Backend và đường dẫn API trong api.js.`,
+            "error"
+        );
+    }
+}
+
+function renderBooks() {
+    const keyword = searchInput.value.trim().toLowerCase();
+
+    const filteredBooks = books.filter(book => {
+        const title = String(book.title ?? "").toLowerCase();
+        const author = String(book.author ?? "").toLowerCase();
+        const category = String(book.categoryName ?? "").toLowerCase();
+        const id = String(book.id ?? "").toLowerCase();
+
+        return title.includes(keyword)
+            || author.includes(keyword)
+            || category.includes(keyword)
+            || id.includes(keyword);
+    });
+
+    if (filteredBooks.length === 0) {
+        bookTable.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty">
+                    Không tìm thấy sách phù hợp.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    bookTable.innerHTML = filteredBooks.map(book => `
+        <tr>
+            <td>${escapeHTML(book.id)}</td>
+            <td class="book-title">${escapeHTML(book.title)}</td>
+            <td>${escapeHTML(book.author)}</td>
+            <td>
+                <span class="category-tag">
+                    ${escapeHTML(book.categoryName)}
+                </span>
+            </td>
+            <td>${Number(book.totalCopies ?? 0)}</td>
+            <td>${Number(book.availableCopies ?? 0)}</td>
+        </tr>
+    `).join("");
 }
 
 function updateStatistics() {
     document.getElementById("totalTitles").textContent = books.length;
 
-    document.getElementById("totalCopies").textContent =
-        books.reduce((sum, book) => sum + book.quantity, 0);
-
-    document.getElementById("totalCategories").textContent =
-        new Set(books.map(book => book.category)).size;
-}
-
-function displayBooks(keyword = "") {
-    const result = books.filter(book =>
-        book.name.toLowerCase().includes(keyword.toLowerCase()) ||
-        book.author.toLowerCase().includes(keyword.toLowerCase()) ||
-        book.code.toLowerCase().includes(keyword.toLowerCase())
+    document.getElementById("totalCopies").textContent = books.reduce(
+        (sum, book) => sum + Number(book.totalCopies ?? 0),
+        0
     );
 
-    if (result.length === 0) {
-        bookTable.innerHTML = `
-            <tr>
-                <td colspan="7" class="empty">
-                    Không tìm thấy sách phù hợp.
-                </td>
-            </tr>
-        `;
-    } else {
-        bookTable.innerHTML = result.map(book => `
-            <tr>
-                <td>${book.code}</td>
-                <td class="book-name">${book.name}</td>
-                <td>${book.author}</td>
-                <td><span class="tag">${book.category}</span></td>
-                <td>${book.quantity}</td>
-                <td>${book.available}</td>
-                <td>
-                    <div class="actions">
-                        <button class="btn secondary"
-                            onclick="editBook('${book.code}')">
-                            Sửa
-                        </button>
-
-                        <button class="btn danger"
-                            onclick="deleteBook('${book.code}')">
-                            Xóa
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join("");
-    }
-
-    updateStatistics();
+    document.getElementById("totalCategories").textContent = new Set(
+        books.map(book => book.categoryName).filter(Boolean)
+    ).size;
 }
 
 function openAddModal() {
-    editingCode = null;
     bookForm.reset();
 
-    document.getElementById("modalTitle").textContent = "Thêm sách";
-    document.getElementById("bookCode").disabled = false;
+    document.getElementById("bookTotal").value = 1;
+
+    formError.textContent = "";
 
     bookModal.classList.add("show");
+
+    document.getElementById("bookTitle").focus();
 }
 
 function closeModal() {
     bookModal.classList.remove("show");
+    formError.textContent = "";
 }
 
-function editBook(code) {
-    const book = books.find(item => item.code === code);
-
-    if (!book) {
-        return;
+function validateBook(book) {
+    if (!book.title || !book.author || !book.categoryId) {
+        return "Vui lòng nhập đầy đủ tên sách, tác giả và mã thể loại.";
     }
 
-    editingCode = code;
+    if (book.title.length > 255) {
+        return "Tên sách không được vượt quá 255 ký tự.";
+    }
 
-    document.getElementById("modalTitle").textContent = "Chỉnh sửa sách";
-    document.getElementById("bookCode").value = book.code;
-    document.getElementById("bookCode").disabled = true;
-    document.getElementById("bookName").value = book.name;
-    document.getElementById("bookAuthor").value = book.author;
-    document.getElementById("bookCategory").value = book.category;
-    document.getElementById("bookQuantity").value = book.quantity;
+    if (book.author.length > 150) {
+        return "Tên tác giả không được vượt quá 150 ký tự.";
+    }
 
-    bookModal.classList.add("show");
+    if (!Number.isInteger(book.categoryId) || book.categoryId <= 0) {
+        return "Mã thể loại phải là số nguyên lớn hơn 0.";
+    }
+
+    if (!Number.isInteger(book.total) || book.total < 1) {
+        return "Tổng số bản sách phải là số nguyên từ 1 trở lên.";
+    }
+
+    if (book.imageUrl && book.imageUrl.length > 500) {
+        return "Đường dẫn ảnh không được vượt quá 500 ký tự.";
+    }
+
+    return "";
 }
 
-function deleteBook(code) {
-    const book = books.find(item => item.code === code);
-
-    if (!book) {
-        return;
-    }
-
-    const confirmed = confirm("Bạn có chắc muốn xóa sách " + book.name + "?");
-
-    if (!confirmed) {
-        return;
-    }
-
-    books = books.filter(item => item.code !== code);
-
-    saveBooks();
-    displayBooks(searchInput.value);
-}
-
-bookForm.addEventListener("submit", function(event) {
+bookForm.addEventListener("submit", async event => {
     event.preventDefault();
 
-    const code = document.getElementById("bookCode").value.trim();
-    const name = document.getElementById("bookName").value.trim();
-    const author = document.getElementById("bookAuthor").value.trim();
-    const category = document.getElementById("bookCategory").value;
-    const quantity = Number(document.getElementById("bookQuantity").value);
+    if (isSubmitting) return;
 
-    if (!code || !name || !author || !category || quantity < 1) {
-        alert("Vui lòng nhập đầy đủ và chính xác thông tin.");
+    const book = {
+        title: document.getElementById("bookTitle").value.trim(),
+        author: document.getElementById("bookAuthor").value.trim(),
+        categoryId: Number(document.getElementById("categoryId").value),
+        total: Number(document.getElementById("bookTotal").value),
+        imageUrl: document.getElementById("imageUrl").value.trim() || null
+    };
+
+    const validationMessage = validateBook(book);
+
+    if (validationMessage) {
+        formError.textContent = validationMessage;
         return;
     }
 
-    if (editingCode === null) {
-        if (books.some(book => book.code.toLowerCase() === code.toLowerCase())) {
-            alert("Mã sách đã tồn tại.");
-            return;
-        }
+    isSubmitting = true;
 
-        books.push({
-            code,
-            name,
-            author,
-            category,
-            quantity,
-            available: quantity
-        });
-    } else {
-        const book = books.find(item => item.code === editingCode);
-        const borrowed = book.quantity - book.available;
+    submitButton.disabled = true;
+    submitButton.textContent = "Đang lưu...";
 
-        if (quantity < borrowed) {
-            alert("Tổng số bản không được nhỏ hơn số sách đang được mượn.");
-            return;
-        }
+    formError.textContent = "";
+    clearMessage();
 
-        book.name = name;
-        book.author = author;
-        book.category = category;
-        book.quantity = quantity;
-        book.available = quantity - borrowed;
+    try {
+        await createBook(book);
+
+        closeModal();
+
+        await loadBooks();
+
+        showMessage("Thêm sách thành công.", "success");
+
+    } catch (error) {
+        formError.textContent = error.message;
+
+    } finally {
+        isSubmitting = false;
+
+        submitButton.disabled = false;
+        submitButton.textContent = "Lưu sách";
     }
-
-    saveBooks();
-    displayBooks(searchInput.value);
-    closeModal();
 });
 
-searchInput.addEventListener("input", function() {
-    displayBooks(this.value);
-});
+document.getElementById("openAddModal").addEventListener("click", openAddModal);
 
-bookModal.addEventListener("click", function(event) {
+document.getElementById("closeModal").addEventListener("click", closeModal);
+
+document.getElementById("cancelAdd").addEventListener("click", closeModal);
+
+searchInput.addEventListener("input", renderBooks);
+
+bookModal.addEventListener("click", event => {
     if (event.target === bookModal) {
         closeModal();
     }
 });
 
-function logout() {
-    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
-
-    if (!confirmed) {
-        return;
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeModal();
     }
+});
 
-    localStorage.removeItem("ptitUser");
-    sessionStorage.clear();
-
-    window.location.href = "login.html";
-}
-
-displayBooks();
+loadBooks();

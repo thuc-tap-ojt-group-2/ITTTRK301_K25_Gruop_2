@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -18,24 +17,12 @@
             <div class="menu-title">Quản lý thư viện</div>
 
             <nav class="nav">
-                <a href="#">Tổng quan</a>
                 <a href="#" class="active">Quản lý sách</a>
-                <a href="#">Quản lý mượn trả</a>
-                <a href="#">Quản lý tài khoản</a>
-                <a href="#">Thống kê</a>
             </nav>
 
             <div class="user">
-                <div class="user-info">
-                    <div class="avatar">TV</div>
-                    <strong>Quản trị viên</strong>
-                </div>
-
+                <strong>Thủ thư</strong>
                 <span>Quản trị hệ thống</span>
-
-                <button class="logout-btn" onclick="logout()">
-                    Đăng xuất
-                </button>
             </div>
         </aside>
 
@@ -43,10 +30,10 @@
             <header class="topbar">
                 <div>
                     <h1>Quản lý sách</h1>
-                    <p>Thêm, chỉnh sửa, tìm kiếm và quản lý danh sách sách trong thư viện.</p>
+                    <p>Thêm và theo dõi danh sách sách trong thư viện.</p>
                 </div>
 
-                <div class="admin">Xin chào, Quản trị viên</div>
+                <div class="admin">Xin chào, Thủ thư</div>
             </header>
 
             <section class="stats">
@@ -68,40 +55,54 @@
 
             <section class="panel">
                 <div class="panel-head">
-                    <h2>Danh sách sách</h2>
+                    <div>
+                        <h2>Danh sách sách</h2>
+                        <p class="panel-description">
+                            Dữ liệu được tải từ Backend.
+                        </p>
+                    </div>
 
                     <div class="tools">
                         <input
-                            class="search"
                             id="searchInput"
+                            class="search"
                             type="search"
                             placeholder="Tìm tên sách hoặc tác giả..."
                         >
 
-                        <button class="btn primary" onclick="openAddModal()">
+                        <button
+                            type="button"
+                            class="btn primary"
+                            id="openAddModal"
+                        >
                             + Thêm sách
                         </button>
                     </div>
                 </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mã sách</th>
-                            <th>Tên sách</th>
-                            <th>Tác giả</th>
-                            <th>Thể loại</th>
-                            <th>Tổng số bản</th>
-                            <th>Còn lại</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
+                <div id="message" class="message" hidden></div>
 
-                    <tbody id="bookTable"></tbody>
-                </table>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã sách</th>
+                                <th>Tên sách</th>
+                                <th>Tác giả</th>
+                                <th>Thể loại</th>
+                                <th>Tổng số bản</th>
+                                <th>Còn lại</th>
+                            </tr>
+                        </thead>
 
-                <div class="notice">
-                    Dữ liệu hiện được lưu trên trình duyệt bằng LocalStorage.
+                        <tbody id="bookTable">
+                            <tr>
+                                <td colspan="6" class="empty">
+                                    Đang tải dữ liệu...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </main>
@@ -109,48 +110,112 @@
 
     <div class="overlay" id="bookModal">
         <div class="modal">
-            <h2 id="modalTitle">Thêm sách</h2>
+            <div class="modal-header">
+                <div>
+                    <h2>Thêm sách mới</h2>
+                    <p>Nhập thông tin sách cần thêm vào thư viện.</p>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-btn"
+                    id="closeModal"
+                    aria-label="Đóng"
+                >
+                    ×
+                </button>
+            </div>
 
             <form id="bookForm">
                 <div class="field">
-                    <label for="bookCode">Mã sách</label>
-                    <input id="bookCode" required maxlength="10" placeholder="Ví dụ: S001">
+                    <label for="bookTitle">
+                        Tên sách <span>*</span>
+                    </label>
+
+                    <input
+                        id="bookTitle"
+                        type="text"
+                        maxlength="255"
+                        required
+                        placeholder="Nhập tên sách"
+                    >
                 </div>
 
                 <div class="field">
-                    <label for="bookName">Tên sách</label>
-                    <input id="bookName" required maxlength="100" placeholder="Nhập tên sách">
+                    <label for="bookAuthor">
+                        Tác giả <span>*</span>
+                    </label>
+
+                    <input
+                        id="bookAuthor"
+                        type="text"
+                        maxlength="150"
+                        required
+                        placeholder="Nhập tên tác giả"
+                    >
                 </div>
 
                 <div class="field">
-                    <label for="bookAuthor">Tác giả</label>
-                    <input id="bookAuthor" required maxlength="80" placeholder="Nhập tên tác giả">
+                    <label for="categoryId">
+                        Mã thể loại <span>*</span>
+                    </label>
+
+                    <input
+                        id="categoryId"
+                        type="number"
+                        min="1"
+                        step="1"
+                        required
+                        placeholder="Ví dụ: 1"
+                    >
+
+                    <small>
+                        Nhập ID thể loại đã tồn tại trong cơ sở dữ liệu.
+                    </small>
                 </div>
 
                 <div class="field">
-                    <label for="bookCategory">Thể loại</label>
-                    <select id="bookCategory" required>
-                        <option value="">Chọn thể loại</option>
-                        <option>Giáo trình</option>
-                        <option>Công nghệ thông tin</option>
-                        <option>Văn học</option>
-                        <option>Khoa học</option>
-                        <option>Kỹ năng</option>
-                        <option>Khác</option>
-                    </select>
+                    <label for="bookTotal">
+                        Tổng số bản <span>*</span>
+                    </label>
+
+                    <input
+                        id="bookTotal"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value="1"
+                        required
+                    >
                 </div>
 
                 <div class="field">
-                    <label for="bookQuantity">Tổng số bản</label>
-                    <input id="bookQuantity" type="number" min="1" required value="1">
+                    <label for="imageUrl">Đường dẫn ảnh bìa</label>
+
+                    <input
+                        id="imageUrl"
+                        type="url"
+                        maxlength="500"
+                        placeholder="https://..."
+                    >
                 </div>
+
+                <div class="form-error" id="formError" role="alert"></div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn secondary" onclick="closeModal()">
+                    <button
+                        type="button"
+                        class="btn secondary"
+                        id="cancelAdd"
+                    >
                         Hủy
                     </button>
 
-                    <button type="submit" class="btn primary">
+                    <button
+                        type="submit"
+                        class="btn primary"
+                        id="submitBook"
+                    >
                         Lưu sách
                     </button>
                 </div>
@@ -158,6 +223,7 @@
         </div>
     </div>
 
+    <script src="api.js"></script>
     <script src="books.js"></script>
 </body>
 </html>
