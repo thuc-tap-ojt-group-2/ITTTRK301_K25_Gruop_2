@@ -17,12 +17,25 @@
             <div class="menu-title">Quản lý thư viện</div>
 
             <nav class="nav">
+                <a href="#">Tổng quan</a>
                 <a href="#" class="active">Quản lý sách</a>
+                <a href="#">Quản lý mượn trả</a>
+                <a href="#">Quản lý tài khoản</a>
+                <a href="#">Thống kê</a>
             </nav>
 
             <div class="user">
-                <strong>Thủ thư</strong>
-                <span>Quản trị hệ thống</span>
+                <div class="user-info">
+                    <div class="avatar">TV</div>
+                    <div>
+                        <strong>Thủ thư</strong>
+                        <span>Quản trị hệ thống</span>
+                    </div>
+                </div>
+
+                <button type="button" class="logout-btn" id="logoutButton">
+                    Đăng xuất
+                </button>
             </div>
         </aside>
 
@@ -30,7 +43,7 @@
             <header class="topbar">
                 <div>
                     <h1>Quản lý sách</h1>
-                    <p>Thêm và theo dõi danh sách sách trong thư viện.</p>
+                    <p>Thêm, chỉnh sửa, tìm kiếm và quản lý danh sách sách trong thư viện.</p>
                 </div>
 
                 <div class="admin">Xin chào, Thủ thư</div>
@@ -57,32 +70,26 @@
                 <div class="panel-head">
                     <div>
                         <h2>Danh sách sách</h2>
-                        <p class="panel-description">
-                            Dữ liệu được tải từ Backend.
-                        </p>
+                        <p class="panel-description">Dữ liệu được tải từ Backend.</p>
                     </div>
 
                     <div class="tools">
                         <input
-                            id="searchInput"
                             class="search"
+                            id="searchInput"
                             type="search"
                             placeholder="Tìm tên sách hoặc tác giả..."
                         >
 
-                        <button
-                            type="button"
-                            class="btn primary"
-                            id="openAddModal"
-                        >
+                        <button class="btn primary" id="addBookButton">
                             + Thêm sách
                         </button>
                     </div>
                 </div>
 
-                <div id="message" class="message" hidden></div>
+                <div id="messageBox" class="message" hidden></div>
 
-                <div class="table-wrap">
+                <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
@@ -92,17 +99,30 @@
                                 <th>Thể loại</th>
                                 <th>Tổng số bản</th>
                                 <th>Còn lại</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
 
                         <tbody id="bookTable">
                             <tr>
-                                <td colspan="6" class="empty">
-                                    Đang tải dữ liệu...
+                                <td colspan="7" class="empty">
+                                    Đang tải dữ liệu sách...
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="pagination">
+                    <button id="previousPage" class="btn secondary">
+                        Trang trước
+                    </button>
+
+                    <span id="pageInfo">Trang 1</span>
+
+                    <button id="nextPage" class="btn secondary">
+                        Trang sau
+                    </button>
                 </div>
             </section>
         </main>
@@ -110,112 +130,65 @@
 
     <div class="overlay" id="bookModal">
         <div class="modal">
-            <div class="modal-header">
-                <div>
-                    <h2>Thêm sách mới</h2>
-                    <p>Nhập thông tin sách cần thêm vào thư viện.</p>
-                </div>
-
-                <button
-                    type="button"
-                    class="close-btn"
-                    id="closeModal"
-                    aria-label="Đóng"
-                >
-                    ×
-                </button>
-            </div>
+            <h2 id="modalTitle">Thêm sách</h2>
 
             <form id="bookForm">
                 <div class="field">
-                    <label for="bookTitle">
-                        Tên sách <span>*</span>
-                    </label>
-
+                    <label for="bookName">Tên sách</label>
                     <input
-                        id="bookTitle"
+                        id="bookName"
                         type="text"
-                        maxlength="255"
                         required
+                        maxlength="255"
                         placeholder="Nhập tên sách"
                     >
                 </div>
 
                 <div class="field">
-                    <label for="bookAuthor">
-                        Tác giả <span>*</span>
-                    </label>
-
+                    <label for="bookAuthor">Tác giả</label>
                     <input
                         id="bookAuthor"
                         type="text"
-                        maxlength="150"
                         required
+                        maxlength="150"
                         placeholder="Nhập tên tác giả"
                     >
                 </div>
 
                 <div class="field">
-                    <label for="categoryId">
-                        Mã thể loại <span>*</span>
-                    </label>
-
-                    <input
-                        id="categoryId"
-                        type="number"
-                        min="1"
-                        step="1"
-                        required
-                        placeholder="Ví dụ: 1"
-                    >
-
-                    <small>
-                        Nhập ID thể loại đã tồn tại trong cơ sở dữ liệu.
-                    </small>
+                    <label for="bookCategory">Thể loại</label>
+                    <select id="bookCategory" required>
+                        <option value="">Đang tải thể loại...</option>
+                    </select>
                 </div>
 
                 <div class="field">
-                    <label for="bookTotal">
-                        Tổng số bản <span>*</span>
-                    </label>
-
+                    <label for="bookQuantity">Tổng số bản</label>
                     <input
-                        id="bookTotal"
+                        id="bookQuantity"
                         type="number"
                         min="1"
-                        step="1"
+                        required
                         value="1"
-                        required
                     >
                 </div>
 
                 <div class="field">
-                    <label for="imageUrl">Đường dẫn ảnh bìa</label>
-
+                    <label for="bookImage">Đường dẫn ảnh bìa (không bắt buộc)</label>
                     <input
-                        id="imageUrl"
+                        id="bookImage"
                         type="url"
                         maxlength="500"
-                        placeholder="https://..."
+                        placeholder="https://example.com/book.jpg"
                     >
                 </div>
 
-                <div class="form-error" id="formError" role="alert"></div>
-
                 <div class="modal-actions">
-                    <button
-                        type="button"
-                        class="btn secondary"
-                        id="cancelAdd"
-                    >
+                    <button type="button" class="btn secondary" id="cancelButton">
                         Hủy
                     </button>
 
-                    <button
-                        type="submit"
-                        class="btn primary"
-                        id="submitBook"
-                    >
+                    <button type="submit" class="btn primary" id="saveButton">
                         Lưu sách
                     </button>
                 </div>

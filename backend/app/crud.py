@@ -1,9 +1,9 @@
 import math
-<<<<<<< HEAD
+
 from sqlalchemy.orm import Session, joinedload
 from app.models import Book
 from app.schemas import BookResponse, PageResponse
-=======
+=====
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from app.models import Book, Category

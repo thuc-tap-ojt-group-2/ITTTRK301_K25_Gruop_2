@@ -9,8 +9,7 @@ body {
     color: #203331;
 }
 
-button,
-input {
+button, input, select {
     font: inherit;
 }
 
@@ -22,57 +21,99 @@ input {
 .sidebar {
     width: 245px;
     flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 25px 17px;
     background: #104c45;
     color: #fff;
+    padding: 25px 17px;
+    display: flex;
+    flex-direction: column;
 }
 
 .brand {
-    padding: 0 12px 7px;
     font-size: 21px;
     font-weight: 700;
+    padding: 0 12px 7px;
 }
 
 .brand small {
     display: block;
-    margin-top: 7px;
-    color: #c4dfd9;
     font-size: 12px;
     font-weight: 400;
+    color: #c4dfd9;
+    margin-top: 7px;
 }
 
 .menu-title {
-    margin: 30px 12px 10px;
-    color: #a9c9c2;
     font-size: 11px;
-    letter-spacing: 1px;
+    color: #a9c9c2;
+    margin: 30px 12px 10px;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .nav a {
     display: block;
-    margin: 4px 0;
+    color: #dcebe7;
+    text-decoration: none;
     padding: 12px;
     border-radius: 8px;
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.nav a.active,
+.nav a:hover {
     background: #23685e;
     color: #fff;
-    text-decoration: none;
-    font-size: 14px;
 }
 
 .user {
     margin-top: auto;
-    padding: 18px 12px 0;
     border-top: 1px solid #39766d;
+    padding: 18px 5px 0;
     font-size: 13px;
 }
 
-.user span {
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 7px;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #b33c70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.user-info strong {
     display: block;
-    margin-top: 5px;
+}
+
+.user-info span {
+    display: block;
     color: #c4dfd9;
+    margin-top: 5px;
+}
+
+.logout-btn {
+    margin-top: 13px;
+    padding: 9px 12px;
+    border: 1px solid #75a49a;
+    border-radius: 7px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.logout-btn:hover {
+    background: #23685e;
 }
 
 .main {
@@ -83,28 +124,26 @@ input {
 
 .topbar {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 15px;
+    align-items: center;
     margin-bottom: 28px;
 }
 
 .topbar h1 {
-    margin: 0;
     font-size: 25px;
+    margin: 0;
 }
 
-.topbar p,
-.panel-description {
-    margin: 7px 0 0;
+.topbar p {
     color: #73817e;
+    margin: 7px 0 0;
     font-size: 14px;
 }
 
 .admin {
+    background: #fff;
     padding: 10px 15px;
     border-radius: 9px;
-    background: #fff;
     font-size: 13px;
 }
 
@@ -117,8 +156,8 @@ input {
 
 .stat,
 .panel {
-    border-radius: 12px;
     background: #fff;
+    border-radius: 12px;
     box-shadow: 0 3px 14px #163b320c;
 }
 
@@ -134,9 +173,9 @@ input {
 
 .stat strong {
     display: block;
+    font-size: 27px;
     margin-top: 10px;
     color: #14594f;
-    font-size: 27px;
 }
 
 .panel {
@@ -145,25 +184,31 @@ input {
 
 .panel-head {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     gap: 15px;
     margin-bottom: 20px;
 }
 
 .panel-head h2 {
-    margin: 0;
     font-size: 18px;
+    margin: 0;
+}
+
+.panel-description {
+    font-size: 13px;
+    color: #82908c;
+    margin: 6px 0 0;
 }
 
 .tools {
     display: flex;
-    flex-wrap: wrap;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .search {
-    width: 270px;
+    width: 240px;
     max-width: 100%;
     padding: 10px 12px;
     border: 1px solid #dce5e2;
@@ -172,22 +217,22 @@ input {
 }
 
 .search:focus,
-.field input:focus {
+input:focus,
+select:focus {
     border-color: #318477;
-    box-shadow: 0 0 0 3px #31847718;
 }
 
 .btn {
-    padding: 10px 15px;
     border: 0;
     border-radius: 8px;
+    padding: 10px 15px;
     cursor: pointer;
     font-weight: 600;
 }
 
 .btn:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
-    opacity: .6;
 }
 
 .primary {
@@ -204,23 +249,28 @@ input {
     color: #285c54;
 }
 
-.table-wrap {
+.danger {
+    background: #fff0ee;
+    color: #bd4035;
+}
+
+.table-wrapper {
     width: 100%;
     overflow-x: auto;
 }
 
 table {
     width: 100%;
-    min-width: 720px;
     border-collapse: collapse;
 }
 
 th,
 td {
+    text-align: left;
     padding: 14px 12px;
     border-bottom: 1px solid #edf1ef;
-    text-align: left;
     font-size: 13px;
+    white-space: nowrap;
 }
 
 th {
@@ -233,57 +283,72 @@ td {
     color: #344541;
 }
 
-.book-title {
-    color: #203b36;
+.book-name {
     font-weight: 700;
+    color: #203b36;
 }
 
-.category-tag {
+.tag {
     display: inline-block;
-    padding: 5px 9px;
-    border-radius: 20px;
     background: #e8f4f0;
     color: #267264;
+    padding: 5px 9px;
+    border-radius: 20px;
     font-size: 11px;
 }
 
+.actions {
+    display: flex;
+    gap: 7px;
+}
+
+.actions button {
+    padding: 7px 10px;
+    font-size: 12px;
+}
+
 .empty {
+    text-align: center;
     padding: 30px;
     color: #87938f;
-    text-align: center;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #657570;
 }
 
 .message {
-    margin-bottom: 15px;
     padding: 11px 14px;
+    margin-bottom: 15px;
     border-radius: 8px;
     font-size: 13px;
 }
 
-.message.success {
-    background: #e8f4ec;
-    color: #23633d;
-}
-
 .message.error {
     background: #fff0ee;
-    color: #a83229;
+    color: #bd4035;
 }
 
-.message.info {
-    background: #edf4f2;
-    color: #285c54;
+.message.success {
+    background: #e8f4f0;
+    color: #267264;
 }
 
 .overlay {
     position: fixed;
     inset: 0;
-    z-index: 10;
+    background: #102c29a6;
     display: none;
     align-items: center;
     justify-content: center;
     padding: 18px;
-    background: #102c29a6;
+    z-index: 10;
 }
 
 .overlay.show {
@@ -292,40 +357,17 @@ td {
 
 .modal {
     width: 100%;
-    max-width: 490px;
-    max-height: 92vh;
+    max-width: 480px;
+    max-height: 90vh;
     overflow-y: auto;
-    padding: 24px;
-    border-radius: 13px;
     background: #fff;
+    border-radius: 13px;
+    padding: 24px;
 }
 
-.modal-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.modal-header h2 {
-    margin: 0;
+.modal h2 {
+    margin: 0 0 20px;
     font-size: 20px;
-}
-
-.modal-header p {
-    margin: 7px 0 0;
-    color: #75827f;
-    font-size: 13px;
-}
-
-.close-btn {
-    border: 0;
-    background: transparent;
-    color: #71807c;
-    cursor: pointer;
-    font-size: 27px;
-    line-height: 1;
 }
 
 .field {
@@ -334,16 +376,13 @@ td {
 
 .field label {
     display: block;
-    margin-bottom: 7px;
     font-size: 13px;
     font-weight: 600;
+    margin-bottom: 7px;
 }
 
-.field label span {
-    color: #c33b32;
-}
-
-.field input {
+.field input,
+.field select {
     width: 100%;
     padding: 11px;
     border: 1px solid #dce5e2;
@@ -351,25 +390,11 @@ td {
     outline: none;
 }
 
-.field small {
-    display: block;
-    margin-top: 6px;
-    color: #84918d;
-    font-size: 11px;
-}
-
-.form-error {
-    min-height: 18px;
-    margin-top: 8px;
-    color: #b83228;
-    font-size: 12px;
-}
-
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 9px;
-    margin-top: 18px;
+    margin-top: 20px;
 }
 
 @media (max-width: 850px) {
@@ -382,7 +407,11 @@ td {
     }
 
     .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .panel {
+        overflow: hidden;
     }
 }
 
@@ -396,9 +425,24 @@ td {
         padding: 15px;
     }
 
+    .brand {
+        padding-bottom: 12px;
+    }
+
     .menu-title,
     .user {
         display: none;
+    }
+
+    .nav {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+    }
+
+    .nav a {
+        white-space: nowrap;
+        margin: 0;
     }
 
     .main {
@@ -407,6 +451,7 @@ td {
 
     .topbar {
         align-items: flex-start;
+        gap: 10px;
     }
 
     .topbar h1 {
@@ -437,5 +482,9 @@ td {
     .search {
         flex: 1;
         width: auto;
+    }
+
+    table {
+        min-width: 720px;
     }
 }
