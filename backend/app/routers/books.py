@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas import PageResponse
+=======
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.schemas import PageResponse, BookResponse, BookCreateRequest
+>>>>>>> 00c7b4d7888699dcb88e483c81b1c431485778e4
 from app import crud
 
 router = APIRouter(prefix="/api/books", tags=["Books"])
@@ -12,4 +19,15 @@ def get_books(
     size: int = Query(10, ge=1, le=100, description="Số sách mỗi trang"),
     db: Session = Depends(get_db)
 ):
+<<<<<<< HEAD
     return crud.get_books_paginated(db=db, page=page, size=size)
+=======
+    return crud.get_books_paginated(db=db, page=page, size=size)
+
+@router.post("", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
+def add_book(
+    book_in: BookCreateRequest,
+    db: Session = Depends(get_db)
+):
+    return crud.create_book(db=db, book_in=book_in)
+>>>>>>> 00c7b4d7888699dcb88e483c81b1c431485778e4
