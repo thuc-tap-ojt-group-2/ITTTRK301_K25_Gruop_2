@@ -212,4 +212,17 @@ bookModal.addEventListener("click", function(event) {
     }
 });
 
+function logout() {
+    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+
+    if (!confirmed) {
+        return;
+    }
+
+    localStorage.removeItem("ptitUser");
+    sessionStorage.clear();
+
+    window.location.href = "login.html";
+}
+
 displayBooks();
