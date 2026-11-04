@@ -1,20 +1,41 @@
 import math
+from typing import Optional
 from fastapi import HTTPException, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
-from app.models import Book, Category
+from app.models import Book, Category, Loan
 from app.schemas import BookResponse, PageResponse, BookCreateRequest
 
-def get_books_paginated(db: Session, page: int = 1, size: int = 10) -> PageResponse:
+def get_books_paginated(
+    db: Session, 
+    page: int = 1, 
+    size: int = 10, 
+    keyword: Optional[str] = None
+) -> PageResponse:
     page = max(1, page)
     size = max(1, size)
     skip = (page - 1) * size
 
-    total_elements = db.query(Book).count()
+    # Base query có JOIN với category
+    query = db.query(Book).join(Book.category)
+
+    # BOOK-02: Tìm kiếm theo tên, tác giả, thể loại
+    # Collation utf8mb4_unicode_ci trong MySQL tự động tìm kiếm không phân biệt dấu và hoa thường
+    if keyword and keyword.strip():
+        kw = f"%{keyword.strip()}%"
+        query = query.filter(
+            or_(
+                Book.title.ilike(kw),
+                Book.author.ilike(kw),
+                Category.name.ilike(kw)
+            )
+        )
+
+    total_elements = query.count()
     total_pages = math.ceil(total_elements / size) if total_elements > 0 else 0
 
     books = (
-        db.query(Book)
-        .options(joinedload(Book.category))
+        query.options(joinedload(Book.category))
         .order_by(Book.id.desc())
         .offset(skip)
         .limit(size)
@@ -73,3 +94,28 @@ def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
         availableCopies=new_book.available_copies,
         imageUrl=new_book.image_url
     )
+
+# BOOK-04 & BR07: Xóa sách
+def delete_book(db: Session, book_id: int):
+    book = db.query(Book).filter(Book.id == book_id).first()
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "Không tìm thấy cuốn sách yêu cầu"}
+        )
+
+    # Ràng buộc BR07: Không xóa sách đang được mượn hoặc đang có đăng ký chờ duyệt
+    active_loans = (
+        db.query(Loan)
+        .filter(Loan.book_id == book_id, Loan.status.in_(["PENDING", "BORROWING"]))
+        .first()
+    )
+    if active_loans:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"message": "Không thể xóa sách đang được mượn hoặc có phiếu chờ duyệt"}
+        )
+
+    db.delete(book)
+    db.commit()
+    return {"message": "Xóa sách thành công"}
