@@ -1,0 +1,46 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.vscode/
+=======
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+>>>>>>> 8ab09ba831d0167bf7f36e45b242113fb583f2c9
+
+__pycache__/
+*.pyc
+.env
+.venv
+venv/
