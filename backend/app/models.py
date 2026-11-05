@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, BigInteger, String, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from app.database import Base
 
+
 class Category(Base):
     __tablename__ = "categories"
 
@@ -40,3 +41,14 @@ class Loan(Base):
     approved_by = Column(BigInteger, nullable=True)
 
     book = relationship("Book", back_populates="loans")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    email = Column(String(100), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    full_name = Column(String(100), nullable=True)
+    role = Column(String(20), nullable=False, default="USER")
