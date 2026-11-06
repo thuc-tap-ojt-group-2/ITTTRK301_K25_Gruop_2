@@ -1,4 +1,3 @@
-
 * {
     box-sizing: border-box;
 }
@@ -21,6 +20,7 @@ button, input, select {
 
 .sidebar {
     width: 245px;
+    flex-shrink: 0;
     background: #104c45;
     color: #fff;
     padding: 25px 17px;
@@ -69,14 +69,51 @@ button, input, select {
 .user {
     margin-top: auto;
     border-top: 1px solid #39766d;
-    padding: 18px 12px 0;
+    padding: 18px 5px 0;
     font-size: 13px;
 }
 
-.user span {
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 7px;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #b33c70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.user-info strong {
+    display: block;
+}
+
+.user-info span {
     display: block;
     color: #c4dfd9;
     margin-top: 5px;
+}
+
+.logout-btn {
+    margin-top: 13px;
+    padding: 9px 12px;
+    border: 1px solid #75a49a;
+    border-radius: 7px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.logout-btn:hover {
+    background: #23685e;
 }
 
 .main {
@@ -158,6 +195,12 @@ button, input, select {
     margin: 0;
 }
 
+.panel-description {
+    font-size: 13px;
+    color: #82908c;
+    margin: 6px 0 0;
+}
+
 .tools {
     display: flex;
     gap: 10px;
@@ -187,6 +230,11 @@ select:focus {
     font-weight: 600;
 }
 
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .primary {
     background: #17685d;
     color: #fff;
@@ -206,6 +254,11 @@ select:focus {
     color: #bd4035;
 }
 
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -217,6 +270,7 @@ td {
     padding: 14px 12px;
     border-bottom: 1px solid #edf1ef;
     font-size: 13px;
+    white-space: nowrap;
 }
 
 th {
@@ -259,6 +313,33 @@ td {
     color: #87938f;
 }
 
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #657570;
+}
+
+.message {
+    padding: 11px 14px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.message.error {
+    background: #fff0ee;
+    color: #bd4035;
+}
+
+.message.success {
+    background: #e8f4f0;
+    color: #267264;
+}
+
 .overlay {
     position: fixed;
     inset: 0;
@@ -267,6 +348,7 @@ td {
     align-items: center;
     justify-content: center;
     padding: 18px;
+    z-index: 10;
 }
 
 .overlay.show {
@@ -276,6 +358,8 @@ td {
 .modal {
     width: 100%;
     max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
     background: #fff;
     border-radius: 13px;
     padding: 24px;
@@ -313,12 +397,6 @@ td {
     margin-top: 20px;
 }
 
-.notice {
-    font-size: 12px;
-    color: #84918d;
-    margin-top: 15px;
-}
-
 @media (max-width: 850px) {
     .sidebar {
         width: 190px;
@@ -333,7 +411,7 @@ td {
     }
 
     .panel {
-        overflow-x: auto;
+        overflow: hidden;
     }
 }
 

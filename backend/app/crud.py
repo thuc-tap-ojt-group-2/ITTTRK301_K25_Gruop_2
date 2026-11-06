@@ -1,10 +1,13 @@
 import math
 from typing import Optional
+
 from fastapi import HTTPException, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
+
 from app.models import Book, Category, Loan
 from app.schemas import BookResponse, PageResponse, BookCreateRequest
+
 
 def get_books_paginated(
     db: Session, 
@@ -64,6 +67,7 @@ def get_books_paginated(
         last=(page >= total_pages) if total_pages > 0 else True
     )
 
+
 def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
     category = db.query(Category).filter(Category.id == book_in.categoryId).first()
     if not category:
@@ -94,6 +98,7 @@ def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
         availableCopies=new_book.available_copies,
         imageUrl=new_book.image_url
     )
+
 
 # BOOK-04 & BR07: Xóa sách
 def delete_book(db: Session, book_id: int):

@@ -1,11 +1,15 @@
+
 from typing import Optional
+
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.schemas import PageResponse, BookResponse, BookCreateRequest
+
 from app import crud
+from app.database import get_db
+from app.schemas import BookCreateRequest, BookResponse, PageResponse
 
 router = APIRouter(prefix="/api/books", tags=["Books"])
+
 
 @router.get("", response_model=PageResponse)
 def get_books(
@@ -22,21 +26,22 @@ def get_books(
 
 
 @router.post("", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
-def add_book(
+def create_book(
     book_in: BookCreateRequest,
     db: Session = Depends(get_db)
 ):
-    """BOOK-03: Thêm sách mới"""
+    """
+    Tạo mới sách
+    """
     return crud.create_book(db=db, book_in=book_in)
 
 
-@router.delete("/{book_id}")
+@router.delete("/{book_id}", status_code=status.HTTP_200_OK)
 def delete_book(
     book_id: int,
     db: Session = Depends(get_db)
 ):
     """
-    BOOK-04 & BR07: Xóa sách.
-    Từ chối (trả 409 Conflict) khi sách đang có người mượn hoặc có phiếu chờ duyệt.
+    BOOK-04 & BR07: Xóa sách
     """
     return crud.delete_book(db=db, book_id=book_id)
