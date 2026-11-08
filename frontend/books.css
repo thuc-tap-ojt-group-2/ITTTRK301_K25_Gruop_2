@@ -9,8 +9,14 @@ body {
     color: #203331;
 }
 
-button, input, select {
+button,
+input,
+select {
     font: inherit;
+}
+
+[hidden] {
+    display: none !important;
 }
 
 .layout {
@@ -252,6 +258,10 @@ select:focus {
 .danger {
     background: #fff0ee;
     color: #bd4035;
+}
+
+.danger:hover {
+    background: #ffded9;
 }
 
 .table-wrapper {
