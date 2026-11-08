@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models import Book, Category, Loan
 from app.schemas import BookResponse, PageResponse, BookCreateRequest
+from app.services import LogService
 
 
 def get_books_paginated(
@@ -19,11 +20,8 @@ def get_books_paginated(
     size = max(1, size)
     skip = (page - 1) * size
 
-    # Base query có JOIN với category
     query = db.query(Book).join(Book.category)
 
-    # BOOK-02: Tìm kiếm theo tên, tác giả, thể loại
-    # Collation utf8mb4_unicode_ci trong MySQL tự động tìm kiếm không phân biệt dấu và hoa thường
     if keyword and keyword.strip():
         kw = f"%{keyword.strip()}%"
         query = query.filter(
@@ -86,6 +84,14 @@ def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
     )
 
     db.add(new_book)
+    db.flush()
+
+    LogService.record(
+        db=db,
+        action="ADD_BOOK",
+        detail=f"Thêm sách mới: '{new_book.title}' (ID: {new_book.id}, Số bản: {new_book.total_copies})"
+    )
+
     db.commit()
     db.refresh(new_book)
 
@@ -100,7 +106,6 @@ def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
     )
 
 
-# BOOK-04 & BR07: Xóa sách
 def delete_book(db: Session, book_id: int):
     book = db.query(Book).filter(Book.id == book_id).first()
     if not book:
@@ -109,7 +114,6 @@ def delete_book(db: Session, book_id: int):
             detail={"message": "Không tìm thấy cuốn sách yêu cầu"}
         )
 
-    # Ràng buộc BR07: Không xóa sách đang được mượn hoặc đang có đăng ký chờ duyệt
     active_loans = (
         db.query(Loan)
         .filter(Loan.book_id == book_id, Loan.status.in_(["PENDING", "BORROWING"]))
@@ -121,6 +125,14 @@ def delete_book(db: Session, book_id: int):
             detail={"message": "Không thể xóa sách đang được mượn hoặc có phiếu chờ duyệt"}
         )
 
+    book_title = book.title
     db.delete(book)
+
+    LogService.record(
+        db=db,
+        action="DELETE_BOOK",
+        detail=f"Xóa sách: '{book_title}' (ID: {book_id})"
+    )
+
     db.commit()
     return {"message": "Xóa sách thành công"}

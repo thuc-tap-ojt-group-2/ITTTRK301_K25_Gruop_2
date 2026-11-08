@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, BigInteger, String, ForeignKey, Date
+from datetime import datetime
+from sqlalchemy import Column, Integer, BigInteger, String, Boolean, ForeignKey, Date, DateTime
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -41,6 +42,28 @@ class Loan(Base):
     approved_by = Column(BigInteger, nullable=True)
 
     book = relationship("Book", back_populates="loans")
+    fine = relationship("Fine", back_populates="loan", uselist=False)
+
+
+class Fine(Base):
+    __tablename__ = "fines"
+
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+    loan_id = Column(BigInteger, ForeignKey("loans.id"), unique=True, nullable=False)
+    amount = Column(Integer, nullable=False, default=0)
+    paid = Column(Boolean, nullable=False, default=False)
+
+    loan = relationship("Loan", back_populates="fine")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+    actor_id = Column(BigInteger, nullable=True)
+    action = Column(String(50), nullable=False)
+    detail = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 class User(Base):
