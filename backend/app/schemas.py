@@ -1,8 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from datetime import date,datetime 
 
 
-# ==================== BOOK SCHEMAS ====================
 class BookCreateRequest(BaseModel):
     title: str = Field(
         ..., min_length=1, max_length=255, description="Tên sách không được để trống"
@@ -38,7 +38,7 @@ class PageResponse(BaseModel):
     last: bool
 
 
-# ==================== AUTH SCHEMAS ====================
+
 class UserRegister(BaseModel):
     username: str = Field(
         ..., min_length=3, max_length=50, description="Tên đăng nhập từ 3 đến 50 ký tự"
@@ -57,3 +57,22 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     message: str
+
+# Gửi yêu cầu lên khi đăng ký mượn sách (BR01)
+class LoanCreateRequest(BaseModel):
+    book_id:int 
+    days:int = 14 
+
+class LoanResponse(BaseModel):
+    id:int 
+    user_id:int 
+    book_id:int
+    status:str 
+    days:int 
+    borrow_date:Optional[date] = None 
+    due_data : Optional[date] = None 
+    return_date:Optional[date] = None 
+    approved_by:Optional[int] = None 
+    created_at:datetime 
+    model_config = ConfigDict(from_attributes=True)
+    
