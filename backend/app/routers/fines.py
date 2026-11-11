@@ -1,11 +1,18 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app import crud, schemas
 from app.database import get_db
-from app import crud, schemas, models
 
 router = APIRouter(prefix="/api/fines", tags=["Fines"])
+
+@router.get("/mine", response_model=schemas.MyFineSummaryResponse)
+def get_my_fines(
+    user_id: int = Query(..., description="ID của độc giả đang đăng nhập"),
+    db: Session = Depends(get_db),
+):
+    return crud.get_user_fines(db=db, user_id=user_id)
 
 
 @router.get("/calculate/{loan_id}", response_model=schemas.FineCalculateResponse)
@@ -17,30 +24,11 @@ def calculate_fine(
     return crud.calculate_fine(db=db, loan_id=loan_id, fine_per_day=fine_per_day)
 
 
-@router.get("", response_model=List[schemas.FineResponse])
-def get_fines(
-    db: Session = Depends(get_db),
-):
-    fines = db.query(models.Fine).order_by(models.Fine.id.desc()).all()
-    return [
-        schemas.FineResponse(
-            id=f.id,
-            loanId=f.loan_id,
-            amount=float(f.amount),
-            paid=f.paid
-        )
-        for f in fines
-    ]
+@router.get("", response_model=List[schemas.FineDetailResponse])
+def get_all_fines(db: Session = Depends(get_db)):
+    return crud.get_all_fines_detailed(db=db)
 
 
-@router.put("/{fine_id}/pay")
+@router.put("/{fine_id}/paid")
 def pay_fine(fine_id: int, db: Session = Depends(get_db)):
-    fine = db.query(models.Fine).filter(models.Fine.id == fine_id).first()
-    if not fine:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Không tìm thấy khoản phạt"
-        )
-    fine.paid = True
-    db.commit()
-    return {"message": "Thanh toán phí phạt thành công", "fineId": fine.id}
+    return crud.mark_fine_as_paid(db=db, fine_id=fine_id)

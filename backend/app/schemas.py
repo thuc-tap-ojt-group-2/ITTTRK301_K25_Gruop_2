@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -106,3 +107,33 @@ class FineCalculateResponse(BaseModel):
     finePerDay: float
     totalFine: float
     status: str
+
+class FineDetailResponse(BaseModel):
+    id: Optional[int] = None
+    loanId: int
+    userId: int
+    username: str
+    bookTitle: str
+    overdueDays: int
+    amount: float
+    paid: bool
+    type: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReaderLoanHistoryResponse(BaseModel):
+    id: int
+    bookId: int
+    bookTitle: str
+    status: str
+    days: int
+    borrowDate: Optional[date] = None
+    dueDate: Optional[date] = None
+    returnDate: Optional[date] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class MyFineSummaryResponse(BaseModel):
+    totalUnpaid: float
+    fines: List[FineDetailResponse]
