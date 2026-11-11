@@ -2,7 +2,6 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
-# ==================== BOOK SCHEMAS ====================
 class BookCreateRequest(BaseModel):
     title: str = Field(
         ..., min_length=1, max_length=255, description="Tên sách không được để trống"
@@ -15,6 +14,14 @@ class BookCreateRequest(BaseModel):
     imageUrl: Optional[str] = Field(
         None, max_length=500, description="Đường dẫn ảnh bìa nếu có"
     )
+
+
+class BookUpdateRequest(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    author: Optional[str] = Field(None, min_length=1, max_length=150)
+    categoryId: Optional[int] = Field(None, gt=0)
+    total: Optional[int] = Field(None, ge=1)
+    imageUrl: Optional[str] = Field(None, max_length=500)
 
 
 class BookResponse(BaseModel):
@@ -38,7 +45,6 @@ class PageResponse(BaseModel):
     last: bool
 
 
-# ==================== AUTH SCHEMAS ====================
 class UserRegister(BaseModel):
     username: str = Field(
         ..., min_length=3, max_length=50, description="Tên đăng nhập từ 3 đến 50 ký tự"
@@ -57,13 +63,6 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     message: str
-
-class BookUpdateRequest(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    author: Optional[str] = Field(None, min_length=1, max_length=150)
-    categoryId: Optional[int] = Field(None, gt=0)
-    total: Optional[int] = Field(None, ge=1)
-    imageUrl: Optional[str] = Field(None, max_length=500)
 
 
 class CategoryCreateRequest(BaseModel):
