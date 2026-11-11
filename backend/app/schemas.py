@@ -57,3 +57,53 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     message: str
+
+class BookUpdateRequest(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    author: Optional[str] = Field(None, min_length=1, max_length=150)
+    categoryId: Optional[int] = Field(None, gt=0)
+    total: Optional[int] = Field(None, ge=1)
+    imageUrl: Optional[str] = Field(None, max_length=500)
+
+
+class CategoryCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+
+
+class CategoryUpdateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+
+
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReaderResponse(BaseModel):
+    id: int
+    username: str
+    fullName: Optional[str] = None
+    email: str
+    active: bool
+    borrowingCount: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FineResponse(BaseModel):
+    id: int
+    loanId: int
+    amount: float
+    paid: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FineCalculateResponse(BaseModel):
+    loanId: int
+    overdueDays: int
+    finePerDay: float
+    totalFine: float
+    status: str
