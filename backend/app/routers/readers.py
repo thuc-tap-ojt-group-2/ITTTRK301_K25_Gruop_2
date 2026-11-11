@@ -14,3 +14,7 @@ def get_readers(
     db: Session = Depends(get_db)
 ):
     return crud.get_readers(db, keyword)
+
+@router.get("/{id}/loans", response_model=List[schemas.ReaderLoanHistoryResponse])
+def get_reader_loans(id: int, db: Session = Depends(get_db)):
+    return crud.get_reader_loan_history(db=db, reader_id=id)

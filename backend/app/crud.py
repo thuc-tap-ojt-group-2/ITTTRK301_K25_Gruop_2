@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from app import models, schemas
-from app.models import Book, Category, Loan, User
+from app.models import Book, Category, Loan, User, Fine
 from app.schemas import BookResponse, PageResponse, BookCreateRequest
 from app.services import LogService
 
@@ -301,3 +301,164 @@ def calculate_fine(db: Session, loan_id: int, fine_per_day: float = 5000.0):
         totalFine=total_fine,
         status="OVERDUE" if overdue_days > 0 else "ON_TIME",
     )
+
+def get_all_fines_detailed(db: Session):
+    results = []
+
+    finalized_fines = (
+        db.query(Fine, Loan, User, Book)
+        .join(Loan, Fine.loan_id == Loan.id)
+        .join(User, Loan.user_id == User.id)
+        .join(Book, Loan.book_id == Book.id)
+        .all()
+    )
+    for fine, loan, user, book in finalized_fines:
+        overdue_days = 0
+        if loan.due_date and loan.return_date and loan.return_date > loan.due_date:
+            overdue_days = (loan.return_date - loan.due_date).days
+        results.append(
+            schemas.FineDetailResponse(
+                id=fine.id,
+                loanId=loan.id,
+                userId=user.id,
+                username=user.username,
+                bookTitle=book.title,
+                overdueDays=overdue_days,
+                amount=float(fine.amount),
+                paid=fine.paid,
+                type="FINALIZED",
+            )
+        )
+
+    today = date.today()
+    provisional_loans = (
+        db.query(Loan, User, Book)
+        .join(User, Loan.user_id == User.id)
+        .join(Book, Loan.book_id == Book.id)
+        .filter(Loan.status == "BORROWING", Loan.due_date < today)
+        .all()
+    )
+    for loan, user, book in provisional_loans:
+        overdue_days = (today - loan.due_date).days
+        amount = overdue_days * 5000
+        results.append(
+            schemas.FineDetailResponse(
+                id=None,
+                loanId=loan.id,
+                userId=user.id,
+                username=user.username,
+                bookTitle=book.title,
+                overdueDays=overdue_days,
+                amount=float(amount),
+                paid=False,
+                type="PROVISIONAL",
+            )
+        )
+    return results
+
+
+def mark_fine_as_paid(db: Session, fine_id: int):
+    fine = db.query(Fine).filter(Fine.id == fine_id).first()
+    if not fine:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "Không tìm thấy khoản phạt yêu cầu"},
+        )
+    fine.paid = True
+    LogService.record(
+        db=db,
+        action="COLLECT_FINE",
+        detail=f"Thu tiền phạt ID {fine_id} số tiền {fine.amount}đ cho phiếu mượn {fine.loan_id}",
+    )
+    db.commit()
+    return {"message": "Đánh dấu thu tiền phạt thành công", "fineId": fine.id}
+
+
+def get_reader_loan_history(db: Session, reader_id: int):
+    reader = db.query(User).filter(User.id == reader_id).first()
+    if not reader:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "Không tìm thấy độc giả yêu cầu"},
+        )
+
+    loans = (
+        db.query(Loan, Book)
+        .join(Book, Loan.book_id == Book.id)
+        .filter(Loan.user_id == reader_id)
+        .order_by(Loan.id.desc())
+        .all()
+    )
+
+    return [
+        schemas.ReaderLoanHistoryResponse(
+            id=loan.id,
+            bookId=book.id,
+            bookTitle=book.title,
+            status=loan.status,
+            days=loan.days,
+            borrowDate=loan.borrow_date,
+            dueDate=loan.due_date,
+            returnDate=loan.return_date,
+        )
+        for loan, book in loans
+    ]
+
+def get_user_fines(db: Session, user_id: int):
+    results = []
+    total_unpaid = 0.0
+
+    finalized_fines = (
+        db.query(Fine, Loan, Book)
+        .join(Loan, Fine.loan_id == Loan.id)
+        .join(Book, Loan.book_id == Book.id)
+        .filter(Loan.user_id == user_id)
+        .all()
+    )
+    for fine, loan, book in finalized_fines:
+        overdue_days = 0
+        if loan.due_date and loan.return_date and loan.return_date > loan.due_date:
+            overdue_days = (loan.return_date - loan.due_date).days
+        amount = float(fine.amount)
+        if not fine.paid:
+            total_unpaid += amount
+        results.append(
+            schemas.FineDetailResponse(
+                id=fine.id,
+                loanId=loan.id,
+                userId=user_id,
+                username="",
+                bookTitle=book.title,
+                overdueDays=overdue_days,
+                amount=amount,
+                paid=fine.paid,
+                type="FINALIZED",
+            )
+        )
+
+    today = date.today()
+    provisional_loans = (
+        db.query(Loan, Book)
+        .join(Book, Loan.book_id == Book.id)
+        .filter(Loan.user_id == user_id, Loan.status == "BORROWING", Loan.due_date < today)
+        .all()
+    )
+    for loan, book in provisional_loans:
+        overdue_days = (today - loan.due_date).days
+        amount = float(overdue_days * 5000)
+        total_unpaid += amount
+        results.append(
+            schemas.FineDetailResponse(
+                id=None,
+                loanId=loan.id,
+                userId=user_id,
+                username="",
+                bookTitle=book.title,
+                overdueDays=overdue_days,
+                amount=amount,
+                paid=False,
+                type="PROVISIONAL",
+            )
+        )
+
+    return schemas.MyFineSummaryResponse(totalUnpaid=total_unpaid, fines=results)
