@@ -1,12 +1,11 @@
-
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app import crud
+from app import crud, schemas
 from app.database import get_db
-from app.schemas import BookCreateRequest, BookResponse, PageResponse
+from app.schemas import BookCreateRequest, BookResponse, BookUpdateRequest, PageResponse
 
 router = APIRouter(prefix="/api/books", tags=["Books"])
 
@@ -18,11 +17,12 @@ def get_books(
     keyword: Optional[str] = Query(None, description="Từ khóa tìm kiếm theo tên, tác giả, thể loại"),
     db: Session = Depends(get_db)
 ):
-    """
-    BOOK-01: Phân trang sách
-    BOOK-02: Tìm kiếm theo tên, tác giả, thể loại (không phân biệt hoa thường, dấu tiếng Việt)
-    """
     return crud.get_books_paginated(db=db, page=page, size=size, keyword=keyword)
+
+
+@router.get("/categories", response_model=List[schemas.CategoryResponse])
+def get_categories_compat(db: Session = Depends(get_db)):
+    return crud.get_categories(db)
 
 
 @router.post("", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
@@ -30,10 +30,16 @@ def create_book(
     book_in: BookCreateRequest,
     db: Session = Depends(get_db)
 ):
-    """
-    Tạo mới sách
-    """
     return crud.create_book(db=db, book_in=book_in)
+
+
+@router.put("/{book_id}", response_model=BookResponse)
+def update_book(
+    book_id: int,
+    book_in: BookUpdateRequest,
+    db: Session = Depends(get_db)
+):
+    return crud.update_book(db=db, book_id=book_id, book_in=book_in)
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_200_OK)
@@ -41,7 +47,4 @@ def delete_book(
     book_id: int,
     db: Session = Depends(get_db)
 ):
-    """
-    BOOK-04 & BR07: Xóa sách
-    """
     return crud.delete_book(db=db, book_id=book_id)
