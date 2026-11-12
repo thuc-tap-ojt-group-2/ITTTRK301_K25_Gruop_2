@@ -1,4 +1,3 @@
-
 const LOAN_PAGE_SIZE = 10;
 
 let allLoans = [];
@@ -134,6 +133,7 @@ function updateStatistics() {
 
 function getFilteredLoans() {
     const keyword = searchInput.value.trim().toLowerCase();
+    const selectedStatus = statusFilter.value.toUpperCase();
 
     return allLoans.filter(loan => {
         const loanId = String(
@@ -143,11 +143,18 @@ function getFilteredLoans() {
         const readerName = getReaderName(loan).toLowerCase();
         const readerCode = getReaderCode(loan).toLowerCase();
         const bookName = getBookName(loan).toLowerCase();
+        const status = String(loan.status || "").toUpperCase();
 
-        return loanId.includes(keyword)
+        const matchesKeyword =
+            loanId.includes(keyword)
             || readerName.includes(keyword)
             || readerCode.includes(keyword)
             || bookName.includes(keyword);
+
+        const matchesStatus =
+            !selectedStatus || status === selectedStatus;
+
+        return matchesKeyword && matchesStatus;
     });
 }
 
@@ -176,7 +183,7 @@ function displayLoans() {
     if (pageLoans.length === 0) {
         loanTableBody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty">
+                <td colspan="7" class="empty">
                     Không tìm thấy đăng ký mượn phù hợp.
                 </td>
             </tr>
@@ -208,6 +215,29 @@ function displayLoans() {
                             ${escapeHTML(getStatusText(status))}
                         </span>
                     </td>
+                    <td>
+                        ${status === "PENDING" ? `
+                            <div class="loan-actions">
+                                <button
+                                    type="button"
+                                    class="btn-approve"
+                                    data-action="approve"
+                                    data-id="${escapeHTML(id)}"
+                                >
+                                    Duyệt
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn-reject"
+                                    data-action="reject"
+                                    data-id="${escapeHTML(id)}"
+                                >
+                                    Từ chối
+                                </button>
+                            </div>
+                        ` : "—"}
+                    </td>
                 </tr>
             `;
         }).join("");
@@ -234,15 +264,14 @@ async function loadLoans() {
 
     loanTableBody.innerHTML = `
         <tr>
-            <td colspan="6" class="empty">
+            <td colspan="7" class="empty">
                 Đang tải danh sách đăng ký...
             </td>
         </tr>
     `;
 
     try {
-        const selectedStatus = statusFilter.value;
-        const loans = await getLoans(selectedStatus);
+        const loans = await getLoans();
 
         if (Array.isArray(loans)) {
             allLoans = loans;
@@ -268,7 +297,7 @@ async function loadLoans() {
 }
 
 function updateUserInformation() {
-    const user = getCurrentUser();
+    const user = getCurrentUser() || {};
 
     const displayName =
         user.full_name
@@ -279,10 +308,13 @@ function updateUserInformation() {
 
     document.getElementById("userName").textContent = displayName;
     document.getElementById("userAvatar").textContent =
-        displayName.charAt(0).toUpperCase();
+        String(displayName).trim().charAt(0).toUpperCase() || "U";
 }
 
-statusFilter.addEventListener("change", loadLoans);
+statusFilter.addEventListener("change", () => {
+    currentPage = 1;
+    displayLoans();
+});
 
 searchInput.addEventListener("input", () => {
     currentPage = 1;
@@ -293,7 +325,8 @@ document.getElementById("clearFilterButton")
     .addEventListener("click", () => {
         statusFilter.value = "";
         searchInput.value = "";
-        loadLoans();
+        currentPage = 1;
+        displayLoans();
     });
 
 document.getElementById("refreshButton")
@@ -322,6 +355,56 @@ document.getElementById("logoutButton")
     .addEventListener("click", () => {
         redirectToLogin();
     });
+
+loanTableBody.addEventListener("click", async function(event) {
+    const button = event.target.closest("button[data-action]");
+
+    if (!button) {
+        return;
+    }
+
+    const loanId = button.dataset.id;
+    const action = button.dataset.action;
+
+    const loan = allLoans.find(
+        item => String(item.id || item.loan_id) === String(loanId)
+    );
+
+    if (!loan || String(loan.status).toUpperCase() !== "PENDING") {
+        return;
+    }
+
+    const actionText = action === "approve" ? "duyệt" : "từ chối";
+
+    const confirmed = confirm(
+        `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        if (action === "approve" && typeof approveLoanAPI === "function") {
+            await approveLoanAPI(loanId);
+        } else if (action === "reject" && typeof rejectLoanAPI === "function") {
+            await rejectLoanAPI(loanId);
+        } else {
+            throw new Error(
+                "Backend chưa cung cấp API duyệt hoặc từ chối phiếu mượn."
+            );
+        }
+
+        showMessage(`Đã ${actionText} phiếu #${loanId}.`);
+        await loadLoans();
+    } catch (error) {
+        showMessage(error.message);
+    } finally {
+        button.disabled = false;
+    }
+});
 
 function initializeLoanPage() {
     if (typeof isAuthorized !== "undefined" && !isAuthorized) {

@@ -1,4 +1,3 @@
-
 :root {
     --loan-bg: #f5f8f6;
     --loan-surface: #ffffff;
@@ -427,6 +426,47 @@ tbody tr:hover {
     gap: 7px;
 }
 
+.loan-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-approve {
+    padding: 7px 11px;
+    border: 0;
+    border-radius: 7px;
+    background: #e4f5e9;
+    color: #187044;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-reject {
+    padding: 7px 11px;
+    border: 0;
+    border-radius: 7px;
+    background: #ffebea;
+    color: #b42318;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-approve:hover,
+.btn-reject:hover {
+    filter: brightness(.95);
+}
+
+.btn-approve:disabled,
+.btn-reject:disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+
 @media (max-width: 900px) {
     .statistics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -507,5 +547,10 @@ tbody tr:hover {
     .pagination {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .loan-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
