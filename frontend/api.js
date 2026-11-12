@@ -117,3 +117,10 @@ async function deleteBookAPI(id) {
 function getCurrentUser() {
     return JSON.parse(localStorage.getItem("user") || "{}");
 }
+async function getLoans(status = "") {
+    const query = status
+        ? `?status=${encodeURIComponent(status)}`
+        : "";
+
+    return await apiRequest(`/api/loans/${query}`);
+}
