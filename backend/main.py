@@ -1,7 +1,7 @@
 ﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import books, auth, categories, readers, fines
+from app.routers import books, auth, categories, readers, fines, stats
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,6 +24,7 @@ app.include_router(auth.router)
 app.include_router(categories.router)
 app.include_router(readers.router)
 app.include_router(fines.router)
+app.include_router(stats.router)
 
 
 @app.get("/")
