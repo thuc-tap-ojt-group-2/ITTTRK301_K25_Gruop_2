@@ -4,33 +4,21 @@ const API_BASE_URL = (
 ).replace(/\/$/, "");
 
 async function apiRequest(path, options = {}) {
-    const token = localStorage.getItem("access_token") ||
-        localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
 
     const headers = {
+        "Content-Type": "application/json",
         ...(options.headers || {})
     };
-
-    if (!(options.body instanceof FormData)) {
-        headers["Content-Type"] = "application/json";
-    }
 
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    let response;
-
-    try {
-        response = await fetch(`${API_BASE_URL}${path}`, {
-            ...options,
-            headers
-        });
-    } catch {
-        throw new Error(
-            "Không thể kết nối Backend. Kiểm tra máy chủ FastAPI."
-        );
-    }
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers
+    });
 
     const responseText = await response.text();
 
@@ -42,16 +30,6 @@ async function apiRequest(path, options = {}) {
         } catch {
             data = responseText;
         }
-    }
-
-    if (response.status === 401) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-        window.location.replace("index.html");
-
-        throw new Error("Phiên đăng nhập đã hết hạn.");
     }
 
     if (!response.ok) {
@@ -82,15 +60,18 @@ async function apiRequest(path, options = {}) {
     return data;
 }
 
+
 async function getBooks(page = 1, size = 100) {
     return await apiRequest(
         `/api/books?page=${page}&size=${size}`
     );
 }
 
+
 async function getCategories() {
     return await apiRequest("/api/books/categories");
 }
+
 
 async function createBook(book) {
     return await apiRequest("/api/books", {
@@ -99,12 +80,14 @@ async function createBook(book) {
     });
 }
 
+
 async function updateBook(id, book) {
     return await apiRequest(`/api/books/${id}`, {
         method: "PUT",
         body: JSON.stringify(book)
     });
 }
+
 
 async function deleteBookAPI(id) {
     return await apiRequest(`/api/books/${id}`, {

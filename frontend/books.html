@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý sách | Thư viện PTIT</title>
+    <link rel="icon" href="assets/images/logo.png">
+    <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="books.css">
 </head>
-<body data-roles="ADMIN">
+<body>
     <div class="layout">
         <aside class="sidebar">
             <div class="brand">
@@ -17,11 +19,12 @@
             <div class="menu-title">Quản lý thư viện</div>
 
             <nav class="nav">
-                <a href="#" data-roles="ADMIN">Tổng quan</a>
-                <a href="books.html" class="active" data-roles="ADMIN">Quản lý sách</a>
-                <a href="#" data-roles="ADMIN">Quản lý mượn trả</a>
-                <a href="#" data-roles="ADMIN">Quản lý tài khoản</a>
-                <a href="#" data-roles="ADMIN">Thống kê</a>
+                <a href="index.html">Trang chủ</a>
+                <a href="#">Tổng quan</a>
+                <a href="#" class="active">Quản lý sách</a>
+                <a href="#">Quản lý mượn trả</a>
+                <a href="#">Quản lý tài khoản</a>
+                <a href="#">Thống kê</a>
             </nav>
 
             <div class="user">
@@ -43,14 +46,10 @@
             <header class="topbar">
                 <div>
                     <h1>Quản lý sách</h1>
-                    <p>
-                        Thêm, chỉnh sửa, tìm kiếm và quản lý danh sách sách trong thư viện.
-                    </p>
+                    <p>Thêm, chỉnh sửa, tìm kiếm và quản lý danh sách sách trong thư viện.</p>
                 </div>
 
-                <div class="admin" id="welcomeMessage">
-                    Xin chào, Thủ thư
-                </div>
+                <div class="admin" id="welcomeMessage">Xin chào, Thủ thư</div>
             </header>
 
             <section class="stats">
@@ -74,9 +73,7 @@
                 <div class="panel-head">
                     <div>
                         <h2>Danh sách sách</h2>
-                        <p class="panel-description">
-                            Dữ liệu được tải từ Backend.
-                        </p>
+                        <p class="panel-description">Dữ liệu được tải từ Backend.</p>
                     </div>
 
                     <div class="tools">
@@ -180,9 +177,7 @@
                 </div>
 
                 <div class="field">
-                    <label for="bookImage">
-                        Đường dẫn ảnh bìa (không bắt buộc)
-                    </label>
+                    <label for="bookImage">Đường dẫn ảnh bìa (không bắt buộc)</label>
                     <input
                         id="bookImage"
                         type="url"
@@ -192,19 +187,11 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button
-                        type="button"
-                        class="btn secondary"
-                        id="cancelButton"
-                    >
+                    <button type="button" class="btn secondary" id="cancelButton">
                         Hủy
                     </button>
 
-                    <button
-                        type="submit"
-                        class="btn primary"
-                        id="saveButton"
-                    >
+                    <button type="submit" class="btn primary" id="saveButton">
                         Lưu sách
                     </button>
                 </div>
@@ -212,8 +199,8 @@
         </div>
     </div>
 
-    <script src="auth.js"></script>
-    <script src="api.js"></script>
+    <script src="app.js"></script>
+    <script src="assets/js/ui.js"></script>
     <script src="books.js"></script>
 </body>
 </html>
