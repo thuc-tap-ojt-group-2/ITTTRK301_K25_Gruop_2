@@ -148,6 +148,20 @@ PTIT.loadStats(function (stats) {
     startTicker();
 });
 
+<<<<<<< HEAD
+document.getElementById('registerForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  if (pass.length < 6) {
+    regError.textContent = 'Mật khẩu cần có ít nhất 6 ký tự.';
+  } else if (pass !== pass2) {
+    regError.textContent = 'Mật khẩu nhập lại chưa khớp.';
+  } else {
+    regError.textContent = '';
+  }
+});
+=======
 
 /* ---------- 5. Biểu mẫu liên hệ (chưa có API nên chỉ báo đã nhận) ---------- */
 document.getElementById("contactForm").addEventListener("submit", function (event) {
@@ -174,3 +188,4 @@ document.getElementById("contactForm").addEventListener("submit", function (even
         event.target.reset();
     }, 900);
 });
+>>>>>>> origin/main
