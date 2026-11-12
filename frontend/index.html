@@ -4,15 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Thư viện PTIT</title>
+  <link rel="icon" href="assets/images/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/common.css">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
   <header class="navbar">
-    <a href="#" class="brand">
+    <a href="#home" class="brand">
       <img class="brand-logo" src="assets/images/logo.png" alt="Logo PTIT">
       <span class="brand-text">
         <small>Học viện Công nghệ Bưu chính Viễn thông</small>
@@ -21,95 +23,139 @@
     </a>
 
     <nav class="nav-links" aria-label="Điều hướng chính">
-      <a href="#" class="active">Trang chủ</a>
-      <a href="#">Giới thiệu</a>
-      <a href="#">Nội dung</a>
-      <a href="#">Nội quy</a>
-      <a href="#">FAQs</a>
-      <a href="#">Liên hệ</a>
+      <a href="#home" class="active">Trang chủ</a>
+      <a href="#about">Giới thiệu</a>
+      <a href="#content">Nội dung</a>
+      <a href="#rules">Nội quy</a>
+      <a href="#faq">FAQs</a>
+      <a href="#contact">Liên hệ</a>
     </nav>
 
-    <div class="nav-actions">
-      <button class="btn btn-outline" data-open="login">Đăng nhập</button>
-      <button class="btn btn-primary" data-open="register">Đăng ký</button>
+    <div class="nav-actions" id="navActions">
+      <a class="btn btn-outline" href="login.html" data-go="forward">Đăng nhập</a>
+      <a class="btn btn-primary" href="register.html" data-go="forward">Đăng ký</a>
     </div>
   </header>
 
-  <div class="accent-line"></div>
-
-  <!-- Modal dùng chung cho Đăng nhập / Đăng ký -->
-  <div class="overlay" id="overlay" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button class="close-btn" id="closeBtn" aria-label="Đóng">&times;</button>
-
-      <!-- ĐĂNG NHẬP -->
-      <section class="panel" id="panel-login">
-        <h2 id="modal-title">Chào mừng bạn trở lại</h2>
-        <p class="sub">Đăng nhập để tra cứu và quản lý sách của bạn.</p>
-
-        <div class="switch">
-          <button type="button" class="tab active" data-switch="login">Đăng nhập</button>
-          <button type="button" class="tab" data-switch="register">Đăng ký</button>
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-in">
+        <span class="badge">Học viện Công nghệ Bưu chính Viễn thông</span>
+        <h1>Đọc hôm nay, dẫn đầu ngày mai.</h1>
+        <p>Tra cứu sách, đăng ký mượn trực tuyến và theo dõi hạn trả ngay trên điện thoại hoặc máy tính.</p>
+        <div class="hero-cta">
+          <a class="btn btn-gold" href="register.html" data-go="forward">Đăng ký tài khoản</a>
+          <a class="btn btn-ghost" href="#books">Xem sách mới</a>
         </div>
+        <div class="hstats">
+          <div><strong data-stat="titles">0</strong><span>Đầu sách</span></div>
+          <div><strong data-stat="copies">0</strong><span>Bản sách</span></div>
+          <div><strong data-stat="categories">0</strong><span>Thể loại</span></div>
+        </div>
+      </div>
+    </section>
 
-        <form id="loginForm" novalidate>
-          <label for="loginEmail">Email</label>
-          <input type="email" id="loginEmail" autocomplete="email" required>
+    <section class="sec" id="about">
+      <span class="eb">Về chúng tôi</span>
+      <h2>Giới thiệu</h2>
+      <div class="about reveal">
+        <div>
+          <p>Thư viện PTIT là hệ thống quản lý thư viện trực tuyến dành cho sinh viên và giảng viên Học viện Công nghệ Bưu chính Viễn thông. Bạn có thể tra cứu tài liệu, đăng ký mượn, đặt trước khi sách hết bản và theo dõi hạn trả.</p>
+          <p>Thủ thư xử lý đăng ký nhanh và chính xác hơn, còn quản trị viên nắm toàn bộ số liệu và nhật ký giao dịch của thư viện.</p>
+        </div>
+        <div class="about-art"><img src="assets/images/logo.png" alt="Logo PTIT"></div>
+      </div>
+      <div class="grid">
+        <div class="card reveal" style="--i:0"><span class="no">1</span><h3>Sứ mệnh</h3><p>Cung cấp nguồn tài liệu học tập và nghiên cứu, hỗ trợ sinh viên học tập suốt đời.</p></div>
+        <div class="card reveal" style="--i:1"><span class="no">2</span><h3>Dịch vụ</h3><p>Tra cứu, mượn trả, đặt trước và theo dõi tiền phạt ngay trên web.</p></div>
+        <div class="card reveal" style="--i:2"><span class="no">3</span><h3>Đối tượng phục vụ</h3><p>Sinh viên, học viên và giảng viên của Học viện. Mỗi người dùng một tài khoản duy nhất.</p></div>
+      </div>
+    </section>
 
-          <label for="loginPassword">Mật khẩu</label>
-          <input type="password" id="loginPassword" autocomplete="current-password" required>
+    <section class="sec" id="books">
+      <span class="eb">Thư viện số</span>
+      <h2>Sách mới cập nhật</h2>
+      <div class="ticker reveal"><div class="track" id="track"></div></div>
+      <p class="note" id="tickerNote" hidden></p>
+    </section>
 
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Đăng nhập</button>
-          </div>
+    <section class="sec" id="content">
+      <span class="eb">Tính năng</span>
+      <h2>Nội dung</h2>
+      <div class="grid">
+        <div class="card reveal" style="--i:0"><span class="no">1</span><h3>Tra cứu thông minh</h3><p>Tìm theo tên, tác giả, thể loại; gõ không dấu vẫn ra kết quả và xem số bản còn lại.</p></div>
+        <div class="card reveal" style="--i:1"><span class="no">2</span><h3>Đăng ký mượn trực tuyến</h3><p>Gửi đăng ký ngay trên web, thủ thư duyệt; hủy được khi phiếu còn chờ duyệt.</p></div>
+        <div class="card reveal" style="--i:2"><span class="no">3</span><h3>Đặt trước khi hết bản</h3><p>Sách hết bản thì vào hàng chờ, có bản trả về sẽ được giữ chỗ 48 giờ.</p></div>
+        <div class="card reveal" style="--i:3"><span class="no">4</span><h3>Hạn trả và tiền phạt</h3><p>Xem phiếu của tôi, hạn trả và tiền phạt tạm tính theo từng ngày trễ.</p></div>
+        <div class="card reveal" style="--i:4"><span class="no">5</span><h3>Quản lý sách, thể loại</h3><p>Thủ thư thêm, sửa, xóa sách và thể loại, theo dõi độc giả.</p></div>
+        <div class="card reveal" style="--i:5"><span class="no">6</span><h3>Quản trị và thống kê</h3><p>Phân quyền ba vai trò, thống kê mượn trả và nhật ký mọi giao dịch.</p></div>
+      </div>
+    </section>
+
+    <section class="sec rules" id="rules">
+      <span class="eb">Quy định</span>
+      <h2>Nội quy thư viện</h2>
+      <p class="lead">Sáu điều ngắn gọn để việc mượn sách luôn nhẹ nhàng và công bằng với tất cả mọi người.</p>
+      <div class="grid">
+        <div class="card reveal" style="--i:0"><span class="no">1</span><h3>3 cuốn cùng lúc</h3><p>Mỗi bạn giữ tối đa 3 phiếu mượn, tính cả phiếu đang chờ duyệt.</p></div>
+        <div class="card reveal" style="--i:1"><span class="no">2</span><h3>7, 14 hoặc 30 ngày</h3><p>Chọn thời hạn mượn phù hợp khi đăng ký; hạn trả tính từ ngày thủ thư duyệt.</p></div>
+        <div class="card reveal" style="--i:2"><span class="no">3</span><h3>5.000đ mỗi ngày trễ</h3><p>Trả trễ sẽ bị phạt theo ngày và chưa mượn thêm được cho tới khi xử lý xong.</p></div>
+        <div class="card reveal" style="--i:3"><span class="no">4</span><h3>Hết sách? Cứ đặt trước</h3><p>Vào hàng chờ; có bản trả về, người đặt sớm nhất được giữ chỗ 48 giờ.</p></div>
+        <div class="card reveal" style="--i:4"><span class="no">5</span><h3>Trả sách tại quầy</h3><p>Thủ thư nhận sách trả và chốt tiền phạt (nếu có) ngay khi nhận.</p></div>
+        <div class="card reveal" style="--i:5"><span class="no">6</span><h3>Một người, một tài khoản</h3><p>Giữ mật khẩu cho riêng mình. Tài khoản vi phạm quy định có thể bị quản trị viên khóa.</p></div>
+      </div>
+    </section>
+
+    <section class="sec" id="faq">
+      <span class="eb">Hỏi đáp</span>
+      <h2>Câu hỏi thường gặp</h2>
+      <div class="faq">
+        <details class="reveal"><summary>Mình mượn sách như thế nào?</summary><p>Đăng ký tài khoản bằng mã sinh viên, chọn cuốn bạn thích, bấm Đăng ký mượn rồi chờ thủ thư duyệt là xong.</p></details>
+        <details class="reveal"><summary>Bao giờ sách chính thức là của mình?</summary><p>Ngay khi thủ thư duyệt, phiếu chuyển sang Đang mượn và hạn trả được tính từ ngày duyệt.</p></details>
+        <details class="reveal"><summary>Cuốn mình thích đã hết bản?</summary><p>Đừng lo, hãy đặt trước. Có bản trả về, bạn sẽ được giữ chỗ trong 48 giờ.</p></details>
+        <details class="reveal"><summary>Tiền phạt tính ra sao?</summary><p>Mỗi ngày trả trễ là 5.000đ, được chốt khi thủ thư nhận sách trả.</p></details>
+        <details class="reveal"><summary>Quên mật khẩu thì sao?</summary><p>Hệ thống chưa có chức năng khôi phục mật khẩu. Hãy nhờ thủ thư hoặc quản trị viên hỗ trợ; khi đã đăng nhập bạn có thể đổi mật khẩu.</p></details>
+      </div>
+    </section>
+
+    <section class="sec" id="contact">
+      <span class="eb">Cần giúp đỡ?</span>
+      <h2>Thủ thư luôn sẵn sàng đồng hành cùng bạn</h2>
+      <div class="contact">
+        <div class="info reveal">
+          <div><b>Cơ sở Nguyễn Đình Chiểu:</b> 11 Nguyễn Đình Chiểu, Quận 1, TP. Hồ Chí Minh</div>
+          <div><b>Cơ sở Man Thiện:</b> 97 Man Thiện, TP. Hồ Chí Minh (Thủ Đức)</div>
+          <div>Email: thuvien@ptit.edu.vn</div>
+          <div>Giờ mở cửa: Thứ Hai đến Thứ Sáu, 7:30 – 17:00</div>
+        </div>
+        <form class="cform reveal" id="contactForm" novalidate>
+          <label for="cName">Họ và tên</label><input id="cName" autocomplete="name">
+          <label for="cEmail">Email</label><input id="cEmail" type="email" autocomplete="email">
+          <label for="cMsg">Nội dung</label><textarea id="cMsg" rows="4"></textarea>
+          <p class="ok" id="contactOk" role="status"></p>
+          <button class="btn btn-primary" type="submit" id="contactBtn">Gửi liên hệ</button>
         </form>
+      </div>
+    </section>
+  </main>
 
-        <div class="demo">
-          <span>Tài khoản thử nghiệm:</span>
-          <div class="demo-list">
-            <button type="button" class="chip" data-email="admin@ptit.edu.vn" data-pass="123456">Quản trị viên</button>
-            <button type="button" class="chip" data-email="thuthu@ptit.edu.vn" data-pass="123456">Thủ thư</button>
-            <button type="button" class="chip" data-email="docgia@ptit.edu.vn" data-pass="123456">Độc giả</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ĐĂNG KÝ -->
-      <section class="panel" id="panel-register" hidden>
-        <h2>Tạo tài khoản độc giả</h2>
-        <p class="sub">Đăng ký bằng mã sinh viên để mượn sách trực tuyến.</p>
-
-        <div class="switch">
-          <button type="button" class="tab" data-switch="login">Đăng nhập</button>
-          <button type="button" class="tab active" data-switch="register">Đăng ký</button>
-        </div>
-
-        <form id="registerForm" novalidate>
-          <label for="regName">Họ và tên</label>
-          <input type="text" id="regName" autocomplete="name" required>
-
-          <label for="regId">Mã sinh viên</label>
-          <input type="text" id="regId" required>
-
-          <label for="regEmail">Email</label>
-          <input type="email" id="regEmail" autocomplete="email" required>
-
-          <label for="regPass">Mật khẩu (ít nhất 6 ký tự)</label>
-          <input type="password" id="regPass" minlength="6" autocomplete="new-password" required>
-
-          <label for="regPass2">Nhập lại mật khẩu</label>
-          <input type="password" id="regPass2" autocomplete="new-password" required>
-
-          <p class="error" id="regError" role="alert"></p>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Tạo tài khoản độc giả</button>
-          </div>
-        </form>
-      </section>
+  <footer class="ft">
+    <div class="ft-in">
+      <div class="cta">
+        <div><b>Đọc hôm nay, dẫn đầu ngày mai.</b>Tạo tài khoản bằng mã sinh viên và mượn cuốn sách đầu tiên của bạn ngay.</div>
+        <a class="btn btn-gold" href="register.html" data-go="forward">Đăng ký thẻ thư viện</a>
+      </div>
+      <div class="ft-cols">
+        <div><h4>Thư viện PTIT</h4><p>Thư viện Học viện Công nghệ Bưu chính Viễn thông: nơi tri thức bắt đầu và ý tưởng được nuôi dưỡng.</p><p style="margin-top:8px">Nhóm thực hiện: Nguyễn Văn Thông, Nguyễn Hoàng Thành, Huỳnh Hồ Nhĩ Đan, Hà Ngọc Hoàng Tân.</p></div>
+        <div><h4>Khám phá</h4><a href="#home">Trang chủ</a><a href="#about">Giới thiệu</a><a href="#content">Nội dung</a><a href="#rules">Nội quy</a><a href="#faq">FAQs</a><a href="#contact">Liên hệ</a></div>
+        <div><h4>Các cơ sở</h4><p>11 Nguyễn Đình Chiểu, Quận 1, TP. Hồ Chí Minh</p><p>97 Man Thiện, TP. Hồ Chí Minh (Thủ Đức)</p><p>thuvien@ptit.edu.vn</p></div>
+      </div>
+      <p class="copy">© Thực Tập Đồ Án Doanh Nghiệp RikkeiSoft & PTIT.</p>
     </div>
-  </div>
+  </footer>
 
+  <script src="app.js"></script>
+  <script src="assets/js/ui.js"></script>
   <script src="assets/js/script.js"></script>
 </body>
 </html>

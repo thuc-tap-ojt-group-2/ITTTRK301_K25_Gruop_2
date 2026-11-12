@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập | Thư viện PTIT</title>
+    <link rel="icon" href="assets/images/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link rel="stylesheet" href="assets/css/auth.css">
+</head>
+<body>
+<header class="top">
+    <a class="brand" href="index.html" data-go="back">
+        <img src="assets/images/logo.png" alt="Logo PTIT">
+        <span><small>Học viện Công nghệ Bưu chính Viễn thông</small><strong>THƯ VIỆN PTIT</strong></span>
+    </a>
+    <a class="back" href="index.html" data-go="back">← Về trang chủ</a>
+</header>
+<main>
+    <section class="intro">
+        <h2>Đọc hôm nay, dẫn đầu ngày mai.</h2>
+        <p>Mỗi cuốn sách là một dòng chảy tri thức. Đăng nhập để tiếp tục hành trình của bạn.</p>
+        <div class="chips"><span>Tra cứu thông minh</span><span>Đăng ký mượn trực tuyến</span><span>Theo dõi hạn trả</span></div>
+        <div class="stats">
+            <div><strong data-stat="titles">0</strong><span>Đầu sách</span></div>
+            <div><strong data-stat="copies">0</strong><span>Bản sách</span></div>
+            <div><strong data-stat="categories">0</strong><span>Thể loại</span></div>
+        </div>
+    </section>
+    <form id="loginForm" class="auth-card" novalidate>
+        <h1>Đăng nhập</h1>
+        <p class="sub">Chào mừng bạn quay lại thư viện.</p>
+        <div id="authMessage" class="message" hidden></div>
+        <div class="field" style="--i:1">
+            <label for="username">Mã sinh viên / tên đăng nhập</label>
+            <input id="username" autocomplete="username">
+        </div>
+        <div class="field" style="--i:2">
+            <label for="password">Mật khẩu</label>
+            <input id="password" type="password" autocomplete="current-password">
+        </div>
+        <button id="submitButton" class="btn" type="submit">Đăng nhập</button>
+        <p class="switch">Chưa có tài khoản? <a href="register.html" data-go="forward">Đăng ký</a></p>
+    </form>
+</main>
+<footer>© 2026 Đồ án môn Dịch vụ phát triển web, PTIT.</footer>
+<script src="app.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/auth.js"></script>
+</body>
+</html>

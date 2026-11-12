@@ -1,4 +1,7 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = (
+    window.PTIT_API_BASE_URL ||
+    `${window.location.protocol === "https:" ? "https:" : "http:"}//${window.location.hostname || "127.0.0.1"}:8000`
+).replace(/\/$/, "");
 
 async function apiRequest(path, options = {}) {
     const token = localStorage.getItem("access_token") ||
@@ -52,9 +55,21 @@ async function apiRequest(path, options = {}) {
     }
 
     if (!response.ok) {
+        // Token hết hạn hoặc bị từ chối: xóa phiên và về trang đăng nhập
+        if (response.status === 401 && token && !path.startsWith("/api/auth/")) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.replace("login.html?expired=1");
+        }
+
         const message =
             typeof data === "object" && data !== null
-                ? data.detail || data.message || "Có lỗi xảy ra."
+                ? (Array.isArray(data.detail)
+                    ? data.detail.map(item => item.msg).join("; ")
+                    : data.detail && typeof data.detail === "object"
+                        ? data.detail.message || JSON.stringify(data.detail)
+                        : data.detail || data.message || "Có lỗi xảy ra.")
                 : data || "Có lỗi xảy ra.";
 
         throw new Error(
@@ -95,4 +110,10 @@ async function deleteBookAPI(id) {
     return await apiRequest(`/api/books/${id}`, {
         method: "DELETE"
     });
+}
+
+
+// Thông tin người dùng đã lưu lúc đăng nhập (username, role)
+function getCurrentUser() {
+    return JSON.parse(localStorage.getItem("user") || "{}");
 }
