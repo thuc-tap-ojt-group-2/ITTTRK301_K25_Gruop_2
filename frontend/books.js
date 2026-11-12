@@ -7,6 +7,9 @@ let totalBooks = 0;
 const pageSize = 100;
 
 
+const LOGIN_PAGE = "login.html";
+
+// ===== Lấy các phần tử trên trang =====
 const bookTable = document.getElementById("bookTable");
 const bookModal = document.getElementById("bookModal");
 const bookForm = document.getElementById("bookForm");
@@ -43,7 +46,6 @@ function showMoreError(text) {
 
 
 // ===== Thông báo trong hộp thoại =====
-// Hộp thoại phủ lên trang nên lỗi phải hiện bên trong hộp thoại mới thấy được
 function showModalMessage(message) {
     let box = document.getElementById("modalMessage");
 
@@ -101,9 +103,10 @@ function removeAccents(value) {
     return text;
 }
 
+// So sánh id dạng chữ để dùng được cả id số lẫn id chuỗi
 function findBook(id) {
     for (let i = 0; i < books.length; i++) {
-        if (books[i].id === id) {
+        if (String(books[i].id) === String(id)) {
             return books[i];
         }
     }
@@ -130,18 +133,67 @@ function fixBook(book) {
     };
 }
 
+
+// ===== Đăng nhập và thông tin người dùng =====
+function hasToken() {
+    const token = localStorage.getItem("access_token") || localStorage.getItem("token");
+
+    return Boolean(token);
+}
+
+// Ghi chữ vào phần tử nếu phần tử đó có trên trang
+function setText(id, text) {
+    const element = document.getElementById(id);
+
+    if (element !== null) {
+        element.textContent = text;
+    }
+}
+
+function readCurrentUser() {
+    // getCurrentUser nằm trong app.js
+    if (typeof getCurrentUser === "function") {
+        return getCurrentUser() || {};
+    }
+
+    return {};
+}
+
+function updateUserInformation() {
+    const user = readCurrentUser();
+
+    const name = user.full_name || user.fullName || user.username || user.email || "Thủ thư";
+
+    let roleText = "Quản trị hệ thống";
+
+    if (user.role === "LIBRARIAN") {
+        roleText = "Thủ thư";
+    }
+
+    if (user.role === "READER") {
+        roleText = "Độc giả";
+    }
+
+    setText("userName", name);
+    setText("userRole", roleText);
+    setText("userAvatar", String(name).trim().charAt(0).toUpperCase() || "U");
+    setText("welcomeMessage", "Xin chào, " + name);
+}
+
+
+// ===== Thống kê =====
 function updateStatistics() {
     document.getElementById("totalTitles").textContent = totalBooks;
 
     let totalCopies = 0;
 
     for (let i = 0; i < books.length; i++) {
-        totalCopies = totalCopies + Number(books[i].totalCopies);
+        totalCopies = totalCopies + Number(books[i].totalCopies || 0);
     }
 
     document.getElementById("totalCopies").textContent = totalCopies;
 
-    // Nếu đã có danh sách thể loại thì đếm theo đó
+  
     let totalCategories = categories.length;
 
     if (totalCategories === 0) {
@@ -159,22 +211,19 @@ function updateStatistics() {
     document.getElementById("totalCategories").textContent = totalCategories;
 }
 
-// Khóa nút Lưu khi chưa có thể loại nào để chọn
+
 function updateSaveButton() {
     saveButton.disabled = (categories.length === 0);
 }
 
 
-// ===== Tải thể loại =====
-// showError: hàm dùng để hiện lỗi (trang chính hoặc hộp thoại)
-// done: hàm chạy sau khi tải xong (không bắt buộc)
 function loadCategories(showError, done) {
     categorySelect.disabled = true;
     categorySelect.innerHTML = '<option value="">Đang tải thể loại...</option>';
 
     getCategories()
         .then(function (data) {
-            let list = data.content || data.items || data;
+            let list = data.content || data.categories || data.items || data;
 
             if (!Array.isArray(list)) {
                 list = [];
@@ -217,7 +266,7 @@ function loadCategories(showError, done) {
         });
 }
 
-// Nếu chưa có thể loại thì thử tải lại, rồi mới chạy done
+
 function makeSureCategories(done) {
     if (categories.length > 0) {
         done();
@@ -227,8 +276,7 @@ function makeSureCategories(done) {
 }
 
 
-// ===== Tải danh sách sách =====
-// done: hàm chạy sau khi tải xong (không bắt buộc)
+
 function loadBooks(done) {
     bookTable.innerHTML =
         '<tr><td colspan="7" class="empty">Đang tải dữ liệu sách...</td></tr>';
@@ -280,6 +328,10 @@ function loadBooks(done) {
             showMoreError(error.message + " Kiểm tra Backend và đường dẫn API.");
 
             updateStatistics();
+
+            document.getElementById("previousPage").disabled = true;
+            document.getElementById("nextPage").disabled = true;
+            document.getElementById("pageInfo").textContent = "Không có dữ liệu";
         });
 }
 
@@ -313,16 +365,16 @@ function displayBooks(keyword) {
 
         html +=
             "<tr>" +
-            "<td>" + getBookCode(book.id) + "</td>" +
+            "<td>" + escapeHTML(getBookCode(book.id)) + "</td>" +
             '<td class="book-name">' + escapeHTML(book.title) + "</td>" +
             "<td>" + escapeHTML(book.author) + "</td>" +
-            '<td><span class="tag">' + escapeHTML(book.categoryName) + "</span></td>" +
-            "<td>" + book.totalCopies + "</td>" +
-            "<td>" + book.availableCopies + "</td>" +
+            '<td><span class="tag">' + escapeHTML(book.categoryName || "Chưa phân loại") + "</span></td>" +
+            "<td>" + Number(book.totalCopies || 0) + "</td>" +
+            "<td>" + Number(book.availableCopies || 0) + "</td>" +
             "<td>" +
                 '<div class="actions">' +
-                    '<button class="btn secondary" data-action="edit" data-id="' + book.id + '">Sửa</button>' +
-                    '<button class="btn danger" data-action="delete" data-id="' + book.id + '">Xóa</button>' +
+                    '<button class="btn secondary" data-action="edit" data-id="' + escapeHTML(book.id) + '">Sửa</button>' +
+                    '<button class="btn danger" data-action="delete" data-id="' + escapeHTML(book.id) + '">Xóa</button>' +
                 "</div>" +
             "</td>" +
             "</tr>";
@@ -332,11 +384,12 @@ function displayBooks(keyword) {
 }
 
 
-// ===== Hộp thoại thêm, sửa sách =====
+
 function openAddModal() {
     editingId = null;
 
     bookForm.reset();
+    hideMessage();
     hideModalMessage();
 
     document.getElementById("modalTitle").textContent = "Thêm sách";
@@ -377,7 +430,7 @@ function editBook(id) {
 
     bookModal.classList.add("show");
 
-    // Chọn đúng thể loại sau khi danh sách thể loại đã có
+
     makeSureCategories(function () {
         categorySelect.value = "";
 
@@ -391,7 +444,7 @@ function editBook(id) {
     });
 }
 
-function removeBook(id) {
+function removeBook(id, button) {
     const book = findBook(id);
 
     if (book === null) {
@@ -404,6 +457,10 @@ function removeBook(id) {
         return;
     }
 
+    if (button) {
+        button.disabled = true;
+    }
+
     deleteBookAPI(id)
         .then(function () {
             loadBooks(function () {
@@ -412,12 +469,16 @@ function removeBook(id) {
         })
         .catch(function (error) {
             showMessage(error.message, "error");
+
+            if (button) {
+                button.disabled = false;
+            }
         });
 }
 
 
-// ===== Kiểm tra dữ liệu trong form =====
-// Trả về dữ liệu sách nếu hợp lệ, trả về null nếu có lỗi
+
+
 function getFormData() {
     const title = bookName.value.trim();
     const author = bookAuthor.value.trim();
@@ -505,14 +566,14 @@ bookTable.addEventListener("click", function (event) {
         return;
     }
 
-    const id = Number(button.dataset.id);
+    const id = button.dataset.id;
 
     if (button.dataset.action === "edit") {
         editBook(id);
     }
 
     if (button.dataset.action === "delete") {
-        removeBook(id);
+        removeBook(id, button);
     }
 });
 
@@ -533,7 +594,7 @@ searchInput.addEventListener("input", function () {
     }, 300);
 });
 
-
+// Bấm ra ngoài hộp thoại thì đóng
 bookModal.addEventListener("click", function (event) {
     if (event.target === bookModal) {
         closeModal();
@@ -561,16 +622,24 @@ document.getElementById("logoutButton").addEventListener("click", function () {
         return;
     }
 
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    sessionStorage.clear();
-
-    window.location.href = "login.html";
+    // Hiện màn hình loading, xóa phiên rồi về trang chủ (ui.js)
+    PTIT.logout();
 });
 
 
+// ===== Chạy khi mở trang =====
+function initializePage() {
+    // Chưa đăng nhập thì chuyển về trang đăng nhập
+    if (!hasToken()) {
+        window.location.replace(LOGIN_PAGE);
+        return;
+    }
 
-loadBooks();
-loadCategories(showMoreError);
+    updateUserInformation();
+
+    // Tải sách và thể loại cùng lúc, cái nào lỗi cũng không ảnh hưởng cái kia
+    loadBooks();
+    loadCategories(showMoreError);
+}
+
+initializePage();

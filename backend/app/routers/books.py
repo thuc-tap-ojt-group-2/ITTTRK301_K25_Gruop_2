@@ -1,12 +1,12 @@
 
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app import crud
 from app.database import get_db
-from app.schemas import BookCreateRequest, BookResponse, PageResponse
+from app.schemas import BookCreateRequest, BookResponse, CategoryResponse, PageResponse
 
 router = APIRouter(prefix="/api/books", tags=["Books"])
 
@@ -25,6 +25,11 @@ def get_books(
     return crud.get_books_paginated(db=db, page=page, size=size, keyword=keyword)
 
 
+@router.get("/categories", response_model=List[CategoryResponse])
+def get_categories(db: Session = Depends(get_db)):
+    return crud.get_categories(db=db)
+
+
 @router.post("", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
 def create_book(
     book_in: BookCreateRequest,
@@ -34,6 +39,15 @@ def create_book(
     Tạo mới sách
     """
     return crud.create_book(db=db, book_in=book_in)
+
+
+@router.put("/{book_id}", response_model=BookResponse)
+def update_book(
+    book_id: int,
+    book_in: BookCreateRequest,
+    db: Session = Depends(get_db)
+):
+    return crud.update_book(db=db, book_id=book_id, book_in=book_in)
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_200_OK)

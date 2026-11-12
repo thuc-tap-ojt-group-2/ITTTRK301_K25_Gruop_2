@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý sách | Thư viện PTIT</title>
+    <link rel="icon" href="assets/images/logo.png">
+    <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="books.css">
 </head>
 <body>
@@ -17,6 +19,7 @@
             <div class="menu-title">Quản lý thư viện</div>
 
             <nav class="nav">
+                <a href="index.html">Trang chủ</a>
                 <a href="#">Tổng quan</a>
                 <a href="#" class="active">Quản lý sách</a>
                 <a href="#">Quản lý mượn trả</a>
@@ -26,10 +29,10 @@
 
             <div class="user">
                 <div class="user-info">
-                    <div class="avatar">TV</div>
+                    <div class="avatar" id="userAvatar">TV</div>
                     <div>
-                        <strong>Thủ thư</strong>
-                        <span>Quản trị hệ thống</span>
+                        <strong id="userName">Thủ thư</strong>
+                        <span id="userRole">Quản trị hệ thống</span>
                     </div>
                 </div>
 
@@ -46,7 +49,7 @@
                     <p>Thêm, chỉnh sửa, tìm kiếm và quản lý danh sách sách trong thư viện.</p>
                 </div>
 
-                <div class="admin">Xin chào, Thủ thư</div>
+                <div class="admin" id="welcomeMessage">Xin chào, Thủ thư</div>
             </header>
 
             <section class="stats">
@@ -197,6 +200,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="assets/js/ui.js"></script>
     <script src="books.js"></script>
 </body>
 </html>

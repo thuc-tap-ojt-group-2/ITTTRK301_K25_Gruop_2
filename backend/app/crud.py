@@ -100,6 +100,53 @@ def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
     )
 
 
+def get_categories(db: Session):
+    return db.query(Category).order_by(Category.name).all()
+
+
+def update_book(db: Session, book_id: int, book_in: BookCreateRequest) -> BookResponse:
+    book = db.query(Book).filter(Book.id == book_id).first()
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"message": "Không tìm thấy cuốn sách yêu cầu"}
+        )
+
+    category = db.query(Category).filter(Category.id == book_in.categoryId).first()
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": f"Thể loại với ID {book_in.categoryId} không tồn tại"}
+        )
+
+    reserved_copies = book.total_copies - book.available_copies
+    if book_in.total < reserved_copies:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"message": "Tổng số bản không thể ít hơn số bản đang được mượn hoặc chờ duyệt"}
+        )
+
+    book.title = book_in.title.strip()
+    book.author = book_in.author.strip()
+    book.category_id = book_in.categoryId
+    book.total_copies = book_in.total
+    book.available_copies = book_in.total - reserved_copies
+    book.image_url = book_in.imageUrl
+
+    db.commit()
+    db.refresh(book)
+
+    return BookResponse(
+        id=book.id,
+        title=book.title,
+        author=book.author,
+        categoryName=category.name,
+        totalCopies=book.total_copies,
+        availableCopies=book.available_copies,
+        imageUrl=book.image_url
+    )
+
+
 # BOOK-04 & BR07: Xóa sách
 def delete_book(db: Session, book_id: int):
     book = db.query(Book).filter(Book.id == book_id).first()
