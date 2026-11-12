@@ -49,10 +49,11 @@ Quy tắc chính: tiền phạt trả trễ là **5.000đ mỗi ngày**; sách �
 ```
 .
 ├── backend/              # FastAPI
+│   ├── main.py           # Khởi tạo FastAPI, CORS và router
 │   ├── app/              # models, schemas, routers, services, dependencies
-│   ├── requirements.txt
 │   └── .env              # cấu hình riêng (KHÔNG đưa lên GitHub)
 ├── frontend/             # HTML, CSS, JS thuần
+│   ├── index.html
 │   ├── login.html
 │   ├── books.html
 │   ├── books.js
@@ -92,11 +93,12 @@ Tạo file `backend/.env` (mỗi người một file, không đưa lên GitHub):
 
 ```env
 DB_USER=root
-DB_PASSWORD=mat_khau_mysql_cua_ban
+DB_PASSWORD=123456
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=library_management
 SECRET_KEY=mot_chuoi_bi_mat_dai_va_kho_doan
+FRONTEND_ORIGINS=http://localhost:5500,http://127.0.0.1:5500
 ```
 
 ### 4. Chạy backend
@@ -111,7 +113,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 pip install fastapi "uvicorn[standard]" sqlalchemy pymysql pyjwt bcrypt python-dotenv "pydantic[email]"
 ```
 
-Tạo các bảng (chỉ cần chạy một lần, chạy lại không làm mất dữ liệu):
+Tạo hoặc cập nhật cấu trúc bảng (chạy lại không làm mất dữ liệu; khi khởi động,
+ứng dụng cũng tự bổ sung cột `users.is_active` nếu cơ sở dữ liệu cũ chưa có):
 
 ```powershell
 python -c "from app.database import Base, engine; from app import models; Base.metadata.create_all(engine)"
@@ -120,7 +123,7 @@ python -c "from app.database import Base, engine; from app import models; Base.m
 Khởi động máy chủ:
 
 ```powershell
-uvicorn app.main:app --reload --port 8000
+uvicorn main:app --reload --port 8000
 ```
 
 Mở <http://127.0.0.1:8000/docs> để xem và thử API.
@@ -165,7 +168,9 @@ Xem đầy đủ và thử trực tiếp tại `http://127.0.0.1:8000/docs`.
 | POST | `/api/auth/register` | Đăng ký tài khoản | Không |
 | POST | `/api/auth/login` | Đăng nhập, nhận token | Không |
 | GET | `/api/books` | Danh sách sách, có phân trang | Không |
+| GET | `/api/books/categories` | Danh sách thể loại | Không |
 | POST | `/api/books` | Thêm sách | Thủ thư, admin |
+| PUT | `/api/books/{book_id}` | Cập nhật sách | Thủ thư, admin |
 | DELETE | `/api/books/{book_id}` | Xóa sách | Thủ thư, admin |
 | POST | `/api/loans/` | Đăng ký mượn sách | Có |
 | GET | `/api/loans/` | Danh sách phiếu mượn | Có |
@@ -188,10 +193,60 @@ Authorization: Bearer <access_token>
 
 ## Lỗi thường gặp
 
+### Kiểm tra nhanh khi frontend không kết nối được Backend
+
+Frontend tự lấy hostname của trang hiện tại và gọi API qua cổng `8000`
+(ví dụ `http://localhost:8000`). Nếu backend ở địa chỉ khác, khai báo
+`window.PTIT_API_BASE_URL` trước khi nạp `app.js`. Backend mặc định cho phép
+hai địa chỉ frontend `http://localhost:5500` và `http://127.0.0.1:5500`;
+có thể ghi đè danh sách này bằng `FRONTEND_ORIGINS` trong `backend/.env`, phân
+cách các origin bằng dấu phẩy. Hãy chạy đúng hai máy chủ ở hai cửa sổ terminal
+riêng:
+
+1. Kiểm tra MySQL đang chạy, database `library_management` đã được tạo và
+   thông tin trong `backend/.env` (đặc biệt `DB_USER`, `DB_PASSWORD`,
+   `DB_HOST`, `DB_PORT`, `DB_NAME`) là chính xác.
+2. Tại terminal thứ nhất, chạy backend từ thư mục `backend`:
+
+   ```powershell
+   cd backend
+   .\venv\Scripts\Activate.ps1
+   uvicorn main:app --reload --port 8000
+   ```
+
+   Giữ terminal này mở. Nếu lệnh dừng với lỗi `OperationalError` hoặc
+   `Can't connect to MySQL server`, xử lý MySQL/cấu hình `.env` trước; ứng
+   dụng kết nối database ngay khi khởi động nên backend chưa sẵn sàng cho đến
+   khi lệnh chạy thành công.
+3. Tại terminal thứ hai, chạy frontend từ thư mục `frontend`:
+
+   ```powershell
+   cd frontend
+   py -m http.server 5500
+   ```
+
+   Mở `http://localhost:5500/login.html` (không mở HTML trực tiếp bằng
+   `file://`). Không dùng cổng khác, trừ khi cũng thêm origin đó vào
+   `FRONTEND_ORIGINS` trong `backend/.env`.
+4. Mở `http://127.0.0.1:8000/` hoặc
+   `http://127.0.0.1:8000/docs`. Nếu không mở được, backend chưa chạy tại
+   cổng 8000; nếu `/docs` mở được nhưng frontend báo lỗi, kiểm tra địa chỉ/cổng
+   trang frontend và `FRONTEND_ORIGINS` trong `backend/.env`.
+
+Nếu frontend và backend chạy trên hai máy khác nhau, `127.0.0.1` sẽ trỏ về
+máy của trình duyệt chứ không phải máy backend. Khi đó cần đổi
+`window.PTIT_API_BASE_URL` sang địa chỉ backend có thể truy cập, chạy backend
+với `uvicorn main:app --reload --host 0.0.0.0 --port 8000` trên mạng tin cậy,
+đồng thời thêm chính xác origin của frontend vào `FRONTEND_ORIGINS` trong
+`backend/.env` và khởi động lại backend. Chỉ mở cổng backend trên mạng tin
+cậy, không public trực tiếp máy phát triển ra Internet.
+
 | Hiện tượng | Cách xử lý |
 |---|---|
-| Trang báo `Method Not Allowed` khi tải thể loại | Backend chưa có route `GET /api/books/categories` hoặc đường dẫn bị route khác nuốt. Kiểm tra ở `/docs` |
-| Gọi API bị chặn, Console ghi CORS | Backend cần cho phép nguồn `http://localhost:5500` (CORSMiddleware) |
+| Không mở được `http://127.0.0.1:8000/docs` / báo `ERR_CONNECTION_REFUSED` | Chạy backend từ thư mục `backend` bằng `uvicorn main:app --reload --port 8000`; kiểm tra terminal backend và cổng 8000 |
+| Backend báo lỗi kết nối database khi khởi động | Bật MySQL, tạo database `library_management`, kiểm tra thông tin trong `backend/.env` |
+| Gọi API bị chặn, Console ghi CORS | Mở frontend qua `http://localhost:5500` hoặc `http://127.0.0.1:5500`; nếu dùng cổng/host khác, thêm đúng origin vào `FRONTEND_ORIGINS` trong `backend/.env` rồi khởi động lại backend |
+| Trang báo `Method Not Allowed` khi tải thể loại | Route `GET /api/books/categories` đã có; kiểm tra đang chạy đúng backend/cổng 8000 và xem route tại `/docs` |
 | Đăng nhập xong vẫn báo 401 | `SECRET_KEY` lúc tạo token và lúc giải mã phải cùng một giá trị |
 | Sửa code frontend mà trang không đổi | Nhấn `Ctrl + F5` để tải lại, bỏ bộ nhớ đệm |
 | Không kích hoạt được môi trường ảo trên Windows | Chạy `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned` trước khi kích hoạt |

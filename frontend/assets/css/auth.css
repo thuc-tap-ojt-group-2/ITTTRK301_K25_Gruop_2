@@ -1,0 +1,46 @@
+:root{--green:#0b6e4f;--green-dark:#085a41;--gold:#e8a923;--ink:#1c2a25;--soft:#66736d;--line:#dfe4e2;--tint:#e7f3ee;--danger:#c0392b;--danger-tint:#fdeeec;
+--sans:"Plus Jakarta Sans","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;font-family:var(--sans);font-size:14px;line-height:1.5;color:var(--ink);background:linear-gradient(135deg,#06281f 0%,#0b6e4f 58%,#17679a 100%) fixed}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.top,main,footer{position:relative;z-index:1}
+.top{width:100%;max-width:1100px;margin:0 auto;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}
+.brand img{width:52px;height:52px;border-radius:10px;background:#fff;object-fit:contain}
+.brand small{display:block;font-size:11px;color:#b7d8cb;text-transform:uppercase}
+.brand strong{font-size:20px;font-weight:800}
+.back{color:#fff;text-decoration:none;padding:8px 16px;border:1px solid rgb(255 255 255/35%);border-radius:999px;font-size:13px;font-weight:600;transition:background .2s}
+.back:hover{background:rgb(255 255 255/12%)}
+main{flex:1;width:100%;max-width:1100px;margin:0 auto;padding:16px 24px 40px;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.intro{color:#fff}
+.intro h2{font-size:38px;line-height:1.2;margin:0 0 14px;font-weight:800}
+.intro p{max-width:430px;margin:0 0 22px;font-size:16px;color:#cfe6dc}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chips span{padding:8px 14px;border:1px solid rgb(255 255 255/30%);border-radius:999px;background:rgb(255 255 255/8%);font-size:13px;animation:in-l .7s both}
+.chips span:nth-child(even){animation-name:in-r}
+.chips span:nth-child(2){animation-delay:.15s}.chips span:nth-child(3){animation-delay:.3s}
+.stats{display:flex;gap:30px;margin-top:30px}
+.stats strong{display:block;font-size:32px;line-height:1.1;color:var(--gold);font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:#cfe6dc}
+.auth-card{justify-self:center;width:100%;max-width:420px;background:#fff;border-radius:16px;border-top:4px solid var(--gold);padding:32px;box-shadow:0 20px 50px rgb(0 0 0/30%);animation:rise .7s both}
+.auth-card h1{font-size:24px;margin:0 0 4px;font-weight:800}
+.sub{color:var(--soft);margin:0 0 22px}
+.field{margin-bottom:16px;animation:in-l .6s both;animation-delay:calc(var(--i,1)*.09s + .2s)}
+.field:nth-child(even){animation-name:in-r}
+.field label{display:block;font-weight:600;margin-bottom:6px}
+.field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--tint)}
+.btn{width:100%;padding:12px;border:0;border-radius:10px;background:var(--green);color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:background .2s,transform .1s}
+.btn:hover:not(:disabled){background:var(--green-dark);transform:translateY(-1px)}
+.btn:disabled{opacity:.7;cursor:not-allowed}
+.switch{text-align:center;color:var(--soft);margin:18px 0 0}
+.switch a{color:var(--green);font-weight:700}
+.message{padding:11px 14px;margin-bottom:16px;border-radius:10px;border-left:4px solid transparent}
+.message.error{background:var(--danger-tint);border-left-color:var(--danger);color:var(--danger)}
+.message.success{background:var(--tint);border-left-color:var(--green);color:var(--green-dark)}
+footer{text-align:center;color:#b7d8cb;font-size:12px;padding:0 24px 20px}
+@keyframes in-l{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes in-r{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media(max-width:900px){main{grid-template-columns:1fr;gap:24px}.intro{text-align:center}.intro h2{font-size:28px}.intro p{margin-inline:auto}.chips,.stats{justify-content:center}}
+@media(max-width:520px){.brand small,.intro p{display:none}.auth-card{padding:24px}.stats{gap:16px}.stats strong{font-size:24px}}

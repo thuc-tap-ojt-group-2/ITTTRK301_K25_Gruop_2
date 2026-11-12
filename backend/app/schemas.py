@@ -37,6 +37,13 @@ class BookResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PageResponse(BaseModel):
     content: List[BookResponse]
     pageNumber: int
