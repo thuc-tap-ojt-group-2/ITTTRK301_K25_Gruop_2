@@ -23,14 +23,12 @@ def create_loan(
             status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy sách"
         )
 
-    # BR02: Kiểm tra số lượng tồn khả dụng
     if book.available_copies <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Sách này hiện đã hết bản sao khả dụng để mượn",
         )
 
-    # Trừ số lượng sách và tạo phiếu
     book.available_copies -= 1
     new_loan = Loan(
         user_id=current_user.id,
@@ -43,7 +41,6 @@ def create_loan(
     db.commit()
     db.refresh(new_loan)
 
-    # Ghi log hệ thống (LOG-01)
     create_system_log(
         db=db,
         action="CREATE_LOAN",
@@ -54,7 +51,6 @@ def create_loan(
     return new_loan
 
 
-# LOAN-06: Xem danh sách phiếu của tôi
 @router.get("/my-loans", response_model=List[LoanResponse])
 def get_my_loans(
     db: Session = Depends(get_db),
@@ -68,7 +64,6 @@ def get_my_loans(
     )
 
 
-# LOAN-07: Hủy đăng ký mượn (chỉ khi đang ở trạng thái PENDING)
 @router.patch("/{loan_id}/cancel", response_model=LoanResponse)
 def cancel_loan(
     loan_id: int,

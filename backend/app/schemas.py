@@ -37,13 +37,6 @@ class BookResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class CategoryResponse(BaseModel):
-    id: int
-    name: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class PageResponse(BaseModel):
     content: List[BookResponse]
     pageNumber: int
@@ -115,6 +108,7 @@ class FineCalculateResponse(BaseModel):
     totalFine: float
     status: str
 
+
 class FineDetailResponse(BaseModel):
     id: Optional[int] = None
     loanId: int
@@ -141,6 +135,26 @@ class ReaderLoanHistoryResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class MyFineSummaryResponse(BaseModel):
     totalUnpaid: float
     fines: List[FineDetailResponse]
+
+
+class StatsOverviewResponse(BaseModel):
+    totalBooks: int
+    borrowingCount: int
+    overdueCount: int
+    totalFines: float
+
+
+class TopBookItem(BaseModel):
+    bookId: int
+    title: str
+    author: str
+    borrowCount: int
+
+
+class MonthlyLoanItem(BaseModel):
+    month: str
+    loanCount: int

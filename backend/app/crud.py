@@ -3,7 +3,7 @@ from datetime import date
 from typing import Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_
+from sqlalchemy import or_, func, desc
 from sqlalchemy.orm import Session, joinedload
 
 from app import models, schemas
@@ -462,3 +462,92 @@ def get_user_fines(db: Session, user_id: int):
         )
 
     return schemas.MyFineSummaryResponse(totalUnpaid=total_unpaid, fines=results)
+
+def get_stats_overview(db: Session) -> schemas.StatsOverviewResponse:
+    total_books = db.query(func.coalesce(func.sum(Book.total_copies), 0)).scalar()
+
+    borrowing_count = (
+        db.query(func.count(Loan.id))
+        .filter(Loan.status == "BORROWING")
+        .scalar()
+    )
+
+    today = date.today()
+    overdue_count = (
+        db.query(func.count(Loan.id))
+        .filter(Loan.status == "BORROWING", Loan.due_date < today)
+        .scalar()
+    )
+
+    total_fines = db.query(func.coalesce(func.sum(Fine.amount), 0)).scalar()
+
+    return schemas.StatsOverviewResponse(
+        totalBooks=int(total_books or 0),
+        borrowingCount=int(borrowing_count or 0),
+        overdueCount=int(overdue_count or 0),
+        totalFines=float(total_fines or 0.0),
+    )
+
+
+def get_top_borrowed_books(db: Session, limit: int = 5):
+    rows = (
+        db.query(
+            Book.id,
+            Book.title,
+            Book.author,
+            func.count(Loan.id).label("borrow_count"),
+        )
+        .join(Loan, Loan.book_id == Book.id)
+        .filter(Loan.status.in_(["BORROWING", "RETURNED"]))
+        .group_by(Book.id, Book.title, Book.author)
+        .order_by(desc("borrow_count"), Book.id.asc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        schemas.TopBookItem(
+            bookId=r.id,
+            title=r.title,
+            author=r.author,
+            borrowCount=int(r.borrow_count),
+        )
+        for r in rows
+    ]
+
+
+def get_monthly_loan_stats(db: Session, months: int = 6):
+    today = date.today()
+    target_months = []
+    year, month = today.year, today.month
+    for _ in range(months):
+        target_months.append(f"{year:04d}-{month:02d}")
+        month -= 1
+        if month == 0:
+            month = 12
+            year -= 1
+    target_months.reverse()
+
+    start_date_str = f"{target_months[0]}-01"
+
+    month_expr = func.date_format(Loan.borrow_date, "%Y-%m")
+    rows = (
+        db.query(month_expr.label("ym"), func.count(Loan.id).label("cnt"))
+        .filter(
+            Loan.borrow_date.isnot(None),
+            Loan.borrow_date >= start_date_str,
+            Loan.status.in_(["BORROWING", "RETURNED"]),
+        )
+        .group_by("ym")
+        .all()
+    )
+
+    counts_map = {r.ym: int(r.cnt) for r in rows}
+
+    return [
+        schemas.MonthlyLoanItem(
+            month=ym,
+            loanCount=counts_map.get(ym, 0),
+        )
+        for ym in target_months
+    ]
