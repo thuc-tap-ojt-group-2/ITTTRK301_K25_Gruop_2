@@ -1,0 +1,35 @@
+/* ===== Dùng chung: loading, nút đang xử lý, chuyển trang, cảnh sách nổi ===== */
+.ptit-loading{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:rgb(6 40 31/86%);backdrop-filter:blur(3px);color:#fff;font:600 15px "Plus Jakarta Sans","Segoe UI",system-ui,sans-serif}
+.ptit-loading.show{display:flex;animation:ptit-fade .2s both}
+.ptit-book{position:relative;display:flex;width:96px;height:64px;perspective:500px}
+.ptit-book::before,.ptit-book::after{content:"";width:48px;height:64px;background:#fff;border:3px solid #e8a923;box-sizing:border-box}
+.ptit-book::before{border-radius:6px 0 0 6px}.ptit-book::after{border-radius:0 6px 6px 0}
+.ptit-book i{position:absolute;left:48px;top:3px;width:44px;height:58px;background:#e3f2ec;border-radius:0 4px 4px 0;transform-origin:left center;animation:ptit-flip 1.6s ease-in-out infinite;animation-delay:calc(var(--n)*.22s)}
+@keyframes ptit-flip{0%{transform:rotateY(0)}55%,100%{transform:rotateY(-172deg)}}
+@keyframes ptit-fade{from{opacity:0}}
+.is-loading{position:relative;color:transparent!important;pointer-events:none}
+.is-loading::after{content:"";position:absolute;inset:0;margin:auto;width:18px;height:18px;border:3px solid rgb(255 255 255/45%);border-top-color:#fff;border-radius:50%;animation:ptit-spin .7s linear infinite}
+@keyframes ptit-spin{to{transform:rotate(360deg)}}
+
+/* chuyển trang: đi tới trượt sang trái, quay lại trượt ngược */
+body.enter-forward main{animation:pg-in-r .5s ease both}
+body.enter-back main{animation:pg-in-l .5s ease both}
+body.leave-forward main{animation:pg-out-l .35s ease both}
+body.leave-back main{animation:pg-out-r .35s ease both}
+@keyframes pg-in-r{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
+@keyframes pg-in-l{from{opacity:0;transform:translateX(-70px)}to{opacity:1;transform:none}}
+@keyframes pg-out-l{to{opacity:0;transform:translateX(-70px)}}
+@keyframes pg-out-r{to{opacity:0;transform:translateX(70px)}}
+
+/* cảnh nền: dòng chảy tri thức + sách nổi (xen kẽ chẵn lẻ) */
+.scene{position:var(--scene-pos,fixed);inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.stream{position:absolute;inset:0;width:100%;height:100%}
+.stream path{fill:none;stroke:rgb(255 255 255/30%);stroke-width:2;stroke-dasharray:14 24;animation:flow 7s linear infinite}
+.stream path:nth-child(2){stroke:rgb(232 169 35/55%);animation-duration:10s;animation-direction:reverse}
+.stream path:nth-child(3){animation-duration:13s}
+@keyframes flow{to{stroke-dashoffset:-380}}
+.book{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);border-radius:3px 7px 7px 3px;opacity:.85;background:linear-gradient(90deg,rgb(0 0 0/28%) 0 9%,var(--c) 9%);box-shadow:0 10px 24px rgb(0 0 0/30%);animation:float 6s ease-in-out infinite alternate;animation-delay:var(--d)}
+.book::after{content:"";position:absolute;left:24%;right:18%;top:22%;height:3px;background:rgb(255 255 255/55%);box-shadow:0 8px rgb(255 255 255/35%)}
+.book:nth-child(even){animation-direction:alternate-reverse;animation-duration:8s}
+@keyframes float{from{transform:translateY(0) rotate(var(--r,0deg))}to{transform:translateY(-30px) rotate(calc(var(--r,0deg)*-1))}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.ptit-loading .ptit-book i{animation:none!important}}

@@ -1,6 +1,6 @@
+from datetime import date
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from datetime import date,datetime 
 
 
 class BookCreateRequest(BaseModel):
@@ -15,6 +15,14 @@ class BookCreateRequest(BaseModel):
     imageUrl: Optional[str] = Field(
         None, max_length=500, description="Đường dẫn ảnh bìa nếu có"
     )
+
+
+class BookUpdateRequest(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    author: Optional[str] = Field(None, min_length=1, max_length=150)
+    categoryId: Optional[int] = Field(None, gt=0)
+    total: Optional[int] = Field(None, ge=1)
+    imageUrl: Optional[str] = Field(None, max_length=500)
 
 
 class BookResponse(BaseModel):
@@ -38,7 +46,6 @@ class PageResponse(BaseModel):
     last: bool
 
 
-
 class UserRegister(BaseModel):
     username: str = Field(
         ..., min_length=3, max_length=50, description="Tên đăng nhập từ 3 đến 50 ký tự"
@@ -58,21 +65,96 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     message: str
 
-# Gửi yêu cầu lên khi đăng ký mượn sách (BR01)
-class LoanCreateRequest(BaseModel):
-    book_id:int 
-    days:int = 14 
 
-class LoanResponse(BaseModel):
-    id:int 
-    user_id:int 
-    book_id:int
-    status:str 
-    days:int 
-    borrow_date:Optional[date] = None 
-    due_data : Optional[date] = None 
-    return_date:Optional[date] = None 
-    approved_by:Optional[int] = None 
-    created_at:datetime 
+class CategoryCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+
+
+class CategoryUpdateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+
+
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+
     model_config = ConfigDict(from_attributes=True)
-    
+
+
+class ReaderResponse(BaseModel):
+    id: int
+    username: str
+    fullName: Optional[str] = None
+    email: str
+    active: bool
+    borrowingCount: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FineResponse(BaseModel):
+    id: int
+    loanId: int
+    amount: float
+    paid: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FineCalculateResponse(BaseModel):
+    loanId: int
+    overdueDays: int
+    finePerDay: float
+    totalFine: float
+    status: str
+
+
+class FineDetailResponse(BaseModel):
+    id: Optional[int] = None
+    loanId: int
+    userId: int
+    username: str
+    bookTitle: str
+    overdueDays: int
+    amount: float
+    paid: bool
+    type: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReaderLoanHistoryResponse(BaseModel):
+    id: int
+    bookId: int
+    bookTitle: str
+    status: str
+    days: int
+    borrowDate: Optional[date] = None
+    dueDate: Optional[date] = None
+    returnDate: Optional[date] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MyFineSummaryResponse(BaseModel):
+    totalUnpaid: float
+    fines: List[FineDetailResponse]
+
+
+class StatsOverviewResponse(BaseModel):
+    totalBooks: int
+    borrowingCount: int
+    overdueCount: int
+    totalFines: float
+
+
+class TopBookItem(BaseModel):
+    bookId: int
+    title: str
+    author: str
+    borrowCount: int
+
+
+class MonthlyLoanItem(BaseModel):
+    month: str
+    loanCount: int
