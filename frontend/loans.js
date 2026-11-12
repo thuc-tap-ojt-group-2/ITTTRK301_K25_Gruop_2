@@ -1,3 +1,4 @@
+
 const LOAN_PAGE_SIZE = 10;
 
 let allLoans = [];
@@ -47,7 +48,9 @@ function getStatusText(status) {
         RESERVED: "Đặt trước"
     };
 
-    return labels[String(status || "").toUpperCase()] || status || "Không xác định";
+    return labels[String(status || "").toUpperCase()]
+        || status
+        || "Không xác định";
 }
 
 function getStatusClass(status) {
@@ -113,7 +116,8 @@ function getRegisteredDate(loan) {
 }
 
 function updateStatistics() {
-    document.getElementById("totalLoans").textContent = allLoans.length;
+    document.getElementById("totalLoans").textContent =
+        allLoans.length;
 
     document.getElementById("pendingLoans").textContent =
         allLoans.filter(loan =>
@@ -290,6 +294,7 @@ async function loadLoans() {
         allLoans = [];
         updateStatistics();
         displayLoans();
+
         showMessage(
             error.message || "Không thể tải danh sách đăng ký mượn."
         );
@@ -307,8 +312,76 @@ function updateUserInformation() {
         || "Thủ thư";
 
     document.getElementById("userName").textContent = displayName;
+
     document.getElementById("userAvatar").textContent =
         String(displayName).trim().charAt(0).toUpperCase() || "U";
+}
+
+async function handleLoanAction(button) {
+    const loanId = button.dataset.id;
+    const action = button.dataset.action;
+
+    if (action !== "approve" && action !== "reject") {
+        return;
+    }
+
+    const loan = allLoans.find(
+        item => String(item.id || item.loan_id) === String(loanId)
+    );
+
+    if (!loan || String(loan.status).toUpperCase() !== "PENDING") {
+        return;
+    }
+
+    if (action === "approve" && typeof approveLoanAPI !== "function") {
+        showMessage("Backend chưa cung cấp API duyệt phiếu mượn.");
+        return;
+    }
+
+    if (action === "reject" && typeof rejectLoanAPI !== "function") {
+        showMessage("Backend chưa cung cấp API từ chối phiếu mượn.");
+        return;
+    }
+
+    const apiFunction = action === "approve"
+        ? approveLoanAPI
+        : rejectLoanAPI;
+
+    const actionText = action === "approve"
+        ? "duyệt"
+        : "từ chối";
+
+    const confirmed = confirm(
+        `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const rowButtons = button.closest("tr").querySelectorAll(
+        "button[data-action]"
+    );
+
+    rowButtons.forEach(item => {
+        item.disabled = true;
+    });
+
+    try {
+        await apiFunction(loanId);
+
+        showMessage(`Đã ${actionText} phiếu #${loanId}.`);
+
+        await loadLoans();
+    } catch (error) {
+        showMessage(
+            error.message || `Không thể ${actionText} phiếu mượn.`
+        );
+    } finally {
+        rowButtons.forEach(item => {
+            item.disabled = false;
+        });
+    }
 }
 
 statusFilter.addEventListener("change", () => {
@@ -359,51 +432,11 @@ document.getElementById("logoutButton")
 loanTableBody.addEventListener("click", async function(event) {
     const button = event.target.closest("button[data-action]");
 
-    if (!button) {
+    if (!button || button.disabled) {
         return;
     }
 
-    const loanId = button.dataset.id;
-    const action = button.dataset.action;
-
-    const loan = allLoans.find(
-        item => String(item.id || item.loan_id) === String(loanId)
-    );
-
-    if (!loan || String(loan.status).toUpperCase() !== "PENDING") {
-        return;
-    }
-
-    const actionText = action === "approve" ? "duyệt" : "từ chối";
-
-    const confirmed = confirm(
-        `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
-    button.disabled = true;
-
-    try {
-        if (action === "approve" && typeof approveLoanAPI === "function") {
-            await approveLoanAPI(loanId);
-        } else if (action === "reject" && typeof rejectLoanAPI === "function") {
-            await rejectLoanAPI(loanId);
-        } else {
-            throw new Error(
-                "Backend chưa cung cấp API duyệt hoặc từ chối phiếu mượn."
-            );
-        }
-
-        showMessage(`Đã ${actionText} phiếu #${loanId}.`);
-        await loadLoans();
-    } catch (error) {
-        showMessage(error.message);
-    } finally {
-        button.disabled = false;
-    }
+    await handleLoanAction(button);
 });
 
 function initializeLoanPage() {

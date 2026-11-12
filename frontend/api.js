@@ -1,7 +1,8 @@
+
 const API_BASE_URL = (
     window.PTIT_API_BASE_URL ||
     `${window.location.protocol === "https:" ? "https:" : "http:"}//${window.location.hostname || "127.0.0.1"}:8000`
-).replace(/\/$/, "");
+).replace(/\/+$/, "");
 
 async function apiRequest(path, options = {}) {
     const token = localStorage.getItem("access_token") ||
@@ -57,11 +58,13 @@ async function apiRequest(path, options = {}) {
     if (!response.ok) {
         const message =
             typeof data === "object" && data !== null
-                ? (Array.isArray(data.detail)
-                    ? data.detail.map(item => item.msg).join("; ")
-                    : data.detail && typeof data.detail === "object"
-                        ? data.detail.message || JSON.stringify(data.detail)
-                        : data.detail || data.message || "Có lỗi xảy ra.")
+                ? (
+                    Array.isArray(data.detail)
+                        ? data.detail.map(item => item.msg).join("; ")
+                        : data.detail && typeof data.detail === "object"
+                            ? data.detail.message || JSON.stringify(data.detail)
+                            : data.detail || data.message || "Có lỗi xảy ra."
+                )
                 : data || "Có lỗi xảy ra.";
 
         throw new Error(
@@ -105,7 +108,11 @@ async function deleteBookAPI(id) {
 }
 
 function getCurrentUser() {
-    return JSON.parse(localStorage.getItem("user") || "{}");
+    try {
+        return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+        return {};
+    }
 }
 
 async function getLoans(status = "") {
@@ -114,4 +121,16 @@ async function getLoans(status = "") {
         : "";
 
     return await apiRequest(`/api/loans/${query}`);
+}
+
+async function approveLoanAPI(id) {
+    throw new Error(
+        "Backend chưa cung cấp endpoint duyệt phiếu mượn."
+    );
+}
+
+async function rejectLoanAPI(id) {
+    throw new Error(
+        "Backend chưa cung cấp endpoint từ chối phiếu mượn."
+    );
 }

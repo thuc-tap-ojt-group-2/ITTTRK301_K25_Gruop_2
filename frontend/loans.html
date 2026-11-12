@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -46,7 +47,9 @@
             <section class="head">
                 <div>
                     <h1>Duyệt đăng ký mượn</h1>
-                    <p id="pageDescription">Theo dõi và lọc danh sách phiếu mượn theo trạng thái.</p>
+                    <p id="pageDescription">
+                        Theo dõi, tìm kiếm và xử lý các phiếu đăng ký mượn sách.
+                    </p>
                 </div>
                 <span class="total-label" id="resultCount">0 đăng ký</span>
             </section>
@@ -77,7 +80,7 @@
                 <div class="filter-heading">
                     <div>
                         <h2>Lọc danh sách phiếu</h2>
-                        <p>Chọn trạng thái để xem các phiếu mượn tương ứng.</p>
+                        <p>Chọn trạng thái hoặc nhập thông tin để tìm phiếu mượn.</p>
                     </div>
                 </div>
 
@@ -110,7 +113,13 @@
                 </div>
             </section>
 
-            <div id="messageBox" class="message-box" role="status" hidden></div>
+            <div
+                id="messageBox"
+                class="message-box"
+                role="status"
+                aria-live="polite"
+                hidden
+            ></div>
 
             <section class="card loan-card">
                 <div class="table-heading">
@@ -146,10 +155,21 @@
                     <span id="pageInfo">Trang 1 / 1</span>
 
                     <div>
-                        <button type="button" class="btn ghost" id="previousPage" disabled>
+                        <button
+                            type="button"
+                            class="btn ghost"
+                            id="previousPage"
+                            disabled
+                        >
                             Trước
                         </button>
-                        <button type="button" class="btn ghost" id="nextPage" disabled>
+
+                        <button
+                            type="button"
+                            class="btn ghost"
+                            id="nextPage"
+                            disabled
+                        >
                             Sau
                         </button>
                     </div>
