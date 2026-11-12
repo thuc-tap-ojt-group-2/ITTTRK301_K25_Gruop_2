@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thư viện PTIT</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ================= TRANG CÔNG KHAI ================= -->
+<div id="publicView">
+
+  <header class="navbar">
+    <a href="#" class="brand">
+      <img class="brand-logo" src="assets/images/logo.png" alt="Logo PTIT">
+      <span class="brand-text">
+        <small>Học viện Công nghệ Bưu chính Viễn thông</small>
+        <strong>THƯ VIỆN PTIT</strong>
+      </span>
+    </a>
+
+    <nav class="nav-links" aria-label="Điều hướng chính">
+      <a href="#" class="active">Trang chủ</a>
+      <a href="#">Giới thiệu</a>
+      <a href="#">Nội dung</a>
+      <a href="#">Nội quy</a>
+      <a href="#">FAQs</a>
+      <a href="#">Liên hệ</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button class="btn btn-outline" data-open="login">Đăng nhập</button>
+      <button class="btn btn-primary" data-open="register">Đăng ký</button>
+    </div>
+  </header>
+
+  <div class="accent-line"></div>
+
+  <!-- Modal dùng chung cho Đăng nhập / Đăng ký -->
+  <div class="overlay" id="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="close-btn" id="closeBtn" aria-label="Đóng">&times;</button>
+
+      <!-- ĐĂNG NHẬP -->
+      <section class="panel" id="panel-login">
+        <h2 id="modal-title">Chào mừng bạn trở lại</h2>
+        <p class="sub">Đăng nhập để tra cứu và quản lý sách của bạn.</p>
+
+        <div class="switch">
+          <button type="button" class="tab active" data-switch="login">Đăng nhập</button>
+          <button type="button" class="tab" data-switch="register">Đăng ký</button>
+        </div>
+
+        <p class="notice" id="loginNotice" role="status"></p>
+
+        <form id="loginForm" novalidate>
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" autocomplete="email" required>
+
+          <label for="loginPassword">Mật khẩu</label>
+          <input type="password" id="loginPassword" autocomplete="current-password" required>
+
+          <p class="error" id="loginError" role="alert"></p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Đăng nhập</button>
+          </div>
+        </form>
+
+        <div class="demo">
+          <span>Tài khoản thử nghiệm:</span>
+          <div class="demo-list">
+            <button type="button" class="chip" data-email="admin@ptit.edu.vn" data-pass="123456">Quản trị viên</button>
+            <button type="button" class="chip" data-email="thuthu@ptit.edu.vn" data-pass="123456">Thủ thư</button>
+            <button type="button" class="chip" data-email="docgia@ptit.edu.vn" data-pass="123456">Độc giả</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ĐĂNG KÝ -->
+      <section class="panel" id="panel-register" hidden>
+        <h2>Tạo tài khoản độc giả</h2>
+        <p class="sub">Đăng ký bằng mã sinh viên để mượn sách trực tuyến.</p>
+
+        <div class="switch">
+          <button type="button" class="tab" data-switch="login">Đăng nhập</button>
+          <button type="button" class="tab active" data-switch="register">Đăng ký</button>
+        </div>
+
+        <form id="registerForm" novalidate>
+          <label for="regName">Họ và tên</label>
+          <input type="text" id="regName" autocomplete="name" required>
+
+          <label for="regId">Mã sinh viên</label>
+          <input type="text" id="regId" required>
+
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" autocomplete="email" required>
+
+          <label for="regPass">Mật khẩu (ít nhất 6 ký tự)</label>
+          <input type="password" id="regPass" minlength="6" autocomplete="new-password" required>
+
+          <label for="regPass2">Nhập lại mật khẩu</label>
+          <input type="password" id="regPass2" autocomplete="new-password" required>
+
+          <p class="error" id="regError" role="alert"></p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Tạo tài khoản độc giả</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GIAO DIỆN ĐỘC GIẢ (SAU ĐĂNG NHẬP) ================= -->
+<div class="app" id="appView" hidden>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <strong>Thư viện PTIT</strong>
+      <small>Hệ thống quản lý</small>
+    </div>
+
+    <nav class="sidebar-menu" aria-label="Menu chính">
+      <button type="button" class="menu-item active" data-nav="overview">Tổng quan</button>
+      <button type="button" class="menu-item" data-nav="search">Tra cứu sách</button>
+      <button type="button" class="menu-item" data-nav="mybooks">Sách của tôi</button>
+      <button type="button" class="menu-item" data-nav="readers" id="readersMenu" hidden>Độc giả</button>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-row">
+        <span class="avatar" id="userAvatar">HA</span>
+        <strong id="userName">—</strong>
+      </div>
+      <span class="user-role" id="userRole">Độc giả</span>
+      <button type="button" class="logout-btn" id="logoutBtn">Đăng xuất</button>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="menu-toggle" id="menuToggle" aria-label="Mở menu">&#9776;</button>
+      <span class="topbar-title" id="topbarTitle">Tổng quan</span>
+      <span class="topbar-user" id="topbarUser"></span>
+      <div class="toolbar-actions">
+        <button type="button" class="utility-btn" id="notificationsButton">Thông báo</button>
+        <button type="button" class="utility-btn" id="profileButton">Hồ sơ</button>
+        <button type="button" class="utility-btn" id="themeButton" aria-pressed="false">Sáng / Tối</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- Tổng quan -->
+      <section class="page" id="page-overview">
+        <h1 id="greeting">Xin chào</h1>
+        <p class="muted" id="greetingRole">Vai trò: Độc giả</p>
+        <div class="overview-stats">
+          <div class="stat-card"><strong id="statBorrowing">0</strong><span>Sách đang mượn</span></div>
+          <div class="stat-card"><strong id="statPending">0</strong><span>Chờ duyệt hoặc đặt trước</span></div>
+          <div class="stat-card"><strong id="statFines">0đ</strong><span>Tiền phạt của bạn</span></div>
+          <div class="stat-card"><strong id="statRemaining">3</strong><span>Lượt mượn còn lại (tối đa 3)</span></div>
+        </div>
+        <article class="library-card" aria-label="Thẻ thư viện số">
+          <p>HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG</p>
+          <div class="library-identity"><span class="avatar" id="libraryAvatar"></span><strong id="libraryName"></strong></div>
+          <p>Thẻ thư viện số</p>
+          <strong id="libraryStudentId"></strong>
+          <div class="library-barcode" aria-hidden="true"><span></span></div>
+        </article>
+        <h2 class="section-title">Được mượn nhiều nhất</h2>
+        <div class="book-list popular-books" id="popularBooks"></div>
+        <h2 class="section-title">Sách bạn đang mượn</h2>
+        <div class="table-panel" id="currentLoans"></div>
+      </section>
+
+      <!-- Tra cứu sách -->
+      <section class="page" id="page-search" hidden>
+        <h1>Tra cứu sách</h1>
+        <p class="muted">Chọn một cuốn để xem chi tiết, đăng ký mượn hoặc xem đánh giá</p>
+        <form class="search-box" id="searchForm" role="search">
+          <input type="search" id="searchInput" placeholder="Tìm theo tên, tác giả hoặc thể loại" aria-label="Tìm kiếm sách" autocomplete="off">
+          <button type="submit" class="sr-only">Tìm kiếm</button>
+        </form>
+        <div class="category-filters" id="categoryFilters" role="group" aria-label="Lọc sách">
+          <button type="button" class="filter-chip active" data-filter="all" aria-pressed="true">Tất cả</button>
+          <button type="button" class="filter-chip" data-filter="favorites" aria-pressed="false">Yêu thích</button>
+          <button type="button" class="filter-chip" data-filter="Văn học" aria-pressed="false">Văn học</button>
+          <button type="button" class="filter-chip" data-filter="Công nghệ" aria-pressed="false">Công nghệ</button>
+          <button type="button" class="filter-chip" data-filter="Giáo trình" aria-pressed="false">Giáo trình</button>
+          <button type="button" class="filter-chip" data-filter="Lịch sử" aria-pressed="false">Lịch sử</button>
+        </div>
+        <p class="result-info" id="resultInfo" aria-live="polite"></p>
+        <div class="book-list" id="bookList"></div>
+        <nav class="pagination" id="pagination" aria-label="Phân trang"></nav>
+      </section>
+
+      <!-- Sách của tôi -->
+      <section class="page" id="page-mybooks" hidden>
+        <h1>Sách của tôi</h1>
+        <p class="muted" id="myFines">Tổng tiền phạt: 0đ</p>
+        <div class="table-panel" id="myLoanList">
+          <p class="empty">Bạn chưa có sách nào.</p>
+        </div>
+      </section>
+      <section class="page" id="page-readers" hidden aria-labelledby="readersTitle">
+        <h1 id="readersTitle">Độc giả</h1>
+        <p class="muted" id="readersCount" role="status">Đang tải…</p>
+        <form id="readersSearchForm" class="readers-search" role="search">
+          <label class="sr-only" for="readersSearch">Tìm theo tên hoặc mã sinh viên</label>
+          <input type="search" id="readersSearch" placeholder="Tìm theo tên hoặc mã sinh viên…" autocomplete="off" aria-controls="readersList">
+          <button type="button" class="btn btn-outline" id="clearReadersSearch" hidden>Xóa tìm kiếm</button>
+          <button type="submit" class="sr-only">Tìm kiếm</button>
+        </form>
+        <div class="table-panel" id="readersList" aria-busy="false"></div>
+        <nav class="pagination" id="readersPagination" aria-label="Phân trang độc giả"></nav>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Chi tiết sách và chọn thời gian mượn dùng chung một hộp thoại. -->
+<dialog class="modal book-dialog" id="bookDialog" aria-labelledby="bookDetailTitle">
+  <button type="button" class="close-btn" id="closeBookDialog" aria-label="Đóng chi tiết sách">&times;</button>
+  <h2 id="bookDetailTitle" tabindex="-1"></h2>
+  <div id="bookDetailCover"></div>
+  <p class="muted book-availability" id="bookDetailAvailability"></p>
+  <div class="book-meta" id="bookDetailMeta"></div>
+
+  <section id="bookDetailActions">
+    <h3 class="review-heading">Đánh giá của độc giả</h3>
+    <div id="reviewSummary" class="review-summary"></div>
+    <div id="reviewList" class="review-list"></div>
+    <button type="button" class="btn btn-outline" id="writeReviewButton">Viết đánh giá của bạn</button>
+    <div class="form-actions loan-actions">
+      <button type="button" class="btn btn-outline" id="cancelBookDetail">Hủy</button>
+      <button type="button" class="btn btn-primary" id="registerLoanButton">Đăng ký mượn</button>
+    </div>
+  </section>
+
+  <form id="loanForm" hidden novalidate>
+    <fieldset id="loanDaysFieldset" aria-describedby="loanHint loanError">
+      <legend>Chọn thời gian mượn</legend>
+      <p class="muted" id="loanHint">Chọn một thời gian trước khi xác nhận. Phiếu sẽ chờ thủ thư duyệt.</p>
+      <div class="loan-day-options">
+        <label><input type="radio" name="loanDays" value="7" required><span><strong>7</strong> ngày</span></label>
+        <label><input type="radio" name="loanDays" value="14" required><span><strong>14</strong> ngày</span></label>
+        <label><input type="radio" name="loanDays" value="30" required><span><strong>30</strong> ngày</span></label>
+      </div>
+    </fieldset>
+    <p class="error" id="loanError" role="alert"></p>
+    <p class="loan-loading" id="loanLoading" role="status" hidden><span class="spinner" aria-hidden="true"></span>Đang gửi yêu cầu mượn…</p>
+    <div class="form-actions loan-actions">
+      <button type="button" class="btn btn-outline" id="backToBookDetail">Quay lại</button>
+      <button type="submit" class="btn btn-primary" id="confirmLoanButton">Xác nhận đăng ký</button>
+    </div>
+  </form>
+
+  <section class="loan-result" id="loanResult" hidden>
+    <p class="loan-success" id="loanSuccess" role="status" tabindex="-1"></p>
+    <div class="form-actions loan-actions">
+      <button type="button" class="btn btn-outline" id="finishLoan">Đóng</button>
+      <button type="button" class="btn btn-primary" id="viewMyLoans">Xem sách của tôi</button>
+    </div>
+  </section>
+</dialog>
+
+<dialog class="modal review-dialog" id="reviewDialog" aria-labelledby="reviewTitle">
+  <h2 id="reviewTitle">Đánh giá</h2>
+  <form id="reviewForm">
+    <label for="reviewStars">Số sao</label>
+    <select id="reviewStars" required>
+      <option value="5">★★★★★ (5/5)</option>
+      <option value="4">★★★★☆ (4/5)</option>
+      <option value="3">★★★☆☆ (3/5)</option>
+      <option value="2">★★☆☆☆ (2/5)</option>
+      <option value="1">★☆☆☆☆ (1/5)</option>
+    </select>
+    <label for="reviewComment">Nhận xét (tối đa 300 ký tự)</label>
+    <textarea id="reviewComment" rows="4" maxlength="300" placeholder="Chia sẻ cảm nhận của bạn về cuốn sách…"></textarea>
+    <p class="error" id="reviewError" role="alert"></p>
+    <div class="form-actions loan-actions">
+      <button type="button" class="btn btn-outline" id="cancelReview">Hủy</button>
+      <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="modal utility-dialog" id="utilityDialog" aria-labelledby="utilityTitle">
+  <h2 id="utilityTitle"></h2>
+  <div id="utilityContent"></div>
+  <div class="form-actions"><button type="button" class="btn btn-outline" id="closeUtility">Đóng</button></div>
+</dialog>
+<p class="toast" id="appToast" role="status" hidden></p>
+
+<dialog class="modal reader-history-dialog" id="readerHistoryDialog" aria-labelledby="readerHistoryTitle" aria-describedby="readerHistoryIdentity">
+  <div class="history-heading">
+    <h2 id="readerHistoryTitle">Lịch sử mượn</h2>
+    <button type="button" class="utility-btn" id="closeReaderHistory" aria-label="Đóng lịch sử mượn">Đóng</button>
+  </div>
+  <p class="muted" id="readerHistoryIdentity"></p>
+  <p class="muted" id="readerHistoryCount" role="status"></p>
+  <div id="readerHistoryList" aria-busy="false"></div>
+  <nav class="pagination" id="readerHistoryPagination" aria-label="Phân trang lịch sử mượn"></nav>
+</dialog>
+  <script src="assets/js/script.js"></script>
+  <script src="assets/js/readers.js"></script>
+  <script src="assets/js/librarian.js"></script>
+</body>
+</html>
