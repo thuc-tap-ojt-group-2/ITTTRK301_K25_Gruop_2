@@ -55,14 +55,6 @@ async function apiRequest(path, options = {}) {
     }
 
     if (!response.ok) {
-        // Token hết hạn hoặc bị từ chối: xóa phiên và về trang đăng nhập
-        if (response.status === 401 && token && !path.startsWith("/api/auth/")) {
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            window.location.replace("login.html?expired=1");
-        }
-
         const message =
             typeof data === "object" && data !== null
                 ? (Array.isArray(data.detail)
@@ -112,8 +104,14 @@ async function deleteBookAPI(id) {
     });
 }
 
-
-// Thông tin người dùng đã lưu lúc đăng nhập (username, role)
 function getCurrentUser() {
     return JSON.parse(localStorage.getItem("user") || "{}");
+}
+
+async function getLoans(status = "") {
+    const query = status
+        ? `?status=${encodeURIComponent(status)}`
+        : "";
+
+    return await apiRequest(`/api/loans/${query}`);
 }
