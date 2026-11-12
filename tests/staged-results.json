@@ -1,0 +1,32 @@
+[
+  {
+    "name": "DA-03",
+    "path": "C:\\Users\\DAN\\OneDrive\\Documents\\ChatGPT\\DA-07\\delivery\\staged\\DA-03",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-03-frontend",
+    "path": "C:\\Users\\DAN\\OneDrive\\Documents\\ChatGPT\\DA-07\\delivery\\staged\\DA-03-frontend",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-04",
+    "path": "C:\\Users\\DAN\\OneDrive\\Documents\\ChatGPT\\DA-07\\delivery\\staged\\DA-04",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-05",
+    "path": "C:\\Users\\DAN\\OneDrive\\Documents\\ChatGPT\\DA-07\\delivery\\staged\\DA-05",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-06",
+    "path": "C:\\Users\\DAN\\OneDrive\\Documents\\ChatGPT\\DA-07\\delivery\\staged\\DA-06",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-06-ChatGPT",
+    "path": "C:\\Users\\DAN\\OneDrive\\Documents\\ChatGPT\\DA-07\\delivery\\staged\\DA-06-ChatGPT",
+    "status": "PASS"
+  }
+]
