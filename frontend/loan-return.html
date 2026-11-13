@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý mượn / trả | Thư viện PTIT</title>
+    <link rel="icon" href="assets/images/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="loan-return.css">
+</head>
+<body data-roles="ADMIN">
+    <div class="app">
+        <aside>
+            <div class="logo">
+                Thư viện PTIT
+                <small>Hệ thống quản lý</small>
+            </div>
+
+            <nav>
+                <a href="index.html">Tổng quan</a>
+                <a href="books.html">Quản lý sách</a>
+                <a href="loans.html">Duyệt đăng ký mượn</a>
+                <a href="loan-return.html" class="on">Quản lý mượn / trả</a>
+            </nav>
+
+            <div class="who">
+                <div class="user-info">
+                    <div class="av" id="userAvatar">A</div>
+                    <b id="userName">Thủ thư</b>
+                </div>
+                <span>Quản trị viên</span>
+                <br>
+                <button class="lo" type="button" id="logoutButton">Đăng xuất</button>
+            </div>
+        </aside>
+
+        <main>
+            <div class="top">
+                <a class="ib" href="index.html">Trang chủ</a>
+                <button class="ib" type="button" id="refreshButton">Làm mới</button>
+            </div>
+
+            <section class="head">
+                <div>
+                    <h1>Quản lý mượn / trả</h1>
+                    <p>Theo dõi sách đang được mượn, hạn trả và tiền phạt quá hạn.</p>
+                </div>
+                <span class="total-label" id="resultCount">0 phiếu</span>
+            </section>
+
+            <section class="statistics">
+                <div class="stat-card">
+                    <span>Đang mượn</span>
+                    <b id="borrowingCount">0</b>
+                </div>
+                <div class="stat-card">
+                    <span>Quá hạn</span>
+                    <b id="overdueCount">0</b>
+                </div>
+                <div class="stat-card">
+                    <span>Tổng tiền phạt</span>
+                    <b id="totalFine">0 ₫</b>
+                </div>
+                <div class="stat-card">
+                    <span>Đã trả</span>
+                    <b id="returnedCount">0</b>
+                </div>
+            </section>
+
+            <section class="filter-panel">
+                <div class="filter-heading">
+                    <div>
+                        <h2>Lọc danh sách mượn / trả</h2>
+                        <p>Lọc theo tình trạng phiếu hoặc tìm mã phiếu, độc giả và tên sách.</p>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-field">
+                        <label for="statusFilter">Trạng thái</label>
+                        <select id="statusFilter">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="BORROWING">Đang mượn</option>
+                            <option value="OVERDUE">Quá hạn</option>
+                            <option value="RETURNED">Đã trả</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-field search-field">
+                        <label for="searchInput">Tìm kiếm</label>
+                        <input type="search" id="searchInput" placeholder="Mã phiếu, độc giả hoặc tên sách">
+                    </div>
+
+                    <button type="button" class="btn ghost" id="clearFilterButton">Xóa bộ lọc</button>
+                </div>
+            </section>
+
+            <div id="messageBox" class="message-box" role="status" aria-live="polite" hidden></div>
+
+            <section class="card">
+                <div class="table-heading">
+                    <h2>Danh sách phiếu mượn</h2>
+                    <span id="tableCount">0 kết quả</span>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã phiếu</th>
+                                <th>Độc giả</th>
+                                <th>Sách</th>
+                                <th>Ngày mượn</th>
+                                <th>Hạn trả</th>
+                                <th>Tiền phạt</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loanTableBody">
+                            <tr>
+                                <td colspan="8" class="empty">Đang tải danh sách phiếu mượn...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <span id="pageInfo">Trang 1 / 1</span>
+                    <div>
+                        <button type="button" class="btn ghost" id="previousPage" disabled>Trước</button>
+                        <button type="button" class="btn ghost" id="nextPage" disabled>Sau</button>
+                    </div>
+                </div>
+            </section>
+
+            <p class="note">
+                Lưu ý: thao tác nhận trả cần API Backend tương ứng. Khi Backend bổ sung endpoint, nút Nhận trả sẽ được kết nối.
+            </p>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="api.js"></script>
+    <script src="loan-return.js"></script>
+</body>
+</html>
