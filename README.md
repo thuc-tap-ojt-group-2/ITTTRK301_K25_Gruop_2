@@ -40,7 +40,7 @@ Quy tắc chính theo yêu cầu: tiền phạt trả trễ là **5.000đ mỗi 
 - Khôi phục trang chủ với các phần theo đúng thứ tự: trang chủ, giới thiệu, sách mới, nội dung, nội quy, FAQ, liên hệ và chân trang.
 - Giữ hiệu ứng sách chuyển động, hiệu ứng hiện dần khi cuộn, ticker sách chạy qua lại và dữ liệu thống kê lấy từ API.
 - Chỉnh trang chủ theo hướng gọn và đồng nhất hơn: giảm gradient/đổ bóng, cân lại khoảng cách và chữ, điều chỉnh menu để không tràn ở desktop cỡ trung bình và hiển thị đủ liên kết trên điện thoại.
-- Sửa các trang đăng nhập/đăng ký để nạp `api.js`; bổ sung hướng dẫn khi mở trang bằng `file://`. Trang cần được mở qua máy chủ HTTP để API, CORS và phiên đăng nhập hoạt động đúng.
+- Tách rõ hai luồng xác thực hiện có: trang chủ `frontend/index.html` dùng luồng demo trong `assets/js/script.js`; `frontend/login.html` và `frontend/register.html` được thiết kế để gọi API qua `assets/js/auth.js`. Tình trạng kiểm thử từng luồng được ghi ở mục bên dưới.
 - Sửa bộ đếm để hoàn tất giá trị khi tab bị ẩn, tránh số liệu bị kẹt ở 0.
 - Tạo `backend/seed_catalog.py`: bổ sung 5 thể loại (Giáo dục, Kinh tế, Tiểu thuyết, Thiên văn, Khám phá) và 10 sách, mỗi sách 2 bản. Script có thể chạy lại mà không thêm trùng sách/thể loại.
 - Cập nhật hướng dẫn chạy và nạp dữ liệu mẫu trong README.
@@ -63,6 +63,71 @@ Quy tắc chính theo yêu cầu: tiền phạt trả trễ là **5.000đ mỗi 
 - `main.py` hiện cấu hình CORS với wildcard (`allow_origins=["*"]`); `FRONTEND_ORIGINS` trong `.env` chưa được sử dụng. Chỉ nên dùng cấu hình hiện tại khi phát triển local; cần giới hạn origin trước khi triển khai.
 - Phân quyền API chưa đồng nhất: một số route dữ liệu/sách/tiền phạt chưa khai báo kiểm tra vai trò hoặc người dùng hiện tại. Không nên đưa backend hiện tại ra môi trường công khai trước khi rà soát và bổ sung bảo vệ quyền truy cập.
 
+## Nhật ký kiểm thử và việc cần hoàn thiện
+
+**Thời điểm kiểm tra:** 13/11/2026, 21:49 (UTC+7).
+
+**Mốc bảo vệ:** 24/11/2026. Đây là ảnh chụp trạng thái local tại thời điểm ghi; những mục “chưa kiểm thử” không được xem là đã hoạt động.
+
+### Kết quả đã kiểm tra
+
+| Thời điểm | Phần kiểm tra | Kết quả thực tế | Trạng thái |
+|---|---|---|---|
+| 13/11/2026 21:39 | Frontend tại `http://localhost:5500/index.html` và các tài nguyên CSS/JS | Máy chủ HTTP trả `200`; trang chủ được tải. | Đạt |
+| 13/11/2026 21:39 | `http://localhost:5500/favicon.ico` | Trả `404` vì dự án chưa có favicon ở đường dẫn này. Không ảnh hưởng chức năng trang chủ. | Không cần sửa gấp |
+| 13/11/2026 21:45 | Backend FastAPI tại cổng `8000` | Uvicorn báo `Application startup complete`. | Đạt |
+| 13/11/2026 21:49 | `GET /`, `GET /docs`, `GET /api/books?page=1&size=100` | Cả ba endpoint trả `HTTP 200`. | Đạt |
+| 13/11/2026 21:49 | `python test_fine.py` trong `backend` | Bốn ca tính tiền phạt chạy qua. | Đạt |
+| 13/11/2026 21:49 | `node --check` cho `landing.js`, `script.js`, `api.js`; `git diff --check` | Không báo lỗi cú pháp JavaScript hoặc whitespace. | Đạt |
+| 13/11/2026 21:49 | `http://localhost:5500/app.js` | Trả `HTTP 404`; file `frontend/app.js` không tồn tại nhưng các trang đăng nhập/đăng ký vẫn tham chiếu file này. | Chặn kiểm thử đăng nhập/đăng ký qua giao diện riêng |
+| 13/11/2026 21:49 | `python -m pytest -q` | Không chạy được vì virtualenv chưa cài `pytest` (`No module named pytest`). Bài test tính phạt hiện vẫn chạy được trực tiếp bằng `python test_fine.py`. | Chưa có bộ pytest |
+
+### Checklist test thủ công
+
+Chạy backend và frontend ở **hai terminal riêng**; không cần chạy backend lần thứ hai nếu terminal Uvicorn hiện đã chạy:
+
+**Terminal backend** (từ thư mục gốc):
+
+```powershell
+cd D:\Rikkei_Internship\backend
+.\venv\Scripts\Activate.ps1
+uvicorn main:app --reload --port 8000
+```
+
+Chờ dòng `Application startup complete`. Mở `http://127.0.0.1:8000/docs`.
+
+**Terminal frontend**:
+
+```powershell
+cd D:\Rikkei_Internship\frontend
+py -m http.server 5500
+```
+
+Mở `http://localhost:5500/index.html`, không mở file bằng `file://`. Sau khi sửa code, nhấn `Ctrl+F5`.
+
+| Bước | Cách test | Mong đợi | Tình trạng / ghi chú |
+|---|---|---|---|
+| Trang chủ và API sách | Mở trang chủ; thử `http://127.0.0.1:8000/api/books?page=1&size=100`; xem ticker sách và footer. | API trả `200`; sách có ảnh tải được và ticker di chuyển. | API `200` đã xác nhận lúc 21:49. Ảnh bìa phụ thuộc URL trong database; một URL ngoài từng bị trình duyệt chặn. |
+| Tài khoản đăng ký/đăng nhập qua trang chủ | Bấm Đăng ký/Đăng nhập trên `index.html`; thử đăng ký email đã dùng. | Nếu dùng backend thật, tài khoản được lưu DB; trùng tên đăng nhập, mã SV hoặc email bị từ chối. | **Không phải kiểm thử backend:** `frontend/assets/js/script.js` đặt `USE_MOCK_API = true`, lưu dữ liệu vào `localStorage`, không gửi request đến FastAPI. Chế độ demo hiện chỉ chặn trùng email, chưa chặn trùng mã SV. |
+| Tài khoản qua trang riêng | Mở `register.html` và `login.html`; kiểm tra Console/Network rồi thử đăng ký/đăng nhập. | Trang tải script dùng chung, gọi `/api/auth/register` và `/api/auth/login`. | **Đang bị chặn:** hai HTML nạp `/app.js`, nhưng `frontend/app.js` không có (HTTP 404). Ngoài ra `assets/js/auth.js` gọi `PTIT.loadStats`/`PTIT.fillStats`, trong khi các hàm này chưa được cung cấp ở `assets/js/ui.js`; `apiRequest` hiện nằm trong `frontend/api.js` nhưng HTML không nạp file đó. |
+| Chặn trùng tài khoản ở API | Dùng Swagger `POST /api/auth/register`: gửi một username/email mới hai lần; sau đó thử trùng riêng username hoặc email. Chỉ thử trên database local. | Lần đầu `201`; các lần trùng `400`. | Backend có kiểm tra username/email trong `backend/app/routers/auth.py` và unique constraint ở `backend/app/models.py`. Trang riêng dùng mã SV làm `username`, nên API sẽ chặn trùng mã SV theo username; database **không có cột `student_id` riêng**. |
+| Đăng nhập và API cần token | Đăng nhập bằng tài khoản local để nhận token, sau đó gọi endpoint có bảo vệ như `/api/stats/overview` với `Authorization: Bearer <token>`. | Token được chấp nhận và trả dữ liệu theo quyền. | **Có lỗi đã xác định:** khóa ký trong `backend/app/auth_service.py` khác khóa xác minh trong `backend/app/dependencies.py`; token có thể bị trả `401`. |
+| Sách/thể loại | Thử GET danh sách; thử POST/PUT/DELETE chỉ trên database local và với dữ liệu kiểm thử. | CRUD trả mã phù hợp và dữ liệu được cập nhật. | GET sách đã đạt `200`; CRUD chưa được kiểm thử đầy đủ. Các route ghi sách/thể loại chưa kiểm tra vai trò ở backend, không dùng dữ liệu thật trước khi bổ sung phân quyền. |
+| Mượn/trả | Kiểm tra danh sách route trong `/docs`, sau đó thử tạo/hủy phiếu nếu route xuất hiện. | Các route mượn/trả hoạt động và cập nhật số bản sách chính xác. | **Chưa hoạt động qua API:** `backend/main.py` không include `loans.router`, nên OpenAPI không có `/api/loans`; giao diện `frontend/loans.js` gọi các route này. Khi bật router cần sửa thêm lệch `SystemLog`/`AuditLog` trong `backend/app/log_service.py` và `backend/app/models.py`. |
+| Độc giả, tiền phạt, thống kê, admin | Thử các route tương ứng trong `/docs` bằng tài khoản có quyền; so sánh kết quả với database. | Dữ liệu đúng và user không đủ quyền nhận `403`. | Route một phần đã được đăng ký nhưng chưa có kiểm thử tích hợp đầy đủ; quyền truy cập một số route chưa đồng nhất. Quản lý/khóa tài khoản và nhật ký admin chưa hoàn tất. |
+| Responsive và footer/bản đồ | Xem trang chủ ở desktop và điện thoại; kiểm tra footer, link và bản đồ. | Không tràn ngang; footer và bản đồ hiển thị. | Đã xem responsive ở lần kiểm tra trước; cần chạy lại sau thay đổi mới. Lỗi favicon `404` không phải lỗi API. |
+
+### Nguyên nhân chính và thứ tự xử lý trước bảo vệ
+
+1. **P0 — Khôi phục luồng đăng ký/đăng nhập chạy được:** tạo lại `frontend/app.js` hoặc hợp nhất đúng các hàm cần thiết vào script đang dùng; cập nhật `login.html`/`register.html` để nạp `api.js`, `ui.js` và `auth.js` đúng thứ tự; bảo đảm có `PTIT.loadStats`, `PTIT.fillStats`, `apiRequest`. Sau đó kiểm tra Console không còn `404 app.js`, `apiRequest is not defined` hoặc `PTIT.loadStats is not a function`.
+2. **P0 — Chọn một luồng đăng ký thật:** chuyển form trên trang chủ khỏi chế độ mock trong `frontend/assets/js/script.js`, hoặc hướng nút đăng ký đến trang riêng. Nếu nối form trang chủ, đổi API base từ cổng `8080` sang `8000` và đổi payload từ `studentId`/`fullName` sang `username`/`full_name` đúng schema `backend/app/schemas.py`.
+3. **P0 — Đồng bộ JWT:** dùng cùng một `SECRET_KEY` và `ALGORITHM` từ cấu hình chung cho cả tạo token và xác minh token trong `auth_service.py` và `dependencies.py`; kiểm thử đăng nhập rồi gọi API cần token.
+4. **P1 — Chốt quy tắc mã sinh viên:** hiện trang riêng lưu mã SV vào cột `username`, nên uniqueness được thừa hưởng từ username. Nếu yêu cầu đồ án bắt buộc lưu trường `student_id` riêng, cần bổ sung schema/model và migration có giữ dữ liệu hiện tại, rồi kiểm thử trùng mã SV trên database local.
+5. **P1 — Mượn/trả:** chỉ bật `loans.router` sau khi sửa `log_service.py` để dùng model log hiện có và kiểm thử lại từ `/docs`. Nếu chưa kịp hoàn tất, không trình bày chức năng này như một luồng API đã chạy.
+6. **P1 — Phân quyền và hồi quy:** bổ sung kiểm tra vai trò ở các API ghi sách/thể loại/tiền phạt; chạy lại checklist trên sau mỗi thay đổi. Không triển khai backend hiện tại ra Internet trước khi rà soát quyền và CORS.
+
+**Ưu tiên demo:** chỉ trình bày chức năng đã chạy lại được trên đúng máy demo; ghi rõ phần đang dùng dữ liệu demo hoặc còn thiếu API. Không dùng tài khoản, dữ liệu thật để thử đăng ký trùng hay CRUD.
+
 ## Tiến độ hiện tại
 
 | Module | Trạng thái |
@@ -70,13 +135,13 @@ Quy tắc chính theo yêu cầu: tiền phạt trả trễ là **5.000đ mỗi 
 | Trang chủ và giao diện responsive | Đã khôi phục, tinh chỉnh và xem thử |
 | Thống kê trang chủ từ API | Đã kiểm tra trên dữ liệu local |
 | Dữ liệu mẫu sách/thể loại | Đã có script seed idempotent |
-| Đăng ký/đăng nhập JWT | Có route; chưa chạy lại kiểm thử đầy đủ trong cập nhật này |
+| Đăng ký/đăng nhập JWT | API có route; trang chủ vẫn mock, trang login/register riêng đang bị chặn bởi script `app.js` thiếu và JWT cần đồng bộ |
 | Sách/thể loại | Có các route CRUD; kiểm tra quyền truy cập API chưa đầy đủ |
-| Mượn sách độc giả | Có file router nhưng chưa được nạp trong `main.py` hiện tại |
+| Mượn sách độc giả | Có file router nhưng chưa được nạp trong `main.py`; chưa có `/api/loans` trong OpenAPI |
 | Duyệt/từ chối/trả sách cho thủ thư | Chưa hoàn tất |
 | Tiền phạt, độc giả, thống kê | Có một số route; chưa kiểm thử toàn bộ và cần rà soát bảo vệ quyền |
 | Khóa tài khoản, quản lý user, đổi mật khẩu, nhật ký admin | Chưa hoàn tất |
-| Kiểm thử tự động/end-to-end toàn hệ thống | Chưa chạy |
+| Kiểm thử tự động/end-to-end toàn hệ thống | Mới chạy 4 ca `FineService` và kiểm tra HTTP tập trung; `pytest` chưa cài, chưa có E2E |
 
 ## Cấu trúc thư mục
 
