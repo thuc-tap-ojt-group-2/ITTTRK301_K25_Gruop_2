@@ -23,26 +23,60 @@ Dự án thực tập OJT, **Nhóm 2**, học phần thực tập doanh nghiệp
 | Frontend | HTML, CSS, JavaScript thuần |
 | Công cụ | Git, GitHub, Postman, Swagger (`/docs`) |
 
-## Chức năng
+## Phạm vi chức năng
 
 **Độc giả (READER):** đăng ký, đăng nhập, tra cứu sách, đăng ký mượn (7, 14 hoặc 30 ngày), hủy đăng ký, xem phiếu mượn và tiền phạt của mình.
 
 **Thủ thư (LIBRARIAN):** quản lý sách và thể loại, duyệt hoặc từ chối đăng ký mượn, nhận trả sách, xem độc giả và tiền phạt.
 
-**Quản trị viên (ADMIN):** toàn bộ quyền của thủ thư, thêm quản lý tài khoản (đổi vai trò, khóa, mở khóa), xem thống kê và nhật ký hệ thống.
+**Quản trị viên (ADMIN):** dự kiến có toàn bộ quyền của thủ thư, quản lý tài khoản, xem thống kê và nhật ký hệ thống.
 
-Quy tắc chính: tiền phạt trả trễ là **5.000đ mỗi ngày**; sách đang được mượn thì không xóa được; đặt trước giữ chỗ **48 giờ**; mật khẩu tối thiểu 6 ký tự; token đăng nhập hết hạn sau 24 giờ. Chi tiết xem tài liệu đặc tả yêu cầu (SRS).
+Quy tắc chính theo yêu cầu: tiền phạt trả trễ là **5.000đ mỗi ngày**; đặt trước giữ chỗ **48 giờ**; mật khẩu tối thiểu 6 ký tự; token đăng nhập hết hạn sau 24 giờ. Đây là phạm vi dự kiến; xem phần trạng thái bên dưới để biết phần nào đã được nối và kiểm chứng trong mã hiện tại.
 
-## Tiến độ
+## Cập nhật công việc ngày 13/11/2026
+
+### Đã làm
+
+- Khôi phục trang chủ với các phần theo đúng thứ tự: trang chủ, giới thiệu, sách mới, nội dung, nội quy, FAQ, liên hệ và chân trang.
+- Giữ hiệu ứng sách chuyển động, hiệu ứng hiện dần khi cuộn, ticker sách chạy qua lại và dữ liệu thống kê lấy từ API.
+- Chỉnh trang chủ theo hướng gọn và đồng nhất hơn: giảm gradient/đổ bóng, cân lại khoảng cách và chữ, điều chỉnh menu để không tràn ở desktop cỡ trung bình và hiển thị đủ liên kết trên điện thoại.
+- Sửa các trang đăng nhập/đăng ký để nạp `api.js`; bổ sung hướng dẫn khi mở trang bằng `file://`. Trang cần được mở qua máy chủ HTTP để API, CORS và phiên đăng nhập hoạt động đúng.
+- Sửa bộ đếm để hoàn tất giá trị khi tab bị ẩn, tránh số liệu bị kẹt ở 0.
+- Tạo `backend/seed_catalog.py`: bổ sung 5 thể loại (Giáo dục, Kinh tế, Tiểu thuyết, Thiên văn, Khám phá) và 10 sách, mỗi sách 2 bản. Script có thể chạy lại mà không thêm trùng sách/thể loại.
+- Cập nhật hướng dẫn chạy và nạp dữ liệu mẫu trong README.
+
+### Đã kiểm tra
+
+- Trong môi trường chạy thử, `GET /api/books` trả về 17 đầu sách với tổng 73 bản sách; trang chủ hiển thị 17 đầu sách, 73 bản sách và 7 thể loại đang có sách. Cơ sở dữ liệu có 8 thể loại; thể loại không có sách chưa được tính vào bộ đếm trang chủ.
+- Ticker hiển thị 10 thẻ sách. Frontend và backend đã được kiểm tra hoạt động qua HTTP; CORS từ frontend ở cổng 5500 đã được kiểm tra trong lần thử trước.
+- Giao diện được xem ở desktop, desktop cỡ trung bình và mobile; không còn tràn ngang ở các kích thước đã thử.
+- Chạy lại seed không tạo bản ghi trùng. `git diff --check` không báo lỗi định dạng.
+
+### Chưa làm / cần xử lý tiếp
+
+- Chưa chạy toàn bộ bộ kiểm thử tự động hoặc kiểm thử end-to-end đầy đủ; các kiểm tra nêu trên là kiểm tra tập trung và chạy trên môi trường local.
+- Trình duyệt đã báo một ảnh bìa lấy từ Unsplash bị chặn. Nên chuyển ảnh đó sang tài nguyên local hoặc xác nhận URL/nguồn ảnh để tránh ảnh bìa bị thiếu khi trình duyệt không truy cập được nguồn ngoài.
+- Quản lý tài khoản admin (đổi vai trò, khóa/mở khóa), đổi mật khẩu và API xem nhật ký **chưa có trong backend hiện tại**. `User` chưa có trường `locked`; `users_admin.py` không có và `main.py` không nạp router này.
+- Luồng thủ thư duyệt/từ chối phiếu và nhận trả sách **chưa có API được nạp trong `main.py`**. Router hiện tại không đăng ký `loans.py`; chưa có `loans_staff.py`.
+- `app/log_service.py` đang tham chiếu model `SystemLog`, trong khi `app/models.py` khai báo `AuditLog`. Cần đồng bộ hai phần này trước khi bật luồng ghi nhật ký/phiếu mượn liên quan.
+- JWT đang có hai khóa hard-code khác nhau giữa `app/auth_service.py` và `app/dependencies.py`; token do route đăng nhập tạo có thể không được dependency xác thực chấp nhận. `SECRET_KEY` trong `.env` hiện chưa được các file này đọc. Cần đồng bộ cấu hình trước khi kiểm thử luồng đăng nhập cần xác thực.
+- `main.py` hiện cấu hình CORS với wildcard (`allow_origins=["*"]`); `FRONTEND_ORIGINS` trong `.env` chưa được sử dụng. Chỉ nên dùng cấu hình hiện tại khi phát triển local; cần giới hạn origin trước khi triển khai.
+- Phân quyền API chưa đồng nhất: một số route dữ liệu/sách/tiền phạt chưa khai báo kiểm tra vai trò hoặc người dùng hiện tại. Không nên đưa backend hiện tại ra môi trường công khai trước khi rà soát và bổ sung bảo vệ quyền truy cập.
+
+## Tiến độ hiện tại
 
 | Module | Trạng thái |
 |---|---|
-| Đăng ký, đăng nhập (JWT), phân quyền | Đã có |
-| Sách: xem danh sách, thêm, xóa | Đã có |
-| Sách: tìm kiếm, sửa; thể loại | Đang làm |
-| Mượn sách: tạo phiếu, danh sách, phiếu của tôi, hủy | Đã có |
-| Mượn sách: duyệt, từ chối, nhận trả | Đang làm |
-| Tiền phạt, đặt trước, thống kê, nhật ký, quản lý tài khoản | Chưa làm |
+| Trang chủ và giao diện responsive | Đã khôi phục, tinh chỉnh và xem thử |
+| Thống kê trang chủ từ API | Đã kiểm tra trên dữ liệu local |
+| Dữ liệu mẫu sách/thể loại | Đã có script seed idempotent |
+| Đăng ký/đăng nhập JWT | Có route; chưa chạy lại kiểm thử đầy đủ trong cập nhật này |
+| Sách/thể loại | Có các route CRUD; kiểm tra quyền truy cập API chưa đầy đủ |
+| Mượn sách độc giả | Có file router nhưng chưa được nạp trong `main.py` hiện tại |
+| Duyệt/từ chối/trả sách cho thủ thư | Chưa hoàn tất |
+| Tiền phạt, độc giả, thống kê | Có một số route; chưa kiểm thử toàn bộ và cần rà soát bảo vệ quyền |
+| Khóa tài khoản, quản lý user, đổi mật khẩu, nhật ký admin | Chưa hoàn tất |
+| Kiểm thử tự động/end-to-end toàn hệ thống | Chưa chạy |
 
 ## Cấu trúc thư mục
 
@@ -51,16 +85,20 @@ Quy tắc chính: tiền phạt trả trễ là **5.000đ mỗi ngày**; sách �
 ├── backend/              # FastAPI
 │   ├── main.py           # Khởi tạo FastAPI, CORS và router
 │   ├── app/              # models, schemas, routers, services, dependencies
-│   └── .env              # cấu hình riêng (KHÔNG đưa lên GitHub)
+│   ├── seed_catalog.py   # Nạp dữ liệu mẫu sách/thể loại (chạy từ backend/)
+│   └── .env              # Cấu hình riêng, không đưa lên GitHub
 ├── frontend/             # HTML, CSS, JS thuần
 │   ├── index.html
 │   ├── login.html
+│   ├── register.html
 │   ├── books.html
-│   ├── books.js
-│   ├── books.css
-│   └── app.js
+│   ├── api.js
+│   ├── assets/           # CSS, JS và hình ảnh
+│   └── landing.js        # Hiệu ứng và dữ liệu trang chủ
 └── README.md
 ```
+
+Tạo `backend/.env` theo hướng dẫn chạy bên dưới; không đưa file này lên GitHub.
 
 ## Cài đặt và chạy thử
 
@@ -97,9 +135,9 @@ DB_PASSWORD=123456
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=library_management
-SECRET_KEY=mot_chuoi_bi_mat_dai_va_kho_doan
-FRONTEND_ORIGINS=http://localhost:5500,http://127.0.0.1:5500
 ```
+
+`SECRET_KEY` và `FRONTEND_ORIGINS` chưa được ứng dụng đọc từ `.env` ở trạng thái hiện tại; xem cảnh báo ở phần công việc chưa hoàn tất.
 
 ### 4. Chạy backend
 
@@ -113,8 +151,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 pip install fastapi "uvicorn[standard]" sqlalchemy pymysql pyjwt bcrypt python-dotenv "pydantic[email]"
 ```
 
-Tạo hoặc cập nhật cấu trúc bảng (chạy lại không làm mất dữ liệu; khi khởi động,
-ứng dụng cũng tự bổ sung cột `users.is_active` nếu cơ sở dữ liệu cũ chưa có):
+Tạo các bảng còn thiếu theo model:
 
 ```powershell
 python -c "from app.database import Base, engine; from app import models; Base.metadata.create_all(engine)"
@@ -128,19 +165,17 @@ uvicorn main:app --reload --port 8000
 
 Mở <http://127.0.0.1:8000/docs> để xem và thử API.
 
-### 5. Thêm dữ liệu mẫu
+### 5. Thêm dữ liệu sách mẫu
 
-Trang Quản lý sách cần có thể loại trong CSDL để chọn khi thêm sách:
+Trong terminal backend đã kích hoạt virtual environment, chạy:
 
-```sql
-USE library_management;
-
-INSERT INTO categories (id, name) VALUES
-(1, 'Công nghệ thông tin'),
-(2, 'Khoa học máy tính'),
-(3, 'Kỹ năng & Quản trị')
-ON DUPLICATE KEY UPDATE name = VALUES(name);
+```powershell
+python seed_catalog.py
 ```
+
+Script bổ sung 5 thể loại (Giáo dục, Kinh tế, Tiểu thuyết, Thiên văn, Khám phá)
+và 10 sách, mỗi sách 2 bản. Script không sửa dữ liệu hiện có và có thể chạy lại
+mà không tạo thể loại hoặc sách trùng.
 
 Muốn thử với tài khoản quản trị, đăng ký một tài khoản trên trang đăng ký rồi nâng quyền:
 
@@ -157,7 +192,7 @@ cd frontend
 py -m http.server 5500
 ```
 
-Mở <http://localhost:5500/login.html> trên trình duyệt.
+Mở <http://localhost:5500/index.html> trên trình duyệt. Không mở HTML trực tiếp bằng `file://`.
 
 ## API chính
 
@@ -169,13 +204,14 @@ Xem đầy đủ và thử trực tiếp tại `http://127.0.0.1:8000/docs`.
 | POST | `/api/auth/login` | Đăng nhập, nhận token | Không |
 | GET | `/api/books` | Danh sách sách, có phân trang | Không |
 | GET | `/api/books/categories` | Danh sách thể loại | Không |
-| POST | `/api/books` | Thêm sách | Thủ thư, admin |
-| PUT | `/api/books/{book_id}` | Cập nhật sách | Thủ thư, admin |
-| DELETE | `/api/books/{book_id}` | Xóa sách | Thủ thư, admin |
-| POST | `/api/loans/` | Đăng ký mượn sách | Có |
-| GET | `/api/loans/` | Danh sách phiếu mượn | Có |
-| GET | `/api/loans/my-loans` | Phiếu mượn của tôi | Có |
-| PATCH | `/api/loans/{loan_id}/cancel` | Hủy đăng ký | Có |
+| POST | `/api/books` | Thêm sách (hiện chưa có kiểm tra vai trò ở route này) | Không |
+| PUT | `/api/books/{book_id}` | Cập nhật sách (hiện chưa có kiểm tra vai trò ở route này) | Không |
+| DELETE | `/api/books/{book_id}` | Xóa sách (hiện chưa có kiểm tra vai trò ở route này) | Không |
+| GET | `/api/stats/overview` | Thống kê tổng quan | Thủ thư/admin |
+| GET | `/api/stats/top-books` | Sách được mượn nhiều | Thủ thư/admin |
+| GET | `/api/stats/monthly` | Thống kê theo tháng | Thủ thư/admin |
+
+`backend/app/routers/loans.py` có mã nguồn nhưng hiện chưa được include trong `backend/main.py`; vì vậy các route mượn sách trong file đó chưa được đăng ký khi chạy ứng dụng. Các route tiền phạt/độc giả cũng cần được rà soát quyền truy cập trước khi dùng với dữ liệu thật.
 
 Các API gọi cần đăng nhập thì gửi kèm header:
 
@@ -196,12 +232,11 @@ Authorization: Bearer <access_token>
 ### Kiểm tra nhanh khi frontend không kết nối được Backend
 
 Frontend tự lấy hostname của trang hiện tại và gọi API qua cổng `8000`
-(ví dụ `http://localhost:8000`). Nếu backend ở địa chỉ khác, khai báo
-`window.PTIT_API_BASE_URL` trước khi nạp `app.js`. Backend mặc định cho phép
-hai địa chỉ frontend `http://localhost:5500` và `http://127.0.0.1:5500`;
-có thể ghi đè danh sách này bằng `FRONTEND_ORIGINS` trong `backend/.env`, phân
-cách các origin bằng dấu phẩy. Hãy chạy đúng hai máy chủ ở hai cửa sổ terminal
-riêng:
+(ví dụ `http://localhost:8000`). Nếu backend ở địa chỉ khác, đặt
+`window.PTIT_API_BASE_URL` trước khi nạp `api.js`. Hiện `main.py` cấu hình CORS
+bằng wildcard; `FRONTEND_ORIGINS` chưa được ứng dụng đọc. Chỉ dùng cấu hình
+này khi phát triển local, không đưa backend trực tiếp ra Internet. Hãy chạy
+MySQL, backend và frontend ở các cửa sổ terminal riêng:
 
 1. Kiểm tra MySQL đang chạy, database `library_management` đã được tạo và
    thông tin trong `backend/.env` (đặc biệt `DB_USER`, `DB_PASSWORD`,
@@ -225,28 +260,27 @@ riêng:
    py -m http.server 5500
    ```
 
-   Mở `http://localhost:5500/login.html` (không mở HTML trực tiếp bằng
-   `file://`). Không dùng cổng khác, trừ khi cũng thêm origin đó vào
-   `FRONTEND_ORIGINS` trong `backend/.env`.
+   Mở `http://localhost:5500/index.html` (không mở HTML trực tiếp bằng
+   `file://`).
 4. Mở `http://127.0.0.1:8000/` hoặc
    `http://127.0.0.1:8000/docs`. Nếu không mở được, backend chưa chạy tại
    cổng 8000; nếu `/docs` mở được nhưng frontend báo lỗi, kiểm tra địa chỉ/cổng
-   trang frontend và `FRONTEND_ORIGINS` trong `backend/.env`.
+   trang frontend và cấu hình CORS trong `backend/main.py`.
 
 Nếu frontend và backend chạy trên hai máy khác nhau, `127.0.0.1` sẽ trỏ về
 máy của trình duyệt chứ không phải máy backend. Khi đó cần đổi
 `window.PTIT_API_BASE_URL` sang địa chỉ backend có thể truy cập, chạy backend
 với `uvicorn main:app --reload --host 0.0.0.0 --port 8000` trên mạng tin cậy,
-đồng thời thêm chính xác origin của frontend vào `FRONTEND_ORIGINS` trong
-`backend/.env` và khởi động lại backend. Chỉ mở cổng backend trên mạng tin
+đồng thời giới hạn CORS theo đúng origin của frontend trong cấu hình backend.
+Chỉ mở cổng backend trên mạng tin
 cậy, không public trực tiếp máy phát triển ra Internet.
 
 | Hiện tượng | Cách xử lý |
 |---|---|
 | Không mở được `http://127.0.0.1:8000/docs` / báo `ERR_CONNECTION_REFUSED` | Chạy backend từ thư mục `backend` bằng `uvicorn main:app --reload --port 8000`; kiểm tra terminal backend và cổng 8000 |
 | Backend báo lỗi kết nối database khi khởi động | Bật MySQL, tạo database `library_management`, kiểm tra thông tin trong `backend/.env` |
-| Gọi API bị chặn, Console ghi CORS | Mở frontend qua `http://localhost:5500` hoặc `http://127.0.0.1:5500`; nếu dùng cổng/host khác, thêm đúng origin vào `FRONTEND_ORIGINS` trong `backend/.env` rồi khởi động lại backend |
+| Gọi API bị chặn, Console ghi CORS | Mở frontend qua HTTP; kiểm tra địa chỉ API và cấu hình CORS trong `backend/main.py`. `FRONTEND_ORIGINS` hiện chưa được ứng dụng đọc |
 | Trang báo `Method Not Allowed` khi tải thể loại | Route `GET /api/books/categories` đã có; kiểm tra đang chạy đúng backend/cổng 8000 và xem route tại `/docs` |
-| Đăng nhập xong vẫn báo 401 | `SECRET_KEY` lúc tạo token và lúc giải mã phải cùng một giá trị |
+| Đăng nhập xong vẫn báo 401 | Kiểm tra khóa JWT khi tạo và giải mã token. Hai module hiện có giá trị hard-code khác nhau; cần đồng bộ mã nguồn trước khi luồng này hoạt động ổn định |
 | Sửa code frontend mà trang không đổi | Nhấn `Ctrl + F5` để tải lại, bỏ bộ nhớ đệm |
 | Không kích hoạt được môi trường ảo trên Windows | Chạy `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned` trước khi kích hoạt |
