@@ -1,0 +1,32 @@
+[
+  {
+    "name": "DA-03",
+    "path": "D:/Web Quản Lý Thư Viện/DA-03",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-03-frontend",
+    "path": "D:/Web Quản Lý Thư Viện/DA-03/frontend",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-04",
+    "path": "D:/Web Quản Lý Thư Viện/DA-04/frontend",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-05",
+    "path": "D:/Web Quản Lý Thư Viện/DA-05",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-06",
+    "path": "D:/Web Quản Lý Thư Viện/DA-06",
+    "status": "PASS"
+  },
+  {
+    "name": "DA-06-ChatGPT",
+    "path": "C:/Users/DAN/OneDrive/Documents/ChatGPT/DA-06 2/DA-06",
+    "status": "PASS"
+  }
+]

@@ -1,0 +1,65 @@
+{
+  "browser": "157.0.8103.51",
+  "viewport": "1912x910",
+  "tests": [
+    "6 màn hình, menu thủ thư riêng, số độc giả và sách chưa trả (gồm quá hạn)",
+    "Lịch sử đúng người, đủ mọi trang, mới nhất trước, Escape đóng và trả tiêu điểm",
+    "Lịch sử có CANCELLED/REJECTED, rỗng/lỗi/Thử lại, đổi người khi đang tải và giữ bàn phím trong dialog",
+    "Tìm tên không dấu, mã SV, rỗng, không khớp; lỗi tải và Thử lại",
+    "Tìm trên toàn bộ 1002 độc giả, reset trang, trạng thái khóa, chống phản hồi cũ; mọi mẫu đo <1 giây",
+    "Duyệt/từ chối, nhận trả tính phạt và tồn kho, chống xử lý lặp, thêm/xóa sách và lưu qua reload",
+    "Mobile/sáng-tối, chặn điều hướng và service trực tiếp cho độc giả/khách, không lỗi JavaScript"
+  ],
+  "search": [
+    {
+      "dataset": "2 readers, 27 loans",
+      "term": "  NGUYEN HOANG  ",
+      "milliseconds": 605.5
+    },
+    {
+      "dataset": "2 readers, 27 loans",
+      "term": "b22dccn142",
+      "milliseconds": 594
+    },
+    {
+      "dataset": "2 readers, 27 loans",
+      "term": "không tồn tại",
+      "milliseconds": 603.4
+    },
+    {
+      "dataset": "2 readers, 27 loans",
+      "term": "",
+      "milliseconds": 593.1
+    },
+    {
+      "dataset": "1002 readers, 5027 loans",
+      "term": "TEST999",
+      "milliseconds": 602.6
+    },
+    {
+      "dataset": "1002 readers, 5027 loans",
+      "term": "ban doc 999",
+      "milliseconds": 611.7
+    },
+    {
+      "dataset": "1002 readers, 5027 loans",
+      "term": "TEST998",
+      "milliseconds": 619.3
+    },
+    {
+      "dataset": "1002 readers, 5027 loans",
+      "term": "zzzz",
+      "milliseconds": 603.6
+    },
+    {
+      "dataset": "1002 readers, 5027 loans",
+      "term": "",
+      "milliseconds": 603.3
+    },
+    {
+      "dataset": "1002 readers, 5027 loans",
+      "term": "TEST999",
+      "milliseconds": 598.3
+    }
+  ]
+}
