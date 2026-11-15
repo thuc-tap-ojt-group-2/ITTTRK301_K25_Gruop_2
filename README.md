@@ -33,6 +33,54 @@ Dự án thực tập OJT, **Nhóm 2**, học phần thực tập doanh nghiệp
 
 Quy tắc chính theo yêu cầu: tiền phạt trả trễ là **5.000đ mỗi ngày**; đặt trước giữ chỗ **48 giờ**; mật khẩu tối thiểu 6 ký tự; token đăng nhập hết hạn sau 24 giờ. Đây là phạm vi dự kiến; xem phần trạng thái bên dưới để biết phần nào đã được nối và kiểm chứng trong mã hiện tại.
 
+## Rà soát code theo người phụ trách ngày 15/11/2026
+
+Chỉ đối chiếu mã nguồn trong repository với phần việc được phân công trong SRS; không đánh giá việc nộp link, biên bản họp, triển khai server, báo cáo hoặc slide. **✓** = code đáp ứng tiêu chí chính; **✗** = chưa hoàn thành đầy đủ. Kết quả test chỉ được ghi rõ ở mục đã chạy test.
+
+### Nguyễn Văn Thông — Backend: AUTH, LOAN, LOG
+
+| Phần việc | Trạng thái | Kết quả kiểm tra code |
+|---|---|---|
+| AUTH-01, AUTH-02 | ✗ | Có API đăng ký/đăng nhập và BCrypt, nhưng đăng nhập theo username thay vì email; tài khoản mới mặc định `USER` thay vì `READER`; secret tạo JWT khác secret xác minh nên token đăng nhập không dùng được với API cần xác thực. |
+| AUTH-03 | ✗ | Chưa có luồng logout hoàn chỉnh; client có chỗ xóa token nhưng các trang xác thực riêng hiện không tải được `app.js` và không nạp `api.js`. |
+| AUTH-04 | ✓ | Mật khẩu được băm và xác minh bằng BCrypt trong `auth_service.py`. |
+| AUTH-05, AUTH-06, AUTH-07 | ✗ | Phân quyền chưa áp dụng đồng đều; chưa có API đổi vai trò/khóa tài khoản hoặc đổi mật khẩu; model User chưa có trường khóa. |
+| LOAN-01 đến LOAN-07 | ✗ | Không có route `/api/loans` trong OpenAPI vì router chưa được nạp. Router hiện có còn thiếu schema tương ứng, dùng `created_at` chưa có trong model Loan và chưa hoàn thiện quy tắc đăng ký/duyệt/từ chối/trả theo BR01–BR05. |
+| LOG-01, LOG-02 | ✗ | Có `AuditLog` và một số thao tác ghi log, nhưng chưa ghi đủ các thao tác/người thực hiện; chưa có API xem nhật ký chỉ dành cho ADMIN. `log_service.py` tham chiếu `SystemLog` không có trong model. |
+
+### Nguyễn Hoàng Thành — Backend: BOOK, RDR, FINE, STAT, RSV
+
+| Phần việc | Trạng thái | Kết quả kiểm tra code |
+|---|---|---|
+| BOOK-01 | ✓ | API danh sách có phân trang mặc định 10 sách/trang và trả số bản còn lại. |
+| BOOK-02 | ✗ | Có tìm theo tên/tác giả/thể loại, nhưng chưa bảo đảm tìm không dấu như `nguyen` khớp `Nguyễn`. |
+| BOOK-03 đến BOOK-06 | ✗ | Có code CRUD, kiểm tra số bản và chặn xóa sách/thể loại đang được dùng; các API ghi chưa kiểm tra vai trò thủ thư/admin nên chưa đạt đầy đủ. |
+| RDR-01 đến RDR-03 | ✗ | Có API danh sách/tìm/lịch sử, nhưng chưa giới hạn quyền thủ thư/admin; chưa có trường mã sinh viên riêng. |
+| FINE-01 | ✓ | Tính phạt 5.000đ/ngày; `python test_fine.py` đã chạy đạt 4 ca đúng hạn/trễ hạn. |
+| FINE-02 đến FINE-05 | ✗ | Có logic đọc khoản đã chốt/tạm tính, nhưng luồng nhận trả chưa hoạt động để chốt phạt; API xem/đánh dấu phạt chưa được bảo vệ quyền; API phạt cá nhân nhận `user_id` từ query thay vì lấy từ token. |
+| STAT-01 đến STAT-03 | ✓ | Backend có API tổng quan, top 5 sách và dữ liệu 6 tháng; phần dashboard/biểu đồ frontend thuộc phần của Tân và đang thiếu. Chưa có test tích hợp đối chiếu dữ liệu. |
+| RSV-01 đến RSV-03 | ✗ | Chưa có model/API đặt trước, hủy đặt trước hoặc giữ chỗ 48 giờ. |
+
+### Huỳnh Hồ Nhĩ Đan — Frontend: độc giả, độc giả/thủ thư, tiền phạt
+
+| Phần việc | Trạng thái | Kết quả kiểm tra code |
+|---|---|---|
+| AUTH-01 đến AUTH-03 | ✗ | Có giao diện đăng nhập/đăng ký và JS gọi API, nhưng HTML nạp `app.js` không tồn tại, không nạp `api.js`; trang chủ vẫn có luồng mock. |
+| BOOK-01, BOOK-02 | ✗ | Có giao diện tra cứu, tìm kiếm và lọc sách, nhưng `frontend/assets/js/script.js` đang bật `USE_MOCK_API`; chưa dùng dữ liệu API thật trong luồng này. |
+| LOAN-01, LOAN-02, LOAN-06 | ✗ | Có giao diện đăng ký mượn, chọn 7/14/30 ngày và mục “Sách của tôi”, nhưng hiện lưu/đọc dữ liệu demo trong trình duyệt, chưa nối API thật. |
+| RDR-01 đến RDR-03, FINE-03 đến FINE-05 | ✗ | Chưa có trang độc giả và trang tiền phạt của thủ thư nối API. |
+| RSV-01 đến RSV-03, AUTH-07 | ✗ | Chưa có giao diện đặt trước hoặc đổi mật khẩu. |
+
+### Hà Ngọc Hoàng Tân — Frontend: thủ thư, admin, Dashboard
+
+| Phần việc | Trạng thái | Kết quả kiểm tra code |
+|---|---|---|
+| BOOK-03 đến BOOK-05 | ✗ | Có trang quản lý sách với form thêm/sửa/xóa nối API; API hiện chưa phân quyền thủ thư/admin nên chức năng chưa đạt end-to-end an toàn. |
+| BOOK-06 | ✗ | Chưa có màn CRUD thể loại riêng; hiện chỉ có chọn thể loại trong form sách. |
+| LOAN-03 đến LOAN-07 | ✗ | Có trang danh sách/duyệt phiếu, nhưng API `/api/loans` không được nạp; hàm duyệt/từ chối ở frontend hiện chỉ trả lỗi “Backend chưa cung cấp endpoint”. |
+| AUTH-06, LOG-02 | ✗ | Chưa có giao diện quản lý tài khoản hoặc xem nhật ký admin; backend cũng chưa có API tương ứng. |
+| STAT-01 đến STAT-03 | ✗ | Backend đã có API thống kê; chưa có màn Dashboard và biểu đồ trong frontend. |
+
 ## Cập nhật công việc ngày 13/11/2026
 
 ### Đã làm
