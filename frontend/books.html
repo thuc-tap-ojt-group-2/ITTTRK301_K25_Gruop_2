@@ -6,7 +6,7 @@
     <title>Quản lý sách | Thư viện PTIT</title>
     <link rel="stylesheet" href="books.css">
 </head>
-<body data-roles="ADMIN">
+<body data-roles="ADMIN,LIBRARIAN">
     <div class="layout">
         <aside class="sidebar">
             <div class="brand">
@@ -17,11 +17,12 @@
             <div class="menu-title">Quản lý thư viện</div>
 
             <nav class="nav">
-                <a href="#" data-roles="ADMIN">Tổng quan</a>
-                <a href="books.html" class="active" data-roles="ADMIN">Quản lý sách</a>
-                <a href="#" data-roles="ADMIN">Quản lý mượn trả</a>
-                <a href="#" data-roles="ADMIN">Quản lý tài khoản</a>
-                <a href="#" data-roles="ADMIN">Thống kê</a>
+                <a href="dashboard.html">Tổng quan</a>
+                <a href="books.html" class="active">Quản lý sách / thể loại</a>
+                <a href="loans.html">Phiếu mượn</a>
+                <a href="readers.html">Độc giả</a>
+                <a href="fines.html">Tiền phạt</a>
+                <a href="admin.html" data-roles="ADMIN">Tài khoản và nhật ký</a>
             </nav>
 
             <div class="user">
@@ -67,6 +68,24 @@
                 <div class="stat">
                     <p>Thể loại</p>
                     <strong id="totalCategories">0</strong>
+                </div>
+            </section>
+
+            <section class="panel" style="margin-top:20px">
+                <div class="panel-head">
+                    <div><h2>Quản lý thể loại</h2><p class="panel-description">Thêm, đổi tên hoặc xóa thể loại chưa được gán sách.</p></div>
+                </div>
+                <form id="categoryForm" class="tools">
+                    <input class="search" id="categoryName" type="text" maxlength="100" required placeholder="Tên thể loại">
+                    <button class="btn primary" id="saveCategoryButton" type="submit">Thêm thể loại</button>
+                    <button class="btn secondary" id="cancelCategoryEdit" type="button" hidden>Hủy sửa</button>
+                </form>
+                <div id="categoryMessage" class="message" hidden></div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Thể loại</th><th>Thao tác</th></tr></thead>
+                        <tbody id="categoryTable"><tr><td colspan="2">Đang tải...</td></tr></tbody>
+                    </table>
                 </div>
             </section>
 

@@ -7,6 +7,8 @@ const API_BASE_URL = (
 async function apiRequest(path, options = {}) {
     const token = localStorage.getItem("access_token") ||
         localStorage.getItem("token");
+    const isPublicAuthRequest =
+        path === "/api/auth/login" || path === "/api/auth/register";
 
     const headers = {
         ...(options.headers || {})
@@ -16,7 +18,7 @@ async function apiRequest(path, options = {}) {
         headers["Content-Type"] = "application/json";
     }
 
-    if (token) {
+    if (token && !isPublicAuthRequest) {
         headers.Authorization = `Bearer ${token}`;
     }
 
@@ -45,14 +47,26 @@ async function apiRequest(path, options = {}) {
         }
     }
 
-    if (response.status === 401) {
+    if (
+        response.status === 401 &&
+        token &&
+        path !== "/api/auth/login" &&
+        path !== "/api/auth/register"
+    ) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        localStorage.removeItem("ptit_token");
+        localStorage.removeItem("ptit_user");
 
         window.location.replace("index.html");
 
         throw new Error("Phiên đăng nhập đã hết hạn.");
+    }
+
+    if (response.status === 401 && !token) {
+        const detail = data && typeof data === "object" ? data.detail : null;
+        throw new Error(typeof detail === "string" ? detail : "Sai thông tin đăng nhập.");
     }
 
     if (!response.ok) {
@@ -77,9 +91,13 @@ async function apiRequest(path, options = {}) {
     return data;
 }
 
-async function getBooks(page = 1, size = 100) {
+async function getBooks(page = 1, size = 10, keyword = "") {
+    const params = new URLSearchParams({ page, size });
+    if (keyword.trim()) {
+        params.set("keyword", keyword.trim());
+    }
     return await apiRequest(
-        `/api/books?page=${page}&size=${size}`
+        `/api/books?${params}`
     );
 }
 
@@ -107,6 +125,26 @@ async function deleteBookAPI(id) {
     });
 }
 
+async function createCategory(category) {
+    return await apiRequest("/api/categories", {
+        method: "POST",
+        body: JSON.stringify(category)
+    });
+}
+
+async function updateCategory(id, category) {
+    return await apiRequest(`/api/categories/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(category)
+    });
+}
+
+async function deleteCategory(id) {
+    return await apiRequest(`/api/categories/${id}`, {
+        method: "DELETE"
+    });
+}
+
 function getCurrentUser() {
     try {
         return JSON.parse(localStorage.getItem("user") || "{}");
@@ -124,13 +162,108 @@ async function getLoans(status = "") {
 }
 
 async function approveLoanAPI(id) {
-    throw new Error(
-        "Backend chưa cung cấp endpoint duyệt phiếu mượn."
-    );
+    return await apiRequest(`/api/loans/${id}/approve`, { method: "PUT" });
 }
 
 async function rejectLoanAPI(id) {
-    throw new Error(
-        "Backend chưa cung cấp endpoint từ chối phiếu mượn."
-    );
+    return await apiRequest(`/api/loans/${id}/reject`, { method: "PUT" });
+}
+
+async function returnLoanAPI(id) {
+    return await apiRequest(`/api/loans/${id}/return`, { method: "PUT" });
+}
+
+async function getReaders(keyword = "") {
+    const params = new URLSearchParams();
+    if (keyword.trim()) {
+        params.set("keyword", keyword.trim());
+    }
+    return await apiRequest(`/api/readers${params.size ? `?${params}` : ""}`);
+}
+
+async function getReaderLoans(id) {
+    return await apiRequest(`/api/readers/${id}/loans`);
+}
+
+async function getFines() {
+    return await apiRequest("/api/fines");
+}
+
+async function getMyFines() {
+    return await apiRequest("/api/fines/mine");
+}
+
+async function markFinePaid(id) {
+    return await apiRequest(`/api/fines/${id}/paid`, { method: "PUT" });
+}
+
+async function changePassword(currentPassword, newPassword) {
+    return await apiRequest("/api/auth/password", {
+        method: "PUT",
+        body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword
+        })
+    });
+}
+
+async function getAdminUsers() {
+    return await apiRequest("/api/admin/users");
+}
+
+async function updateAdminUserRole(id, role) {
+    return await apiRequest(`/api/admin/users/${id}/role`, {
+        method: "PUT",
+        body: JSON.stringify({ role })
+    });
+}
+
+async function updateAdminUserLock(id, isLocked) {
+    return await apiRequest(`/api/admin/users/${id}/lock`, {
+        method: "PUT",
+        body: JSON.stringify({ is_locked: isLocked })
+    });
+}
+
+async function getAdminLogs(limit = 100) {
+    return await apiRequest(`/api/admin/logs?limit=${limit}`);
+}
+
+async function getStatsOverview() {
+    return await apiRequest("/api/stats/overview");
+}
+
+async function getTopBooks() {
+    return await apiRequest("/api/stats/top-books");
+}
+
+async function getMonthlyStats() {
+    return await apiRequest("/api/stats/monthly");
+}
+
+async function getMyReservations() {
+    return await apiRequest("/api/reservations/mine");
+}
+
+async function createReservation(bookId) {
+    return await apiRequest("/api/reservations", {
+        method: "POST",
+        body: JSON.stringify({ book_id: bookId })
+    });
+}
+
+async function cancelReservation(id) {
+    return await apiRequest(`/api/reservations/${id}`, { method: "DELETE" });
+}
+
+async function logoutAPI() {
+    try {
+        return await apiRequest("/api/auth/logout", { method: "POST" });
+    } finally {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("ptit_token");
+        localStorage.removeItem("ptit_user");
+    }
 }

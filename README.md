@@ -35,53 +35,68 @@ Quy tắc chính theo yêu cầu: tiền phạt trả trễ là **5.000đ mỗi 
 
 ## Rà soát code theo người phụ trách ngày 15/11/2026
 
-Chỉ đối chiếu mã nguồn trong repository với phần việc được phân công trong SRS; không đánh giá việc nộp link, biên bản họp, triển khai server, báo cáo hoặc slide. **✓** = code đáp ứng tiêu chí chính; **✗** = chưa hoàn thành đầy đủ. Kết quả test chỉ được ghi rõ ở mục đã chạy test.
+Chỉ đối chiếu mã nguồn trong repository với phần việc được phân công trong SRS; không đánh giá việc nộp link, biên bản họp, triển khai server, báo cáo hoặc slide. **✓** = đã có luồng code chính; **✗** = còn thiếu hoặc chưa kiểm chứng đủ. Kết quả tự động không thay thế kiểm thử end-to-end trên MySQL và trình duyệt.
 
 ### Nguyễn Văn Thông — Backend: AUTH, LOAN, LOG
 
 | Phần việc | Trạng thái | Kết quả kiểm tra code |
 |---|---|---|
-| AUTH-01, AUTH-02 | ✗ | Có API đăng ký/đăng nhập và BCrypt, nhưng đăng nhập theo username thay vì email; tài khoản mới mặc định `USER` thay vì `READER`; secret tạo JWT khác secret xác minh nên token đăng nhập không dùng được với API cần xác thực. |
-| AUTH-03 | ✗ | Chưa có luồng logout hoàn chỉnh; client có chỗ xóa token nhưng các trang xác thực riêng hiện không tải được `app.js` và không nạp `api.js`. |
-| AUTH-04 | ✓ | Mật khẩu được băm và xác minh bằng BCrypt trong `auth_service.py`. |
-| AUTH-05, AUTH-06, AUTH-07 | ✗ | Phân quyền chưa áp dụng đồng đều; chưa có API đổi vai trò/khóa tài khoản hoặc đổi mật khẩu; model User chưa có trường khóa. |
-| LOAN-01 đến LOAN-07 | ✗ | Không có route `/api/loans` trong OpenAPI vì router chưa được nạp. Router hiện có còn thiếu schema tương ứng, dùng `created_at` chưa có trong model Loan và chưa hoàn thiện quy tắc đăng ký/duyệt/từ chối/trả theo BR01–BR05. |
-| LOG-01, LOG-02 | ✗ | Có `AuditLog` và một số thao tác ghi log, nhưng chưa ghi đủ các thao tác/người thực hiện; chưa có API xem nhật ký chỉ dành cho ADMIN. `log_service.py` tham chiếu `SystemLog` không có trong model. |
+| AUTH-01, AUTH-02, AUTH-04 | ✓ | Đăng ký tài khoản READER; đăng nhập bằng email hoặc tên đăng nhập; mật khẩu BCrypt; JWT dùng chung cấu hình xác minh. |
+| AUTH-03 | ✓ | Logout thu hồi `jti`; giao diện gọi API và xóa token ở các trang. |
+| AUTH-05, AUTH-06, AUTH-07 | ✓ | Role guard cho API; ADMIN đổi vai trò/khóa tài khoản; API và giao diện độc giả hỗ trợ đổi mật khẩu. |
+| LOAN-01 đến LOAN-07 | ✓ | Router được mount; đăng ký/hủy, duyệt/từ chối/trả; kiểm tra giới hạn và cập nhật tồn kho; nhận trả chốt tiền phạt. |
+| LOG-01, LOG-02 | ✓ | Thao tác xác thực, quản trị, sách, mượn/trả và đặt trước ghi vào `AuditLog`; endpoint xem log chỉ dành cho ADMIN. |
 
 ### Nguyễn Hoàng Thành — Backend: BOOK, RDR, FINE, STAT, RSV
 
 | Phần việc | Trạng thái | Kết quả kiểm tra code |
 |---|---|---|
-| BOOK-01 | ✓ | API danh sách có phân trang mặc định 10 sách/trang và trả số bản còn lại. |
-| BOOK-02 | ✗ | Có tìm theo tên/tác giả/thể loại, nhưng chưa bảo đảm tìm không dấu như `nguyen` khớp `Nguyễn`. |
-| BOOK-03 đến BOOK-06 | ✗ | Có code CRUD, kiểm tra số bản và chặn xóa sách/thể loại đang được dùng; các API ghi chưa kiểm tra vai trò thủ thư/admin nên chưa đạt đầy đủ. |
-| RDR-01 đến RDR-03 | ✗ | Có API danh sách/tìm/lịch sử, nhưng chưa giới hạn quyền thủ thư/admin; chưa có trường mã sinh viên riêng. |
-| FINE-01 | ✓ | Tính phạt 5.000đ/ngày; `python test_fine.py` đã chạy đạt 4 ca đúng hạn/trễ hạn. |
-| FINE-02 đến FINE-05 | ✗ | Có logic đọc khoản đã chốt/tạm tính, nhưng luồng nhận trả chưa hoạt động để chốt phạt; API xem/đánh dấu phạt chưa được bảo vệ quyền; API phạt cá nhân nhận `user_id` từ query thay vì lấy từ token. |
-| STAT-01 đến STAT-03 | ✓ | Backend có API tổng quan, top 5 sách và dữ liệu 6 tháng; phần dashboard/biểu đồ frontend thuộc phần của Tân và đang thiếu. Chưa có test tích hợp đối chiếu dữ liệu. |
-| RSV-01 đến RSV-03 | ✗ | Chưa có model/API đặt trước, hủy đặt trước hoặc giữ chỗ 48 giờ. |
+| BOOK-01 đến BOOK-06 | ✓ | Danh sách phân trang, tìm kiếm bỏ dấu, CRUD sách/thể loại và kiểm tra quyền; có giao diện quản lý. |
+| RDR-01 đến RDR-03 | ✓ | API danh sách/tìm/lịch sử chỉ cho staff; username được dùng làm mã sinh viên và unique. Có giao diện xem danh sách/lịch sử. |
+| FINE-01 đến FINE-05 | ✓ | Phạt 5.000đ/ngày; API xem/thu tiền có role guard; khoản cá nhân lấy theo token; có màn thu phạt. |
+| STAT-01 đến STAT-03 | ✓ | API tổng quan, top 5, thống kê 6 tháng; dashboard có biểu đồ và bảng số liệu. |
+| RSV-01 đến RSV-03 | ✓ | Có model, API đặt/hủy, hàng đợi theo thứ tự và thời gian giữ chỗ 48 giờ; hết hạn được đồng bộ khi truy cập/nghiệp vụ tiếp theo. |
 
 ### Huỳnh Hồ Nhĩ Đan — Frontend: độc giả, độc giả/thủ thư, tiền phạt
 
 | Phần việc | Trạng thái | Kết quả kiểm tra code |
 |---|---|---|
-| AUTH-01 đến AUTH-03 | ✗ | Có giao diện đăng nhập/đăng ký và JS gọi API, nhưng HTML nạp `app.js` không tồn tại, không nạp `api.js`; trang chủ vẫn có luồng mock. |
-| BOOK-01, BOOK-02 | ✗ | Có giao diện tra cứu, tìm kiếm và lọc sách, nhưng `frontend/assets/js/script.js` đang bật `USE_MOCK_API`; chưa dùng dữ liệu API thật trong luồng này. |
-| LOAN-01, LOAN-02, LOAN-06 | ✗ | Có giao diện đăng ký mượn, chọn 7/14/30 ngày và mục “Sách của tôi”, nhưng hiện lưu/đọc dữ liệu demo trong trình duyệt, chưa nối API thật. |
-| RDR-01 đến RDR-03, FINE-03 đến FINE-05 | ✗ | Chưa có trang độc giả và trang tiền phạt của thủ thư nối API. |
-| RSV-01 đến RSV-03, AUTH-07 | ✗ | Chưa có giao diện đặt trước hoặc đổi mật khẩu. |
+| AUTH-01 đến AUTH-04, AUTH-07 | ✓ | Form trang riêng và modal trang chủ gọi API thật; token/role được lưu đồng bộ; có logout và đổi mật khẩu. |
+| BOOK-01, BOOK-02 | ✓ | Trang độc giả tải danh sách thật, tìm kiếm/lọc sách và mở chi tiết. |
+| LOAN-01, LOAN-02, LOAN-06 | ✓ | Đăng ký 7/14/30 ngày, xem/hủy phiếu và xem khoản phạt cá nhân qua API. |
+| RSV-01 đến RSV-03 | ✓ | Đặt trước khi không còn bản khả dụng; xem/hủy phiếu và thời hạn giữ chỗ. |
 
 ### Hà Ngọc Hoàng Tân — Frontend: thủ thư, admin, Dashboard
 
 | Phần việc | Trạng thái | Kết quả kiểm tra code |
 |---|---|---|
-| BOOK-03 đến BOOK-05 | ✗ | Có trang quản lý sách với form thêm/sửa/xóa nối API; API hiện chưa phân quyền thủ thư/admin nên chức năng chưa đạt end-to-end an toàn. |
-| BOOK-06 | ✗ | Chưa có màn CRUD thể loại riêng; hiện chỉ có chọn thể loại trong form sách. |
-| LOAN-03 đến LOAN-07 | ✗ | Có trang danh sách/duyệt phiếu, nhưng API `/api/loans` không được nạp; hàm duyệt/từ chối ở frontend hiện chỉ trả lỗi “Backend chưa cung cấp endpoint”. |
-| AUTH-06, LOG-02 | ✗ | Chưa có giao diện quản lý tài khoản hoặc xem nhật ký admin; backend cũng chưa có API tương ứng. |
-| STAT-01 đến STAT-03 | ✗ | Backend đã có API thống kê; chưa có màn Dashboard và biểu đồ trong frontend. |
+| BOOK-03 đến BOOK-06 | ✓ | Quản lý sách và CRUD thể loại nối API; route ghi yêu cầu ADMIN/LIBRARIAN. |
+| LOAN-03 đến LOAN-07 | ✓ | Staff lọc phiếu, duyệt/từ chối và nhận trả; có thể cập nhật danh sách sau thao tác. |
+| AUTH-06, LOG-02 | ✓ | Trang ADMIN đổi vai trò, khóa/mở khóa user và đọc nhật ký. |
+| STAT-01 đến STAT-03 | ✓ | Dashboard tải số liệu thật, top sách và biểu đồ mượn theo tháng. |
 
-## Cập nhật công việc ngày 13/11/2026
+## Cập nhật công việc ngày 15/11/2026
+
+### Đã hoàn thành trong code
+
+- Nối đăng nhập/đăng ký, tra cứu, mượn/trả, đặt trước, tiền phạt và các màn quản trị với API thật; chế độ mock không còn bật mặc định.
+- Bổ sung AUTH/LOAN/LOG, role guard, CRUD thể loại, quản lý độc giả, dashboard, user admin và nhật ký.
+- Thêm migration cho các cột AUTH/LOAN mới; bảng reservations được tạo từ metadata.
+
+### Kiểm thử vừa chạy
+
+- `python -m unittest discover -s tests -v`: **9/9 test đạt**.
+- `python -m compileall -q app main.py migrate_auth_loan.py`: đạt.
+- `node --check` cho JavaScript đã sửa và `git diff --check`: đạt.
+
+### Còn cần làm trước bảo vệ
+
+- Chạy migration trên bản sao MySQL thật và kiểm thử khởi động API với database của nhóm.
+- Chạy end-to-end trên trình duyệt cho READER/LIBRARIAN/ADMIN; chưa kiểm thử browser trong lượt này.
+- Khi deploy, cấu hình `SECRET_KEY` riêng và giới hạn `FRONTEND_ORIGINS`; không dùng secret mặc định development.
+- Xác nhận với SRS nếu mã sinh viên bắt buộc là cột riêng; hiện username được dùng làm mã đăng nhập/mã sinh viên.
+
+## Lịch sử cập nhật ngày 13/11/2026 (ảnh chụp trước khi hoàn thiện)
 
 ### Đã làm
 
@@ -111,11 +126,11 @@ Chỉ đối chiếu mã nguồn trong repository với phần việc được p
 - `main.py` hiện cấu hình CORS với wildcard (`allow_origins=["*"]`); `FRONTEND_ORIGINS` trong `.env` chưa được sử dụng. Chỉ nên dùng cấu hình hiện tại khi phát triển local; cần giới hạn origin trước khi triển khai.
 - Phân quyền API chưa đồng nhất: một số route dữ liệu/sách/tiền phạt chưa khai báo kiểm tra vai trò hoặc người dùng hiện tại. Không nên đưa backend hiện tại ra môi trường công khai trước khi rà soát và bổ sung bảo vệ quyền truy cập.
 
-## Nhật ký kiểm thử và việc cần hoàn thiện
+## Nhật ký kiểm thử ngày 13/11/2026 (lịch sử, không phải trạng thái hiện tại)
 
 **Thời điểm kiểm tra:** 13/11/2026, 21:49 (UTC+7).
 
-**Mốc bảo vệ:** 24/11/2026. Đây là ảnh chụp trạng thái local tại thời điểm ghi; những mục “chưa kiểm thử” không được xem là đã hoạt động.
+**Mốc bảo vệ:** 27/11/2026. Bảng dưới đây chỉ ghi trạng thái local ở ngày 13/11; xem rà soát ngày 15/11 phía trên để biết trạng thái hiện tại.
 
 ### Kết quả đã kiểm tra
 
@@ -176,20 +191,15 @@ Mở `http://localhost:5500/index.html`, không mở file bằng `file://`. Sau 
 
 **Ưu tiên demo:** chỉ trình bày chức năng đã chạy lại được trên đúng máy demo; ghi rõ phần đang dùng dữ liệu demo hoặc còn thiếu API. Không dùng tài khoản, dữ liệu thật để thử đăng ký trùng hay CRUD.
 
-## Tiến độ hiện tại
+## Tiến độ code tại ngày 15/11/2026
 
 | Module | Trạng thái |
 |---|---|
-| Trang chủ và giao diện responsive | Đã khôi phục, tinh chỉnh và xem thử |
-| Thống kê trang chủ từ API | Đã kiểm tra trên dữ liệu local |
-| Dữ liệu mẫu sách/thể loại | Đã có script seed idempotent |
-| Đăng ký/đăng nhập JWT | API có route; trang chủ vẫn mock, trang login/register riêng đang bị chặn bởi script `app.js` thiếu và JWT cần đồng bộ |
-| Sách/thể loại | Có các route CRUD; kiểm tra quyền truy cập API chưa đầy đủ |
-| Mượn sách độc giả | Có file router nhưng chưa được nạp trong `main.py`; chưa có `/api/loans` trong OpenAPI |
-| Duyệt/từ chối/trả sách cho thủ thư | Chưa hoàn tất |
-| Tiền phạt, độc giả, thống kê | Có một số route; chưa kiểm thử toàn bộ và cần rà soát bảo vệ quyền |
-| Khóa tài khoản, quản lý user, đổi mật khẩu, nhật ký admin | Chưa hoàn tất |
-| Kiểm thử tự động/end-to-end toàn hệ thống | Mới chạy 4 ca `FineService` và kiểm tra HTTP tập trung; `pytest` chưa cài, chưa có E2E |
+| AUTH, role guard, admin, nhật ký | Đã có code; 9 unit test đạt cho auth/loan cốt lõi |
+| Sách, thể loại, độc giả, tìm kiếm | Đã nối API; cần kiểm thử trên MySQL và trình duyệt |
+| Mượn/trả, phạt, đặt trước | Đã có API và giao diện chính; cần kiểm thử end-to-end |
+| Dashboard | Đã nối API thống kê và hiển thị biểu đồ |
+| Kiểm thử toàn hệ thống | Chưa chạy trên DB/MySQL thật hoặc browser |
 
 ## Cấu trúc thư mục
 
@@ -204,7 +214,12 @@ Mở `http://localhost:5500/index.html`, không mở file bằng `file://`. Sau 
 │   ├── index.html
 │   ├── login.html
 │   ├── register.html
+│   ├── dashboard.html
 │   ├── books.html
+│   ├── loans.html
+│   ├── readers.html
+│   ├── fines.html
+│   ├── admin.html
 │   ├── api.js
 │   ├── assets/           # CSS, JS và hình ảnh
 │   └── landing.js        # Hiệu ứng và dữ liệu trang chủ
@@ -313,18 +328,20 @@ Xem đầy đủ và thử trực tiếp tại `http://127.0.0.1:8000/docs`.
 
 | Phương thức | Đường dẫn | Mô tả | Cần đăng nhập |
 |---|---|---|---|
-| POST | `/api/auth/register` | Đăng ký tài khoản | Không |
-| POST | `/api/auth/login` | Đăng nhập, nhận token | Không |
-| GET | `/api/books` | Danh sách sách, có phân trang | Không |
-| GET | `/api/books/categories` | Danh sách thể loại | Không |
-| POST | `/api/books` | Thêm sách (hiện chưa có kiểm tra vai trò ở route này) | Không |
-| PUT | `/api/books/{book_id}` | Cập nhật sách (hiện chưa có kiểm tra vai trò ở route này) | Không |
-| DELETE | `/api/books/{book_id}` | Xóa sách (hiện chưa có kiểm tra vai trò ở route này) | Không |
-| GET | `/api/stats/overview` | Thống kê tổng quan | Thủ thư/admin |
-| GET | `/api/stats/top-books` | Sách được mượn nhiều | Thủ thư/admin |
-| GET | `/api/stats/monthly` | Thống kê theo tháng | Thủ thư/admin |
+| POST | `/api/auth/register`, `/api/auth/login` | Đăng ký, đăng nhập | Không |
+| POST | `/api/auth/logout`; PUT `/api/auth/password` | Thu hồi token, đổi mật khẩu | Đăng nhập |
+| GET | `/api/books` | Danh sách/tìm kiếm sách, phân trang | Không |
+| POST/PUT/DELETE | `/api/books`, `/api/books/{id}` | CRUD sách | LIBRARIAN/ADMIN |
+| GET/POST/PUT/DELETE | `/api/categories` | Thể loại | GET công khai; ghi LIBRARIAN/ADMIN |
+| POST/GET/PUT | `/api/loans` và `/api/loans/{id}/...` | Đăng ký, hủy, duyệt, từ chối, nhận trả | READER hoặc LIBRARIAN/ADMIN |
+| POST/GET/DELETE | `/api/reservations` | Đặt trước, xem của tôi, hủy | READER |
+| GET | `/api/readers`, `/api/readers/{id}/loans` | Danh sách và lịch sử độc giả | LIBRARIAN/ADMIN |
+| GET/PUT | `/api/fines` | Xem, đánh dấu khoản phạt đã thu | LIBRARIAN/ADMIN |
+| GET | `/api/fines/mine` | Khoản phạt cá nhân | READER |
+| GET | `/api/admin/users`, `/api/admin/logs` | Quản lý tài khoản và nhật ký | ADMIN |
+| GET | `/api/stats/overview`, `/api/stats/top-books`, `/api/stats/monthly` | Thống kê dashboard | LIBRARIAN/ADMIN |
 
-`backend/app/routers/loans.py` có mã nguồn nhưng hiện chưa được include trong `backend/main.py`; vì vậy các route mượn sách trong file đó chưa được đăng ký khi chạy ứng dụng. Các route tiền phạt/độc giả cũng cần được rà soát quyền truy cập trước khi dùng với dữ liệu thật.
+Sau khi cập nhật schema, chạy `python migrate_auth_loan.py` từ thư mục `backend` trước khi dùng database cũ. `main.py` dùng danh sách `FRONTEND_ORIGINS` trong `backend/.env`; không cấu hình wildcard cho môi trường triển khai.
 
 Các API gọi cần đăng nhập thì gửi kèm header:
 

@@ -1,8 +1,11 @@
 // Đăng nhập, đăng ký: gọi Backend qua apiRequest (app.js)
 
-// Trang mở ra sau khi đăng nhập, theo vai trò (đổi READER khi trang độc giả làm xong)
-const HOME_BY_ROLE = { ADMIN: "books.html", LIBRARIAN: "books.html", READER: "books.html" };
-const DEFAULT_HOME = "books.html";
+const HOME_BY_ROLE = {
+    ADMIN: "dashboard.html",
+    LIBRARIAN: "dashboard.html",
+    READER: "index.html"
+};
+const DEFAULT_HOME = "index.html";
 
 const authMessage = document.getElementById("authMessage");
 const submitButton = document.getElementById("submitButton");
@@ -43,7 +46,16 @@ function readTokenData(token) {
         return {};
     }
 
-    return JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    try {
+        const base64 = parts[1]
+            .replace(/-/g, "+")
+            .replace(/_/g, "/")
+            .padEnd(Math.ceil(parts[1].length / 4) * 4, "=");
+        const bytes = Uint8Array.from(atob(base64), character => character.charCodeAt(0));
+        return JSON.parse(new TextDecoder().decode(bytes));
+    } catch {
+        return {};
+    }
 }
 
 // Số liệu thật từ Backend cho khối "stats" bên trái
@@ -86,13 +98,21 @@ if (loginForm) {
             .then(function (data) {
                 const info = readTokenData(data.access_token);
                 const role = info.role || "";
+                const user = {
+                    id: info.user_id || info.id || null,
+                    username: info.username || username,
+                    full_name: info.full_name || "",
+                    fullName: info.full_name || "",
+                    studentId: info.username || username,
+                    email: info.email || username,
+                    role: role
+                };
 
                 localStorage.setItem("access_token", data.access_token);
-                localStorage.setItem("user", JSON.stringify({
-                    id: info.user_id || info.id || null,
-                    username: username,
-                    role: role
-                }));
+                localStorage.setItem("token", data.access_token);
+                localStorage.setItem("ptit_token", data.access_token);
+                localStorage.setItem("user", JSON.stringify(user));
+                localStorage.setItem("ptit_user", JSON.stringify(user));
 
                 PTIT.showLoading("Đăng nhập thành công, đang chuyển trang...");
 

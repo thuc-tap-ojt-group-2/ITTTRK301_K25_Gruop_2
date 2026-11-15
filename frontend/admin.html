@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị tài khoản | Thư viện PTIT</title>
+    <link rel="stylesheet" href="books.css">
+</head>
+<body data-roles="ADMIN">
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">Thư viện PTIT<small>Hệ thống quản lý</small></div>
+            <p class="menu-title">Điều hướng</p>
+            <nav class="nav">
+                <a href="dashboard.html">Tổng quan</a>
+                <a href="books.html">Quản lý sách / thể loại</a>
+                <a href="loans.html">Phiếu mượn</a>
+                <a href="readers.html">Độc giả</a>
+                <a href="fines.html">Tiền phạt</a>
+                <a class="active" href="admin.html">Tài khoản và nhật ký</a>
+            </nav>
+            <div class="user"><div class="user-info"><span class="avatar" id="userAvatar">A</span><strong id="userName">Đang tải...</strong></div><button class="logout-btn" id="logoutButton" type="button">Đăng xuất</button></div>
+        </aside>
+        <main class="main">
+            <header class="topbar"><div><h1>Quản trị hệ thống</h1><p>Chỉ ADMIN được quản lý vai trò, khóa tài khoản và xem nhật ký.</p></div><button class="btn secondary" id="refreshButton" type="button">Làm mới</button></header>
+            <section class="panel">
+                <div class="panel-head"><div><h2>Tài khoản</h2></div></div>
+                <p id="adminMessage" role="status" hidden></p>
+                <div class="table-wrapper"><table><thead><tr><th>Tài khoản</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="userTable"><tr><td colspan="5">Đang tải...</td></tr></tbody></table></div>
+            </section>
+            <section class="panel" style="margin-top:20px">
+                <div class="panel-head"><div><h2>Nhật ký hệ thống</h2><p class="panel-description">100 thao tác gần nhất.</p></div></div>
+                <div class="table-wrapper"><table><thead><tr><th>Thời gian</th><th>Người thực hiện</th><th>Thao tác</th><th>Chi tiết</th></tr></thead><tbody id="logTable"><tr><td colspan="4">Đang tải...</td></tr></tbody></table></div>
+            </section>
+        </main>
+    </div>
+    <script src="auth.js"></script>
+    <script src="api.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

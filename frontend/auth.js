@@ -37,12 +37,16 @@ function normalizeRole(role) {
 
     const value = String(role || "").toUpperCase();
 
-    if (["ADMIN", "LIBRARIAN", "THUTHU", "STAFF"].includes(value)) {
+    if (value === "ADMIN") {
         return "ADMIN";
     }
 
+    if (["LIBRARIAN", "THUTHU", "STAFF"].includes(value)) {
+        return "LIBRARIAN";
+    }
+
     if (["USER", "READER", "DOCGIA"].includes(value)) {
-        return "USER";
+        return "READER";
     }
 
     return "";

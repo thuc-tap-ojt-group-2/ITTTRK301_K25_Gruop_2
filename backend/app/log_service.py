@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
-from app.models import SystemLog
+from app.models import AuditLog
 from sqlalchemy.orm import Session
 
 
@@ -11,16 +11,16 @@ def create_system_log(
     user_id: Optional[int] = None,
     details: Optional[str] = None,
     ip_address: Optional[str] = None,
-) -> SystemLog:
-  log_entry = SystemLog(
-      user_id=user_id,
-      action=action,
-      resource=resource,
-      details=details,
-      ip_address=ip_address,
-      created_at=datetime.now(timezone.utc),
-  )
-  db.add(log_entry)
-  db.commit()
-  db.refresh(log_entry)
-  return log_entry
+) -> AuditLog:
+    log_detail = f"{resource}: {details}" if details else resource
+    if ip_address:
+        log_detail = f"{log_detail} (IP: {ip_address})"
+
+    log_entry = AuditLog(
+        actor_id=user_id,
+        action=action,
+        detail=log_detail[:255],
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(log_entry)
+    return log_entry

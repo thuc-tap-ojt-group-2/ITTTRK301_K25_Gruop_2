@@ -1,116 +1,130 @@
-from datetime import datetime, timezone
-from typing import List, Optional
-from app.database import get_db
-from app.dependencies import get_current_user
-from app.log_service import create_system_log
-from app.models import Book, Loan, User
-from app.schemas import LoanCreateRequest, LoanResponse
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from typing import List, Literal, Optional
+
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.database import get_db
+from app.dependencies import RoleChecker
+from app.loan_service import LoanService
+from app.models import Book, Loan, User
+from app.schemas import (
+    LoanBookSummary,
+    LoanCreateRequest,
+    LoanResponse,
+    LoanUserSummary,
+)
+
 router = APIRouter(prefix="/api/loans", tags=["Loans"])
+reader_only = RoleChecker(["READER", "USER"])
+librarian_or_admin = RoleChecker(["LIBRARIAN", "ADMIN"])
+
+LoanStatus = Literal["PENDING", "BORROWING", "RETURNED", "REJECTED", "CANCELLED"]
 
 
+def _to_response(db: Session, loan: Loan) -> LoanResponse:
+    book = db.query(Book).filter(Book.id == loan.book_id).first()
+    user = db.query(User).filter(User.id == loan.user_id).first()
+    return LoanResponse(
+        id=loan.id,
+        user_id=loan.user_id,
+        book_id=loan.book_id,
+        status=loan.status,
+        days=loan.days,
+        borrow_date=loan.borrow_date,
+        due_date=loan.due_date,
+        return_date=loan.return_date,
+        approved_by=loan.approved_by,
+        created_at=loan.created_at,
+        book=LoanBookSummary(id=book.id, title=book.title) if book else None,
+        user=(
+            LoanUserSummary(
+                id=user.id,
+                username=user.username,
+                full_name=user.full_name,
+            )
+            if user
+            else None
+        ),
+    )
+
+
+@router.post("", response_model=LoanResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=LoanResponse, status_code=status.HTTP_201_CREATED)
 def create_loan(
     loan_in: LoanCreateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(reader_only),
 ):
-    book = db.query(Book).filter(Book.id == loan_in.book_id).first()
-    if not book:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy sách"
-        )
-
-    if book.available_copies <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Sách này hiện đã hết bản sao khả dụng để mượn",
-        )
-
-    book.available_copies -= 1
-    new_loan = Loan(
-        user_id=current_user.id,
-        book_id=book.id,
-        status="PENDING",
-        days=loan_in.days,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(new_loan)
-    db.commit()
-    db.refresh(new_loan)
-
-    create_system_log(
+    loan = LoanService.create_request(
         db=db,
-        action="CREATE_LOAN",
-        resource="LOAN",
         user_id=current_user.id,
-        details=f"Tạo phiếu mượn sách ID {book.id} thành công",
+        book_id=loan_in.book_id,
+        days=loan_in.days,
     )
-    return new_loan
+    return _to_response(db, loan)
 
 
 @router.get("/my-loans", response_model=List[LoanResponse])
+@router.get("/mine", response_model=List[LoanResponse])
 def get_my_loans(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(reader_only),
 ):
-    return (
-        db.query(Loan)
-        .filter(Loan.user_id == current_user.id)
-        .order_by(Loan.created_at.desc())
-        .all()
-    )
+    return [
+        _to_response(db, loan)
+        for loan in LoanService.list_for_reader(db, current_user.id)
+    ]
 
 
 @router.patch("/{loan_id}/cancel", response_model=LoanResponse)
+@router.put("/{loan_id}/cancel", response_model=LoanResponse)
 def cancel_loan(
     loan_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(reader_only),
 ):
-    loan = (
-        db.query(Loan)
-        .filter(Loan.id == loan_id, Loan.user_id == current_user.id)
-        .first()
-    )
-    if not loan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy phiếu mượn"
-        )
-
-    if loan.status != "PENDING":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Chỉ có thể hủy phiếu khi đang ở trạng thái PENDING",
-        )
-
-    book = db.query(Book).filter(Book.id == loan.book_id).first()
-    if book:
-        book.available_copies += 1
-
-    loan.status = "CANCELLED"
-    db.commit()
-    db.refresh(loan)
-
-    create_system_log(
-        db=db,
-        action="CANCEL_LOAN",
-        resource="LOAN",
-        user_id=current_user.id,
-        details=f"Hủy phiếu mượn ID {loan.id}",
-    )
-    return loan
+    loan = LoanService.cancel_request(db, loan_id, current_user.id)
+    return _to_response(db, loan)
 
 
+@router.get("", response_model=List[LoanResponse])
 @router.get("/", response_model=List[LoanResponse])
 def list_loans(
-    status_filter: Optional[str] = Query(None, alias="status"),
+    status_filter: Optional[LoanStatus] = Query(None, alias="status"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(librarian_or_admin),
 ):
-    query = db.query(Loan)
-    if status_filter:
-        query = query.filter(Loan.status == status_filter)
-    return query.order_by(Loan.created_at.desc()).all()
+    return [
+        _to_response(db, loan)
+        for loan in LoanService.list_for_staff(db, status_filter)
+    ]
+
+
+@router.put("/{loan_id}/approve", response_model=LoanResponse)
+def approve_loan(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(librarian_or_admin),
+):
+    loan = LoanService.approve(db, loan_id, current_user.id)
+    return _to_response(db, loan)
+
+
+@router.put("/{loan_id}/reject", response_model=LoanResponse)
+def reject_loan(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(librarian_or_admin),
+):
+    loan = LoanService.reject(db, loan_id, current_user.id)
+    return _to_response(db, loan)
+
+
+@router.put("/{loan_id}/return", response_model=LoanResponse)
+def return_loan(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(librarian_or_admin),
+):
+    loan = LoanService.return_book(db, loan_id, current_user.id)
+    return _to_response(db, loan)

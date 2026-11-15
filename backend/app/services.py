@@ -21,7 +21,12 @@ class FineService:
 
 class LogService:
     @staticmethod
-    def record(db: Session, action: str, detail: str, actor_id: Optional[int] = None) -> AuditLog:
+    def record(
+        db: Session,
+        action: str,
+        detail: str,
+        actor_id: Optional[int] = None,
+    ) -> AuditLog:
         """
         LOG-01: Ghi vết nhật ký thao tác quan trọng vào bảng audit_logs
         """
