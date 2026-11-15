@@ -89,12 +89,25 @@ Chỉ đối chiếu mã nguồn trong repository với phần việc được p
 - `python -m compileall -q app main.py migrate_auth_loan.py`: đạt.
 - `node --check` cho JavaScript đã sửa và `git diff --check`: đạt.
 
-### Còn cần làm trước bảo vệ
+## Kế hoạch công việc tuần tới (16–22/11/2026)
 
-- Chạy migration trên bản sao MySQL thật và kiểm thử khởi động API với database của nhóm.
-- Chạy end-to-end trên trình duyệt cho READER/LIBRARIAN/ADMIN; chưa kiểm thử browser trong lượt này.
-- Khi deploy, cấu hình `SECRET_KEY` riêng và giới hạn `FRONTEND_ORIGINS`; không dùng secret mặc định development.
-- Xác nhận với SRS nếu mã sinh viên bắt buộc là cột riêng; hiện username được dùng làm mã đăng nhập/mã sinh viên.
+### Đã hoàn thành đến 15/11
+
+- [x] Hoàn thiện các luồng code chính AUTH, BOOK, LOAN, LOG, RDR, FINE, STAT và RSV; đã cập nhật giao diện theo chức năng.
+- [x] Thêm quản trị tài khoản/nhật ký, dashboard, quản lý thể loại, độc giả, tiền phạt và đặt trước.
+- [x] Chạy 9/9 backend unit tests; compile Python, kiểm tra cú pháp JavaScript và `git diff --check` đều đạt.
+- [x] Cập nhật checklist phần việc theo từng thành viên trong README.
+
+### Việc cần làm trong tuần tới
+
+| Người phụ trách | Công việc | Tiêu chí hoàn thành |
+|---|---|---|
+| Nguyễn Văn Thông | Chạy migration trên bản sao MySQL; khởi động API và kiểm tra đăng nhập, logout, đổi mật khẩu, quyền ADMIN/LIBRARIAN/READER. | Migration chạy được trên DB cũ; API trả dữ liệu đúng và user sai quyền nhận `403`. |
+| Nguyễn Hoàng Thành | Kiểm tra dữ liệu sách/thể loại, tìm kiếm bỏ dấu, tồn kho, độc giả, tiền phạt, thống kê và hàng đợi đặt trước trên MySQL. | Số liệu khớp DB; đặt/hủy/giữ chỗ 48 giờ không vượt tồn kho; chốt các yêu cầu SRS về mã sinh viên riêng hay dùng username. |
+| Huỳnh Hồ Nhĩ Đan | Kiểm thử giao diện độc giả trên trình duyệt: đăng ký/đăng nhập, tìm sách, mượn/hủy, đặt trước/hủy, xem phạt, đổi mật khẩu. | Các luồng chạy với API thật; thông báo lỗi rõ ràng; kiểm tra desktop và điện thoại. |
+| Hà Ngọc Hoàng Tân | Kiểm thử giao diện staff/admin: CRUD sách/thể loại, duyệt/từ chối/trả, thu phạt, lịch sử độc giả, quản lý user/log và dashboard. | Các thao tác cập nhật đúng DB; phân quyền hiển thị và API được kiểm tra cho từng vai trò. |
+| Cả nhóm | Chạy kiểm thử end-to-end hồi quy, sửa lỗi phát hiện được và tổng duyệt kịch bản demo trước ngày bảo vệ 27/11. | Có danh sách ca kiểm thử đạt/chưa đạt; không trình bày tính năng chưa xác minh trên máy demo. |
+| Người triển khai | Cấu hình `SECRET_KEY` riêng và `FRONTEND_ORIGINS` phù hợp môi trường demo/production. | Không dùng secret mặc định development; frontend được phép gọi API từ đúng origin. |
 
 ## Lịch sử cập nhật ngày 13/11/2026 (ảnh chụp trước khi hoàn thiện)
 
