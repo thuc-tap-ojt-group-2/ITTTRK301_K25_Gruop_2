@@ -1,15 +1,12 @@
-/* =====================================================
-   BẢN DEMO — chạy không cần backend
-   Giao diện độc giả theo ảnh tham chiếu, giữ luồng LOAN-01.
-   Đăng ký, Đăng nhập, danh sách sách và phiếu mượn dùng dữ liệu demo.
-   Phiếu mượn lưu trong trình duyệt; chưa tích hợp API mượn thật.
-   ===================================================== */
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = (
+  window.PTIT_API_BASE_URL ||
+  `${window.location.protocol === 'https:' ? 'https:' : 'http:'}//${window.location.hostname || '127.0.0.1'}:8000/api`
+).replace(/\/+$/, '');
 const ENDPOINTS = {
   register: '/auth/register',
   login: '/auth/login',
   books: '/books',
-  loans: '/loans', // DA-05: service demo, chưa nối API thật
+  loans: '/loans',
 };
 
 // Cách lấy danh sách sách từ API (chỉnh cho khớp backend)
@@ -21,9 +18,7 @@ const BOOKS_CONFIG = {
 };
 const PAGE_SIZE = 8; // số sách hiển thị trên mỗi trang
 
-// true = DEMO: Đăng ký, Đăng nhập, danh sách sách và mượn sách không cần backend.
-// false = giữ luồng API cũ của DA-04; chức năng mượn báo chưa tích hợp.
-const USE_MOCK_API = true;
+const USE_MOCK_API = false;
 
 const STORAGE_TOKEN = 'ptit_token';
 const STORAGE_USER = 'ptit_user';
@@ -208,7 +203,13 @@ async function request(path, options = {}) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      return { ok: false, status: res.status, data, message: data.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.' };
+      const detail = data.detail;
+      const message = typeof detail === 'string'
+        ? detail
+        : detail && typeof detail === 'object'
+          ? detail.message || JSON.stringify(detail)
+          : data.message;
+      return { ok: false, status: res.status, data, message: message || 'Đã có lỗi xảy ra. Vui lòng thử lại.' };
     }
     return { ok: true, status: res.status, data };
   } catch {
@@ -238,9 +239,14 @@ function showPublic() {
 }
 
 function showApp(user) {
-  prepareReaderDemo(user);
-  const name = user.fullName || user.name || user.email || 'Người dùng';
+  if (USE_MOCK_API) prepareReaderDemo(user);
+  const name = user.fullName || user.full_name || user.name || user.email || 'Người dùng';
   const role = ROLE_LABELS[normalizeRole(user.role)] || 'Độc giả';
+
+  if (['ADMIN', 'LIBRARIAN'].includes(normalizeRole(user.role))) {
+    window.location.replace('dashboard.html');
+    return;
+  }
 
   $('publicView').hidden = true;
   $('appView').hidden = false;
@@ -349,7 +355,12 @@ $('registerForm').addEventListener('submit', async e => {
   // Email trùng sẽ được API trả lỗi qua `message`
   const res = await request(ENDPOINTS.register, {
     method: 'POST',
-    body: JSON.stringify({ fullName, studentId, email, password, role: 'READER' }),
+    body: JSON.stringify({
+      username: studentId,
+      email,
+      password,
+      full_name: fullName,
+    }),
   });
   setBusy(form, false);
 
@@ -374,19 +385,24 @@ $('loginForm').addEventListener('submit', async e => {
   err.textContent = '';
   $('loginNotice').textContent = '';
   setBusy(form, true);
-  const res = await request(ENDPOINTS.login, { method: 'POST', body: JSON.stringify({ email, password }) });
+  const res = await request(ENDPOINTS.login, {
+    method: 'POST',
+    body: JSON.stringify({ username: email, password }),
+  });
   setBusy(form, false);
 
   if (!res.ok) { err.textContent = res.message; return; }
 
   // Chấp nhận các dạng phản hồi phổ biến: {token, user} hoặc {data: {token, user}}
   const d = res.data.data && typeof res.data.data === 'object' ? res.data.data : res.data;
-  const token = d.token || d.accessToken || d.jwt;
+  const token = d.access_token || d.token || d.accessToken || d.jwt;
   if (!token) { err.textContent = 'Phản hồi đăng nhập không có token.'; return; }
 
   const payload = decodeJwt(token) || {};
   const user = d.user || {
-    fullName: d.fullName || payload.fullName || payload.name,
+    id: payload.user_id || payload.id,
+    fullName: d.fullName || payload.full_name || payload.fullName || payload.name,
+    studentId: d.studentId || payload.student_id || payload.username || payload.sub,
     email: d.email || payload.email || payload.sub || email,
     role: d.role || payload.role || payload.roles,
   };
@@ -396,6 +412,8 @@ $('loginForm').addEventListener('submit', async e => {
 
   localStorage.setItem(STORAGE_TOKEN, token);
   localStorage.setItem(STORAGE_USER, JSON.stringify(user));
+  localStorage.setItem('access_token', token);
+  localStorage.setItem('user', JSON.stringify(user));
   form.reset();
   closeModal();
   showApp(user);
@@ -670,11 +688,7 @@ function bookCover(b) {
   return cover;
 }
 
-/* =====================================================
-   DA-05 / LOAN-01 — service demo, không gọi API mượn thật.
-   Quy tắc lấy từ SRS v1.2: BR01 tối đa 3 phiếu hoạt động,
-   BR02 không trùng sách, BR03 không có sách quá hạn chưa trả.
-   ===================================================== */
+/* Local loan storage is used only when explicitly enabling mock mode. */
 const DEMO_LOANS_KEY = 'ptit_da05_loans_v1';
 const LOAN_DAYS = [7, 14, 30];
 const ACTIVE_LOAN_STATUSES = ['PENDING', 'BORROWING'];
@@ -838,10 +852,6 @@ $('loanForm').addEventListener('submit', async event => {
     $('loanForm').querySelector('input').focus();
     return;
   }
-  if (!USE_MOCK_API) {
-    showLoanError('Chức năng mượn sách hiện chỉ hỗ trợ chế độ demo. Chưa kết nối API mượn thật.');
-    return;
-  }
   const version = loanState.version;
   const token = getToken();
   $('loanError').textContent = '';
@@ -869,11 +879,16 @@ $('loanForm').addEventListener('submit', async event => {
     }
     $('loanForm').hidden = true;
     $('loanResult').hidden = false;
-    $('loanSuccess').textContent = `Đăng ký mượn thành công! “${loanState.book.title}” · ${days} ngày. Trạng thái: PENDING — Chờ duyệt. Phiếu demo đã được lưu trong trình duyệt.`;
+    $('loanSuccess').textContent = `Đăng ký mượn thành công! “${loanState.book.title}” · ${days} ngày. Trạng thái: PENDING — Chờ duyệt.`;
     $('loanSuccess').focus();
     myLoansPage = 1;
-    renderMyLoans();
-    renderOverview();
+    try {
+      await loadReaderData();
+      renderMyLoans();
+      renderOverview();
+    } catch (error) {
+      showToast('Đã gửi phiếu mượn nhưng không thể tải lại danh sách: ' + error.message);
+    }
   } catch {
     showLoanError('Không thể hoàn tất đăng ký mượn. Vui lòng kiểm tra Sách của tôi trước khi thử lại.');
   } finally {
@@ -934,12 +949,22 @@ if (USE_MOCK_API) {
 
 /* ---------- AUTH-03: Đăng xuất ---------- */
 function logout() {
+  const token = getToken();
+  if (!USE_MOCK_API && token) {
+    fetch(API_BASE_URL + '/auth/logout', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+    }).catch(error => console.error('Không thể thu hồi token đăng xuất:', error));
+  }
   closeReview();
   if ($('utilityDialog').open) $('utilityDialog').close();
   $('appToast').hidden = true;
   closeBookDetail(true);
   localStorage.removeItem(STORAGE_TOKEN);
   localStorage.removeItem(STORAGE_USER);
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
   resetBooks();
   closeSidebar();
   showPublic();
@@ -961,6 +986,7 @@ let myLoansPage = 1;
 let reviewBook = null;
 let reviewReturnFocus = null;
 let toastTimer;
+const readerData = { loans: [], fines: [], reservations: [], totalUnpaid: 0 };
 
 function readStoredObject(key, fallback) {
   const raw = localStorage.getItem(key);
@@ -1017,8 +1043,55 @@ function displayDate(value) {
   if (!value) return '—';
   return new Date(value).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric' });
 }
-function myLoans() { return readDemoLoans().filter(loan => loan.userEmail === userEmail()); }
-function totalFines(loans) { return loans.reduce((total, loan) => total + (Number(loan.fine) || 0), 0); }
+async function loadReaderData() {
+  if (USE_MOCK_API) return;
+  const [loansResponse, finesResponse, reservationsResponse] = await Promise.all([
+    authRequest('/loans/mine'),
+    authRequest('/fines/mine'),
+    authRequest('/reservations/mine'),
+  ]);
+  if (!loansResponse.ok) throw new Error(loansResponse.message);
+  if (!finesResponse.ok) throw new Error(finesResponse.message);
+  if (!reservationsResponse.ok) throw new Error(reservationsResponse.message);
+
+  const fineByLoan = new Map();
+  readerData.fines = Array.isArray(finesResponse.data.fines) ? finesResponse.data.fines : [];
+  readerData.fines.forEach(fine => {
+    fineByLoan.set(fine.loanId, Number(fine.amount) || 0);
+  });
+  readerData.totalUnpaid = Number(finesResponse.data.totalUnpaid) || 0;
+  readerData.loans = (Array.isArray(loansResponse.data) ? loansResponse.data : []).map(loan => ({
+    id: loan.id,
+    bookId: loan.book_id,
+    bookTitle: loan.book?.title || `Sách #${loan.book_id}`,
+    days: loan.days,
+    status: loan.status,
+    createdAt: loan.created_at || loan.borrow_date,
+    dueDate: loan.due_date,
+    returnDate: loan.return_date,
+    fine: fineByLoan.get(loan.id) || 0,
+  }));
+  readerData.reservations = (Array.isArray(reservationsResponse.data) ? reservationsResponse.data : []).map(reservation => ({
+    id: reservation.id,
+    bookId: reservation.book_id,
+    bookTitle: findBook(reservation.book_id)?.title || `Sách #${reservation.book_id}`,
+    status: reservation.status,
+    createdAt: reservation.created_at,
+    holdExpiresAt: reservation.hold_expires_at,
+  }));
+}
+
+function myLoans() {
+  return USE_MOCK_API
+    ? readDemoLoans().filter(loan => loan.userEmail === userEmail())
+    : readerData.loans;
+}
+
+function totalFines(loans) {
+  return USE_MOCK_API
+    ? loans.reduce((total, loan) => total + (Number(loan.fine) || 0), 0)
+    : readerData.totalUnpaid;
+}
 function findBook(id) {
   return (books.all || []).find(book => book.id === id) || (USE_MOCK_API && MOCK_BOOKS.some(book => book.id === id) ? normalizeBook(MOCK_BOOKS.find(book => book.id === id)) : null);
 }
@@ -1117,6 +1190,19 @@ function makeTable(headings, label) {
 function renderOverview() {
   const user = getUser();
   if (!user) return;
+  if (!USE_MOCK_API) {
+    loadReaderData().then(renderOverviewContent).catch(error => {
+      ['statBorrowing', 'statPending', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
+      $('currentLoans').replaceChildren(el('p', 'error', 'Không thể tải dữ liệu sách đang mượn: ' + error.message));
+    });
+    return;
+  }
+  renderOverviewContent();
+}
+
+function renderOverviewContent() {
+  const user = getUser();
+  if (!user) return;
   $('libraryName').textContent = user.fullName || user.name || user.email;
   $('libraryAvatar').textContent = initials(user.fullName || user.email);
   $('libraryStudentId').textContent = user.studentId || user.studentCode || 'Chưa cập nhật';
@@ -1127,8 +1213,10 @@ function renderOverview() {
     const loans = myLoans();
     const borrowing = loans.filter(loan => loan.status === 'BORROWING');
     const pending = loans.filter(loan => loan.status === 'PENDING');
+    const activeReservations = readerData.reservations.filter(reservation =>
+      ['WAITING', 'HOLDING'].includes(reservation.status));
     $('statBorrowing').textContent = borrowing.length;
-    $('statPending').textContent = pending.length;
+    $('statPending').textContent = pending.length + activeReservations.length;
     $('statFines').textContent = money(totalFines(loans));
     $('statRemaining').textContent = Math.max(0, 3 - borrowing.length - pending.length);
     if (!borrowing.length) { holder.append(el('p', 'table-empty', 'Bạn chưa có sách đang mượn.')); return; }
@@ -1150,55 +1238,121 @@ function renderOverview() {
 function renderMyLoans() {
   const list = $('myLoanList');
   list.replaceChildren();
-  if (!USE_MOCK_API) { list.append(stateBox('Chưa kết nối chức năng xem phiếu mượn.')); return; }
+  if (!USE_MOCK_API) {
+    list.append(stateBox('Đang tải phiếu mượn...', 'loading'));
+    loadReaderData().then(renderMyLoansContent).catch(error => {
+      $('myFines').textContent = 'Tổng tiền phạt: —';
+      list.replaceChildren(stateBox('Không thể tải phiếu mượn: ' + error.message, 'error'));
+    });
+    return;
+  }
+  renderMyLoansContent();
+}
+
+function renderMyLoansContent() {
+  const list = $('myLoanList');
+  const fineList = $('myFineList');
+  list.replaceChildren();
+  fineList.replaceChildren();
   try {
     const mine = myLoans();
     $('myFines').textContent = 'Tổng tiền phạt: ' + money(totalFines(mine));
-    if (!mine.length) { list.append(el('p', 'table-empty', 'Bạn chưa có sách nào.')); return; }
-    // Phiếu mới chờ duyệt đứng đầu; lịch sử mẫu giữ thứ tự như ảnh.
-    const ordered = [...mine.filter(loan => loan.status === 'PENDING').reverse(), ...mine.filter(loan => loan.status !== 'PENDING')];
-    const pages = Math.ceil(ordered.length / 8);
-    myLoansPage = Math.min(Math.max(1, myLoansPage), pages);
-    const { wrap, body } = makeTable(['Sách', 'Đăng ký', 'Hạn trả', 'Trạng thái', 'Phạt', ''], 'Danh sách phiếu mượn');
-    ordered.slice((myLoansPage - 1) * 8, myLoansPage * 8).forEach(loan => {
-      const row = el('tr');
-      const title = el('td', '', loan.bookTitle);
-      if (loan.status === 'PENDING') title.append(el('small', 'loan-duration', loan.days + ' ngày'));
-      const status = el('td');
-      status.append(statusBadge(loan));
-      const action = el('td');
-      if (loan.status === 'RETURNED' && findBook(loan.bookId)) {
-        const review = el('button', 'btn btn-outline table-action', 'Đánh giá');
-        review.type = 'button';
-        review.addEventListener('click', () => openReview(findBook(loan.bookId)));
-        action.append(review);
-      }
-      row.append(title, el('td', '', displayDate(loan.createdAt)), el('td', '', displayDate(loan.dueDate)), status, el('td', '', loan.fine ? money(loan.fine) : '–'), action);
-      body.append(row);
-    });
-    list.append(wrap);
-    const pager = el('nav', 'pagination loan-pagination');
-    pager.setAttribute('aria-label', 'Phân trang phiếu mượn');
-    const add = (label, target, disabled = false) => {
-      const button = el('button', 'page-btn' + (Number(label) === myLoansPage ? ' active' : ''), label);
-      button.type = 'button';
-      button.disabled = disabled;
-      if (Number(label) === myLoansPage) button.setAttribute('aria-current', 'page');
-      button.addEventListener('click', () => { myLoansPage = target; renderMyLoans(); });
-      pager.append(button);
-    };
-    add('‹ Trước', myLoansPage - 1, myLoansPage === 1);
-    pageNumbers(myLoansPage, pages).forEach(number => number === '…' ? pager.append(el('span', 'page-gap', number)) : add(String(number), number));
-    add('Sau ›', myLoansPage + 1, myLoansPage === pages);
-    pager.append(el('span', 'pagination-count', mine.length + ' mục'));
-    list.append(pager);
+    if (!mine.length) list.append(el('p', 'table-empty', 'Bạn chưa có phiếu mượn nào.'));
+    else {
+      const ordered = [...mine.filter(loan => loan.status === 'PENDING').reverse(), ...mine.filter(loan => loan.status !== 'PENDING')];
+      const pages = Math.ceil(ordered.length / 8);
+      myLoansPage = Math.min(Math.max(1, myLoansPage), pages);
+      const { wrap, body } = makeTable(['Sách', 'Đăng ký', 'Hạn trả', 'Trạng thái', 'Phạt', ''], 'Danh sách phiếu mượn');
+      ordered.slice((myLoansPage - 1) * 8, myLoansPage * 8).forEach(loan => {
+        const row = el('tr');
+        const title = el('td', '', loan.bookTitle);
+        if (loan.status === 'PENDING') title.append(el('small', 'loan-duration', loan.days + ' ngày'));
+        const status = el('td');
+        status.append(statusBadge(loan));
+        const action = el('td');
+        if (loan.status === 'PENDING') {
+          const cancel = el('button', 'btn btn-outline table-action', 'Hủy phiếu');
+          cancel.type = 'button';
+          cancel.addEventListener('click', () => cancelLoanRequest(loan.id));
+          action.append(cancel);
+        } else if (loan.status === 'RETURNED' && findBook(loan.bookId)) {
+          const review = el('button', 'btn btn-outline table-action', 'Đánh giá');
+          review.type = 'button';
+          review.addEventListener('click', () => openReview(findBook(loan.bookId)));
+          action.append(review);
+        }
+        row.append(title, el('td', '', displayDate(loan.createdAt)), el('td', '', displayDate(loan.dueDate)), status, el('td', '', loan.fine ? money(loan.fine) : '–'), action);
+        body.append(row);
+      });
+      list.append(wrap);
+      const pager = el('nav', 'pagination loan-pagination');
+      pager.setAttribute('aria-label', 'Phân trang phiếu mượn');
+      const add = (label, target, disabled = false) => {
+        const button = el('button', 'page-btn' + (Number(label) === myLoansPage ? ' active' : ''), label);
+        button.type = 'button';
+        button.disabled = disabled;
+        if (Number(label) === myLoansPage) button.setAttribute('aria-current', 'page');
+        button.addEventListener('click', () => { myLoansPage = target; renderMyLoans(); });
+        pager.append(button);
+      };
+      add('‹ Trước', myLoansPage - 1, myLoansPage === 1);
+      pageNumbers(myLoansPage, pages).forEach(number => number === '…' ? pager.append(el('span', 'page-gap', number)) : add(String(number), number));
+      add('Sau ›', myLoansPage + 1, myLoansPage === pages);
+      pager.append(el('span', 'pagination-count', mine.length + ' mục'));
+      list.append(pager);
+    }
+
+    if (!readerData.fines.length) fineList.append(el('p', 'table-empty', 'Chưa có khoản phạt.'));
+    else {
+      const { wrap, body } = makeTable(['Sách', 'Số ngày trễ', 'Số tiền', 'Trạng thái'], 'Các khoản phạt');
+      readerData.fines.forEach(fine => {
+        const row = el('tr');
+        row.append(
+          el('td', '', fine.bookTitle),
+          el('td', '', String(fine.overdueDays || 0)),
+          el('td', '', money(fine.amount)),
+          el('td', '', fine.paid ? 'Đã thanh toán' : fine.type === 'PROVISIONAL' ? 'Tạm tính' : 'Chưa thanh toán'),
+        );
+        body.append(row);
+      });
+      fineList.append(wrap);
+    }
+
+    list.append(el('h2', 'section-title', 'Đặt trước sách'));
+    const reservations = readerData.reservations;
+    if (!reservations.length) list.append(el('p', 'table-empty', 'Bạn chưa có phiếu đặt trước nào.'));
+    else {
+      const { wrap, body } = makeTable(['Sách', 'Ngày đặt', 'Trạng thái', 'Giữ đến', ''], 'Danh sách đặt trước');
+      const labels = { WAITING: 'Đang chờ', HOLDING: 'Đang giữ sách', FULFILLED: 'Đã mượn', EXPIRED: 'Hết hạn', CANCELLED: 'Đã hủy' };
+      reservations.forEach(reservation => {
+        const action = el('td');
+        if (['WAITING', 'HOLDING'].includes(reservation.status)) {
+          const cancel = el('button', 'btn btn-outline table-action', 'Hủy');
+          cancel.type = 'button';
+          cancel.addEventListener('click', () => cancelReservationRequest(reservation.id));
+          action.append(cancel);
+        }
+        const row = el('tr');
+        row.append(
+          el('td', '', reservation.bookTitle),
+          el('td', '', displayDate(reservation.createdAt)),
+          el('td', '', labels[reservation.status] || reservation.status),
+          el('td', '', displayDate(reservation.holdExpiresAt)),
+          action,
+        );
+        body.append(row);
+      });
+      list.append(wrap);
+    }
   } catch {
     $('myFines').textContent = 'Tổng tiền phạt: —';
-    list.append(stateBox('Không thể đọc phiếu demo đã lưu trong trình duyệt.', 'error'));
+    list.append(stateBox('Không thể đọc phiếu mượn.', 'error'));
   }
 }
 
 function renderBookDetails(book) {
+  $('registerLoanButton').hidden = book.copies === 0;
+  $('reserveBookButton').hidden = book.copies !== 0;
   const meta = $('bookDetailMeta');
   meta.replaceChildren();
   const line = (label, value) => {
@@ -1231,6 +1385,54 @@ function renderBookDetails(book) {
     row.append(el('span', '', stars + ' ★'), track, el('span', '', String(count)));
     bars.append(row);
   }
+
+  async function cancelLoanRequest(loanId) {
+    if (!confirm('Bạn có chắc muốn hủy phiếu mượn này?')) return;
+    try {
+      const response = await authRequest(`/loans/${loanId}/cancel`, { method: 'PUT' });
+      if (!response.ok) throw new Error(response.message);
+      await loadReaderData();
+      renderMyLoans();
+      renderOverview();
+      showToast('Đã hủy phiếu mượn.');
+    } catch (error) {
+      showToast('Không thể hủy phiếu mượn: ' + error.message);
+    }
+  }
+
+  async function cancelReservationRequest(reservationId) {
+    if (!confirm('Bạn có chắc muốn hủy phiếu đặt trước này?')) return;
+    try {
+      const response = await authRequest(`/reservations/${reservationId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error(response.message);
+      await loadReaderData();
+      renderMyLoans();
+      renderOverview();
+      showToast('Đã hủy phiếu đặt trước.');
+    } catch (error) {
+      showToast('Không thể hủy phiếu đặt trước: ' + error.message);
+    }
+  }
+
+  $('reserveBookButton').addEventListener('click', async () => {
+    if (!loanState.book || !requireLoanLogin()) return;
+    const button = $('reserveBookButton');
+    button.disabled = true;
+    try {
+      const response = await authRequest('/reservations', {
+        method: 'POST',
+        body: JSON.stringify({ book_id: loanState.book.id }),
+      });
+      if (!response.ok) throw new Error(response.message);
+      showToast('Đã đặt trước sách. Theo dõi trạng thái trong mục Sách của tôi.');
+      await loadReaderData();
+      closeBookDetail();
+    } catch (error) {
+      showToast('Không thể đặt trước sách: ' + error.message);
+    } finally {
+      button.disabled = false;
+    }
+  });
   summary.append(score, bars);
   const list = $('reviewList');
   list.replaceChildren();
@@ -1308,6 +1510,61 @@ $('profileButton').addEventListener('click', () => openUtility('Hồ sơ độc 
     row.append(el('span', 'muted', label), el('strong', '', value || 'Chưa cập nhật'));
     content.append(row);
   });
+
+  const form = el('form', 'password-change-form');
+  form.append(el('h3', '', 'Đổi mật khẩu'));
+  const fields = [
+    ['currentPassword', 'Mật khẩu hiện tại', 'current-password'],
+    ['newPassword', 'Mật khẩu mới (ít nhất 6 ký tự)', 'new-password'],
+    ['confirmPassword', 'Nhập lại mật khẩu mới', 'new-password'],
+  ];
+  fields.forEach(([id, label, autocomplete]) => {
+    const inputLabel = el('label', '', label);
+    inputLabel.htmlFor = id;
+    const input = el('input');
+    input.id = id;
+    input.type = 'password';
+    input.required = true;
+    input.autocomplete = autocomplete;
+    if (id === 'newPassword') input.minLength = 6;
+    form.append(inputLabel, input);
+  });
+  const error = el('p', 'error');
+  error.setAttribute('role', 'alert');
+  const submit = el('button', 'btn btn-primary', 'Đổi mật khẩu');
+  submit.type = 'submit';
+  form.append(error, submit);
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const currentPassword = form.querySelector('#currentPassword').value;
+    const newPassword = form.querySelector('#newPassword').value;
+    const confirmPassword = form.querySelector('#confirmPassword').value;
+    if (newPassword.length < 6 || newPassword !== confirmPassword) {
+      error.textContent = newPassword.length < 6
+        ? 'Mật khẩu mới cần có ít nhất 6 ký tự.'
+        : 'Mật khẩu nhập lại chưa khớp.';
+      return;
+    }
+    submit.disabled = true;
+    error.textContent = '';
+    try {
+      const response = await authRequest('/auth/password', {
+        method: 'PUT',
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+      if (!response.ok) throw new Error(response.message);
+      form.reset();
+      showToast('Đã đổi mật khẩu.');
+    } catch (requestError) {
+      error.textContent = 'Không thể đổi mật khẩu: ' + requestError.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
+  content.append(form);
 }));
 $('notificationsButton').addEventListener('click', () => openUtility('Thông báo', content => {
   try {

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan | Thư viện PTIT</title>
+    <link rel="stylesheet" href="books.css">
+    <style>
+        .monthly-chart { display: flex; align-items: end; gap: 12px; min-height: 180px; padding: 18px 8px; border-bottom: 1px solid #edf1ef; }
+        .chart-month { display: flex; flex: 1; min-width: 24px; flex-direction: column; align-items: center; justify-content: end; gap: 7px; height: 170px; color: #71807c; font-size: 11px; }
+        .chart-bar { width: min(34px, 70%); min-height: 2px; border-radius: 6px 6px 0 0; background: #17685d; }
+        .chart-count { color: #203331; font-weight: 700; }
+    </style>
+</head>
+<body data-roles="ADMIN,LIBRARIAN">
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">Thư viện PTIT<small>Hệ thống quản lý</small></div>
+            <p class="menu-title">Điều hướng</p>
+            <nav class="nav">
+                <a class="active" href="dashboard.html">Tổng quan</a>
+                <a href="books.html">Quản lý sách / thể loại</a>
+                <a href="loans.html">Phiếu mượn</a>
+                <a href="readers.html">Độc giả</a>
+                <a href="fines.html">Tiền phạt</a>
+                <a data-roles="ADMIN" href="admin.html">Tài khoản và nhật ký</a>
+            </nav>
+            <div class="user">
+                <div class="user-info"><span class="avatar" id="userAvatar">U</span><strong id="userName">Đang tải...</strong></div>
+                <button class="logout-btn" id="logoutButton" type="button">Đăng xuất</button>
+            </div>
+        </aside>
+        <main class="main">
+            <header class="topbar"><div><h1>Tổng quan thư viện</h1><p>Số liệu được tải trực tiếp từ hệ thống.</p></div><button class="btn secondary" id="refreshButton" type="button">Làm mới</button></header>
+            <section class="stats">
+                <article class="stat"><p>Tổng số sách</p><strong id="totalBooks">—</strong></article>
+                <article class="stat"><p>Đang được mượn</p><strong id="borrowingCount">—</strong></article>
+                <article class="stat"><p>Quá hạn</p><strong id="overdueCount">—</strong></article>
+                <article class="stat"><p>Tổng tiền phạt</p><strong id="totalFines">—</strong></article>
+            </section>
+            <section class="panel">
+                <div class="panel-head"><div><h2>Sách được mượn nhiều</h2><p class="panel-description">Top 5 theo số lượt mượn.</p></div></div>
+                <div class="table-wrapper"><table><thead><tr><th>Sách</th><th>Tác giả</th><th>Lượt mượn</th></tr></thead><tbody id="topBooks"><tr><td colspan="3">Đang tải...</td></tr></tbody></table></div>
+            </section>
+            <section class="panel" style="margin-top:20px">
+                <div class="panel-head"><div><h2>Hoạt động 6 tháng gần nhất</h2><p class="panel-description">Số phiếu mượn theo tháng.</p></div></div>
+                <div class="monthly-chart" id="monthlyChart" aria-label="Biểu đồ số phiếu mượn theo tháng"></div>
+                <div class="table-wrapper"><table><thead><tr><th>Tháng</th><th>Số phiếu</th></tr></thead><tbody id="monthlyStats"><tr><td colspan="2">Đang tải...</td></tr></tbody></table></div>
+            </section>
+            <p id="pageMessage" role="status" hidden></p>
+        </main>
+    </div>
+    <script src="auth.js"></script>
+    <script src="api.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

@@ -4,17 +4,25 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app import crud, schemas
+from app.dependencies import RoleChecker
+from app.models import User
 
 router = APIRouter(prefix="/api/readers", tags=["Readers"])
+staff_only = RoleChecker(["LIBRARIAN", "ADMIN"])
 
 
 @router.get("", response_model=List[schemas.ReaderResponse])
 def get_readers(
     keyword: Optional[str] = Query(None, description="Tìm theo tên, email, mã SV"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(staff_only),
 ):
     return crud.get_readers(db, keyword)
 
 @router.get("/{id}/loans", response_model=List[schemas.ReaderLoanHistoryResponse])
-def get_reader_loans(id: int, db: Session = Depends(get_db)):
+def get_reader_loans(
+    id: int,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(staff_only),
+):
     return crud.get_reader_loan_history(db=db, reader_id=id)

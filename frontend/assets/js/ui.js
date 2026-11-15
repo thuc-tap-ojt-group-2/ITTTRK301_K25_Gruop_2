@@ -34,14 +34,25 @@ PTIT.isLoggedIn = function () {
 PTIT.logout = function () {
     PTIT.showLoading("Đang đăng xuất...");
 
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.clear();
-
-    setTimeout(function () {
+    const finish = function () {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("ptit_token");
+        localStorage.removeItem("ptit_user");
+        sessionStorage.clear();
         window.location.replace("index.html");
-    }, 1100);
+    };
+
+    if (typeof logoutAPI === "function" && PTIT.isLoggedIn()) {
+        logoutAPI()
+            .catch(function (error) {
+                console.error("Không thể thu hồi token đăng xuất:", error);
+            })
+            .finally(finish);
+    } else {
+        finish();
+    }
 };
 
 /* ---------- Số tự nhảy từ 0 lên ---------- */
