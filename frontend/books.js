@@ -11,6 +11,11 @@ const bookForm = document.getElementById("bookForm");
 const searchInput = document.getElementById("searchInput");
 const categorySelect = document.getElementById("bookCategory");
 const messageBox = document.getElementById("messageBox");
+const categoryForm = document.getElementById("categoryForm");
+const categoryNameInput = document.getElementById("categoryName");
+const categoryTable = document.getElementById("categoryTable");
+const categoryMessage = document.getElementById("categoryMessage");
+let categoryEditingId = null;
 
 const bookName = document.getElementById("bookName");
 const bookAuthor = document.getElementById("bookAuthor");
@@ -69,7 +74,7 @@ function updateUserInformation() {
 
     document.getElementById("userName").textContent = name;
     document.getElementById("userRole").textContent =
-        "Quản trị hệ thống";
+        user.role === "LIBRARIAN" ? "Thủ thư" : "Quản trị viên";
 
     document.getElementById("userAvatar").textContent =
         String(name).trim().charAt(0).toUpperCase() || "U";
@@ -94,7 +99,97 @@ async function loadCategories() {
         option.textContent = category.name;
         categorySelect.appendChild(option);
     });
+    displayCategories();
 }
+
+function showCategoryMessage(message, type = "success") {
+    categoryMessage.textContent = message;
+    categoryMessage.className = `message ${type}`;
+    categoryMessage.hidden = false;
+}
+
+function displayCategories() {
+    categoryTable.replaceChildren();
+    if (!categories.length) {
+        const row = categoryTable.insertRow();
+        const cell = row.insertCell();
+        cell.colSpan = 2;
+        cell.textContent = "Chưa có thể loại.";
+        return;
+    }
+
+    categories.forEach(category => {
+        const row = categoryTable.insertRow();
+        const name = row.insertCell();
+        name.textContent = category.name;
+        const actions = row.insertCell();
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "btn secondary";
+        edit.textContent = "Sửa";
+        edit.addEventListener("click", () => {
+            categoryEditingId = category.id;
+            categoryNameInput.value = category.name;
+            document.getElementById("saveCategoryButton").textContent = "Cập nhật";
+            document.getElementById("cancelCategoryEdit").hidden = false;
+            categoryNameInput.focus();
+        });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "btn danger";
+        remove.textContent = "Xóa";
+        remove.addEventListener("click", async () => {
+            if (!confirm(`Bạn có chắc muốn xóa thể loại "${category.name}"?`)) return;
+            remove.disabled = true;
+            try {
+                await deleteCategory(category.id);
+                showCategoryMessage("Xóa thể loại thành công.");
+                await loadCategories();
+            } catch (error) {
+                showCategoryMessage("Không thể xóa thể loại: " + error.message, "error");
+            } finally {
+                remove.disabled = false;
+            }
+        });
+        actions.append(edit, document.createTextNode(" "), remove);
+    });
+}
+
+function resetCategoryForm() {
+    categoryEditingId = null;
+    categoryForm.reset();
+    document.getElementById("saveCategoryButton").textContent = "Thêm thể loại";
+    document.getElementById("cancelCategoryEdit").hidden = true;
+    categoryMessage.hidden = true;
+}
+
+categoryForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const name = categoryNameInput.value.trim();
+    if (!name) return;
+    const saveButton = document.getElementById("saveCategoryButton");
+    saveButton.disabled = true;
+    try {
+        if (categoryEditingId === null) {
+            await createCategory({ name });
+            showCategoryMessage("Thêm thể loại thành công.");
+        } else {
+            await updateCategory(categoryEditingId, { name });
+            showCategoryMessage("Cập nhật thể loại thành công.");
+        }
+        categoryEditingId = null;
+        categoryForm.reset();
+        document.getElementById("saveCategoryButton").textContent = "Thêm thể loại";
+        document.getElementById("cancelCategoryEdit").hidden = true;
+        await loadCategories();
+    } catch (error) {
+        showCategoryMessage(error.message, "error");
+    } finally {
+        saveButton.disabled = false;
+    }
+});
+
+document.getElementById("cancelCategoryEdit").addEventListener("click", resetCategoryForm);
 
 async function loadBooks() {
     bookTable.innerHTML = `
@@ -161,10 +256,12 @@ function displayBooks(keyword = "") {
     const result = books.filter(book => {
         const title = String(book.title || "").toLowerCase();
         const author = String(book.author || "").toLowerCase();
+        const category = String(book.categoryName || "").toLowerCase();
         const code = getBookCode(book.id).toLowerCase();
 
         return title.includes(normalizedKeyword)
             || author.includes(normalizedKeyword)
+            || category.includes(normalizedKeyword)
             || code.includes(normalizedKeyword);
     });
 
@@ -301,7 +398,8 @@ function validateBook() {
         if (currentBook) {
             const borrowedCopies =
                 Number(currentBook.totalCopies || 0)
-                - Number(currentBook.availableCopies || 0);
+                - Number(currentBook.availableCopies || 0)
+                - Number(currentBook.reservedCopies || 0);
 
             if (total < borrowedCopies) {
                 showMessage(
@@ -462,7 +560,7 @@ document.getElementById("nextPage").addEventListener(
 
 document.getElementById("logoutButton").addEventListener(
     "click",
-    function() {
+    async function() {
         const confirmed = confirm(
             "Bạn có chắc chắn muốn đăng xuất?"
         );
@@ -471,11 +569,11 @@ document.getElementById("logoutButton").addEventListener(
             return;
         }
 
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-        sessionStorage.clear();
+        try {
+            await logoutAPI();
+        } catch (error) {
+            console.error("Không thể thu hồi token đăng xuất:", error);
+        }
         window.location.replace("index.html");
     }
 );

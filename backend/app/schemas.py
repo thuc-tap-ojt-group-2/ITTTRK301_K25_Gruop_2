@@ -1,5 +1,5 @@
-from datetime import date
-from typing import List, Optional
+from datetime import date, datetime
+from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -32,6 +32,7 @@ class BookResponse(BaseModel):
     categoryName: str
     totalCopies: int
     availableCopies: int
+    reservedCopies: int = 0
     imageUrl: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -56,14 +57,97 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
+    # Kept as `username` for compatibility with the current login form.
     username: str = Field(..., description="Tên đăng nhập")
     password: str = Field(..., description="Mật khẩu")
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6)
+
+
+class UserRoleUpdateRequest(BaseModel):
+    role: Literal["READER", "LIBRARIAN", "ADMIN"]
+
+
+class UserLockUpdateRequest(BaseModel):
+    is_locked: bool
+
+
+class AdminUserResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    full_name: Optional[str] = None
+    role: str
+    is_locked: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    actor_id: Optional[int] = None
+    action: str
+    detail: Optional[str] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     message: str
+
+
+class LoanCreateRequest(BaseModel):
+    book_id: int = Field(..., gt=0)
+    days: Literal[7, 14, 30]
+
+
+class LoanBookSummary(BaseModel):
+    id: int
+    title: str
+
+
+class LoanUserSummary(BaseModel):
+    id: int
+    username: str
+    full_name: Optional[str] = None
+
+
+class LoanResponse(BaseModel):
+    id: int
+    user_id: int
+    book_id: int
+    status: str
+    days: int
+    borrow_date: Optional[date] = None
+    due_date: Optional[date] = None
+    return_date: Optional[date] = None
+    approved_by: Optional[int] = None
+    created_at: datetime
+    book: Optional[LoanBookSummary] = None
+    user: Optional[LoanUserSummary] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReservationCreateRequest(BaseModel):
+    book_id: int = Field(..., gt=0)
+
+
+class ReservationResponse(BaseModel):
+    id: int
+    user_id: int
+    book_id: int
+    status: str
+    created_at: datetime
+    hold_expires_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CategoryCreateRequest(BaseModel):

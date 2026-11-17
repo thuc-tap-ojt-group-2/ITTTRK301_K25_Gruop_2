@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta, timezone
+from typing import Any
+from uuid import uuid4
+
 import bcrypt
 import jwt
 
-SECRET_KEY = "super_secret_jwt_key_library_ptit"
-ALGORITHM = "HS256"
+from app.security import ALGORITHM, SECRET_KEY
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 
@@ -18,11 +21,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     )
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_access_token(
+    data: dict[str, Any], expires_delta: timedelta | None = None
+) -> str:
     to_encode = data.copy()
-
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "jti": str(uuid4())})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token(token: str) -> dict[str, Any]:
+    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

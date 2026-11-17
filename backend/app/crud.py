@@ -1,15 +1,28 @@
 import math
-from datetime import date
+from datetime import date, datetime, timezone
+import unicodedata
 from typing import Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_, func, desc
+from sqlalchemy import func, desc
 from sqlalchemy.orm import Session, joinedload
 
-from app import models, schemas
-from app.models import Book, Category, Loan, User, Fine
+from app import schemas
+from app.models import Book, Category, Loan, User, Fine, Reservation
+from app.reservation_service import ReservationService
 from app.schemas import BookResponse, PageResponse, BookCreateRequest
 from app.services import LogService
+
+
+def _normalize_search_text(value: Optional[str]) -> str:
+    normalized = unicodedata.normalize("NFD", value or "")
+    normalized = normalized.replace("đ", "d").replace("Đ", "D")
+    return (
+        normalized.encode("ascii", "ignore")
+        .decode("ascii")
+        .lower()
+        .strip()
+    )
 
 
 def get_books_paginated(
@@ -25,25 +38,48 @@ def get_books_paginated(
     query = db.query(Book).join(Book.category)
 
     if keyword and keyword.strip():
-        kw = f"%{keyword.strip()}%"
-        query = query.filter(
-            or_(
-                Book.title.ilike(kw),
-                Book.author.ilike(kw),
-                Category.name.ilike(kw)
-            )
+        normalized_tokens = _normalize_search_text(keyword).split()
+        matching_books = (
+            query.options(joinedload(Book.category))
+            .order_by(Book.id.desc())
+            .all()
         )
-
-    total_elements = query.count()
+        matching_books = [
+            book
+            for book in matching_books
+            if normalized_tokens and all(
+                token
+                in _normalize_search_text(
+                    f"{book.title} {book.author} {book.category.name if book.category else ''}"
+                )
+                for token in normalized_tokens
+            )
+        ]
+        total_elements = len(matching_books)
+        books = matching_books[skip : skip + size]
+    else:
+        total_elements = query.count()
+        books = (
+            query.options(joinedload(Book.category))
+            .order_by(Book.id.desc())
+            .offset(skip)
+            .limit(size)
+            .all()
+        )
     total_pages = math.ceil(total_elements / size) if total_elements > 0 else 0
 
-    books = (
-        query.options(joinedload(Book.category))
-        .order_by(Book.id.desc())
-        .offset(skip)
-        .limit(size)
-        .all()
-    )
+    hold_counts = {}
+    if books:
+        hold_counts = dict(
+            db.query(Reservation.book_id, func.count(Reservation.id))
+            .filter(
+                Reservation.book_id.in_([book.id for book in books]),
+                Reservation.status == "HOLDING",
+                Reservation.hold_expires_at > datetime.now(timezone.utc),
+            )
+            .group_by(Reservation.book_id)
+            .all()
+        )
 
     content = [
         BookResponse(
@@ -52,7 +88,8 @@ def get_books_paginated(
             author=b.author,
             categoryName=b.category.name if b.category else "",
             totalCopies=b.total_copies,
-            availableCopies=b.available_copies,
+            availableCopies=max(0, b.available_copies - hold_counts.get(b.id, 0)),
+            reservedCopies=hold_counts.get(b.id, 0),
             imageUrl=b.image_url
         )
         for b in books
@@ -68,7 +105,9 @@ def get_books_paginated(
     )
 
 
-def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
+def create_book(
+    db: Session, book_in: BookCreateRequest, actor_id: Optional[int] = None
+) -> BookResponse:
     category = db.query(Category).filter(Category.id == book_in.categoryId).first()
     if not category:
         raise HTTPException(
@@ -91,7 +130,8 @@ def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
     LogService.record(
         db=db,
         action="ADD_BOOK",
-        detail=f"Thêm sách mới: '{new_book.title}' (ID: {new_book.id}, Số bản: {new_book.total_copies})"
+        detail=f"Thêm sách mới: '{new_book.title}' (ID: {new_book.id}, Số bản: {new_book.total_copies})",
+        actor_id=actor_id,
     )
 
     db.commit()
@@ -104,12 +144,18 @@ def create_book(db: Session, book_in: BookCreateRequest) -> BookResponse:
         categoryName=category.name,
         totalCopies=new_book.total_copies,
         availableCopies=new_book.available_copies,
+        reservedCopies=0,
         imageUrl=new_book.image_url
     )
 
 
-def delete_book(db: Session, book_id: int):
-    book = db.query(Book).filter(Book.id == book_id).first()
+def delete_book(db: Session, book_id: int, actor_id: Optional[int] = None):
+    book = (
+        db.query(Book)
+        .filter(Book.id == book_id)
+        .with_for_update()
+        .first()
+    )
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -126,6 +172,11 @@ def delete_book(db: Session, book_id: int):
             status_code=status.HTTP_409_CONFLICT,
             detail={"message": "Không thể xóa sách đang được mượn hoặc có phiếu chờ duyệt"}
         )
+    if db.query(Reservation).filter(Reservation.book_id == book_id).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"message": "Không thể xóa sách đã có lịch sử đặt trước"},
+        )
 
     book_title = book.title
     db.delete(book)
@@ -133,7 +184,8 @@ def delete_book(db: Session, book_id: int):
     LogService.record(
         db=db,
         action="DELETE_BOOK",
-        detail=f"Xóa sách: '{book_title}' (ID: {book_id})"
+        detail=f"Xóa sách: '{book_title}' (ID: {book_id})",
+        actor_id=actor_id,
     )
 
     db.commit()
@@ -141,9 +193,17 @@ def delete_book(db: Session, book_id: int):
 
 
 def update_book(
-    db: Session, book_id: int, book_in: schemas.BookUpdateRequest
+    db: Session,
+    book_id: int,
+    book_in: schemas.BookUpdateRequest,
+    actor_id: Optional[int] = None,
 ) -> schemas.BookResponse:
-    book = db.query(Book).filter(Book.id == book_id).first()
+    book = (
+        db.query(Book)
+        .filter(Book.id == book_id)
+        .with_for_update()
+        .first()
+    )
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -152,10 +212,11 @@ def update_book(
 
     if book_in.total is not None:
         borrowed_copies = book.total_copies - book.available_copies
-        if book_in.total < borrowed_copies:
+        reserved_copies = len(ReservationService.active_holds(db, book.id))
+        if book_in.total < borrowed_copies + reserved_copies:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Tổng số bản mới ({book_in.total}) không được nhỏ hơn số sách đang cho mượn ({borrowed_copies}).",
+                detail=f"Tổng số bản mới ({book_in.total}) không được nhỏ hơn số sách đang mượn và giữ chỗ ({borrowed_copies + reserved_copies}).",
             )
         book.available_copies = book_in.total - borrowed_copies
         book.total_copies = book_in.total
@@ -174,22 +235,26 @@ def update_book(
             )
         book.category_id = book_in.categoryId
 
+    ReservationService.sync_book(db, book)
     LogService.record(
         db=db,
         action="UPDATE_BOOK",
-        detail=f"Cập nhật sách: '{book.title}' (ID: {book_id})"
+        detail=f"Cập nhật sách: '{book.title}' (ID: {book_id})",
+        actor_id=actor_id,
     )
 
     db.commit()
     db.refresh(book)
 
+    reserved_copies = len(ReservationService.active_holds(db, book.id))
     return schemas.BookResponse(
         id=book.id,
         title=book.title,
         author=book.author,
         categoryName=book.category.name if book.category else "Chưa phân loại",
         totalCopies=book.total_copies,
-        availableCopies=book.available_copies,
+        availableCopies=max(0, book.available_copies - reserved_copies),
+        reservedCopies=reserved_copies,
         imageUrl=book.image_url,
     )
 
@@ -198,7 +263,11 @@ def get_categories(db: Session):
     return db.query(Category).all()
 
 
-def create_category(db: Session, cat_in: schemas.CategoryCreateRequest):
+def create_category(
+    db: Session,
+    cat_in: schemas.CategoryCreateRequest,
+    actor_id: Optional[int] = None,
+):
     exist = db.query(Category).filter(Category.name == cat_in.name.strip()).first()
     if exist:
         raise HTTPException(
@@ -206,24 +275,45 @@ def create_category(db: Session, cat_in: schemas.CategoryCreateRequest):
         )
     category = Category(name=cat_in.name.strip())
     db.add(category)
+    db.flush()
+    LogService.record(
+        db=db,
+        action="ADD_CATEGORY",
+        detail=f"Thêm thể loại '{category.name}' (ID: {category.id})",
+        actor_id=actor_id,
+    )
     db.commit()
     db.refresh(category)
     return category
 
 
-def update_category(db: Session, cat_id: int, cat_in: schemas.CategoryUpdateRequest):
+def update_category(
+    db: Session,
+    cat_id: int,
+    cat_in: schemas.CategoryUpdateRequest,
+    actor_id: Optional[int] = None,
+):
     cat = db.query(Category).filter(Category.id == cat_id).first()
     if not cat:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy thể loại"
         )
+    previous_name = cat.name
     cat.name = cat_in.name.strip()
+    LogService.record(
+        db=db,
+        action="UPDATE_CATEGORY",
+        detail=f"Đổi thể loại '{previous_name}' thành '{cat.name}' (ID: {cat.id})",
+        actor_id=actor_id,
+    )
     db.commit()
     db.refresh(cat)
     return cat
 
 
-def delete_category(db: Session, cat_id: int):
+def delete_category(
+    db: Session, cat_id: int, actor_id: Optional[int] = None
+):
     cat = db.query(Category).filter(Category.id == cat_id).first()
     if not cat:
         raise HTTPException(
@@ -237,7 +327,14 @@ def delete_category(db: Session, cat_id: int):
             detail=f"Không thể xóa thể loại vì đang có {book_count} cuốn sách liên kết.",
         )
 
+    category_name = cat.name
     db.delete(cat)
+    LogService.record(
+        db=db,
+        action="DELETE_CATEGORY",
+        detail=f"Xóa thể loại '{category_name}' (ID: {cat_id})",
+        actor_id=actor_id,
+    )
     db.commit()
     return {"message": "Xóa thể loại thành công"}
 
@@ -246,16 +343,20 @@ def get_readers(db: Session, keyword: Optional[str] = None):
     query = db.query(User).filter(User.role.in_(["READER", "USER"]))
 
     if keyword and keyword.strip():
-        kw = f"%{keyword.strip()}%"
-        query = query.filter(
-            or_(
-                User.username.ilike(kw),
-                User.full_name.ilike(kw),
-                User.email.ilike(kw),
+        normalized_tokens = _normalize_search_text(keyword).split()
+        users = [
+            user
+            for user in query.all()
+            if normalized_tokens and all(
+                token
+                in _normalize_search_text(
+                    f"{user.username} {user.full_name or ''} {user.email}"
+                )
+                for token in normalized_tokens
             )
-        )
-
-    users = query.all()
+        ]
+    else:
+        users = query.all()
     results = []
     for u in users:
         borrowing_count = (
@@ -273,7 +374,7 @@ def get_readers(db: Session, keyword: Optional[str] = None):
                 username=u.username,
                 fullName=u.full_name or u.username,
                 email=u.email,
-                active=getattr(u, "is_active", True),
+                active=not u.is_locked,
                 borrowingCount=borrowing_count,
             )
         )
@@ -357,18 +458,26 @@ def get_all_fines_detailed(db: Session):
     return results
 
 
-def mark_fine_as_paid(db: Session, fine_id: int):
+def mark_fine_as_paid(
+    db: Session, fine_id: int, actor_id: Optional[int] = None
+):
     fine = db.query(Fine).filter(Fine.id == fine_id).first()
     if not fine:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"message": "Không tìm thấy khoản phạt yêu cầu"},
         )
+    if fine.paid:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Khoản phạt này đã được thanh toán",
+        )
     fine.paid = True
     LogService.record(
         db=db,
         action="COLLECT_FINE",
         detail=f"Thu tiền phạt ID {fine_id} số tiền {fine.amount}đ cho phiếu mượn {fine.loan_id}",
+        actor_id=actor_id,
     )
     db.commit()
     return {"message": "Đánh dấu thu tiền phạt thành công", "fineId": fine.id}

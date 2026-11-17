@@ -240,6 +240,15 @@ function displayLoans() {
                                     Từ chối
                                 </button>
                             </div>
+                        ` : status === "BORROWING" ? `
+                            <button
+                                type="button"
+                                class="btn-approve"
+                                data-action="return"
+                                data-id="${escapeHTML(id)}"
+                            >
+                                Nhận trả
+                            </button>
                         ` : "—"}
                     </td>
                 </tr>
@@ -315,13 +324,15 @@ function updateUserInformation() {
 
     document.getElementById("userAvatar").textContent =
         String(displayName).trim().charAt(0).toUpperCase() || "U";
+    document.querySelector(".who > span").textContent =
+        user.role === "ADMIN" ? "Quản trị viên" : "Thủ thư";
 }
 
 async function handleLoanAction(button) {
     const loanId = button.dataset.id;
     const action = button.dataset.action;
 
-    if (action !== "approve" && action !== "reject") {
+    if (!["approve", "reject", "return"].includes(action)) {
         return;
     }
 
@@ -329,7 +340,8 @@ async function handleLoanAction(button) {
         item => String(item.id || item.loan_id) === String(loanId)
     );
 
-    if (!loan || String(loan.status).toUpperCase() !== "PENDING") {
+    const expectedStatus = action === "return" ? "BORROWING" : "PENDING";
+    if (!loan || String(loan.status).toUpperCase() !== expectedStatus) {
         return;
     }
 
@@ -345,11 +357,15 @@ async function handleLoanAction(button) {
 
     const apiFunction = action === "approve"
         ? approveLoanAPI
-        : rejectLoanAPI;
+        : action === "reject"
+            ? rejectLoanAPI
+            : returnLoanAPI;
 
     const actionText = action === "approve"
         ? "duyệt"
-        : "từ chối";
+        : action === "reject"
+            ? "từ chối"
+            : "nhận trả";
 
     const confirmed = confirm(
         `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`
@@ -425,8 +441,13 @@ nextPageButton.addEventListener("click", () => {
 });
 
 document.getElementById("logoutButton")
-    .addEventListener("click", () => {
-        redirectToLogin();
+    .addEventListener("click", async () => {
+        try {
+            await logoutAPI();
+        } catch (error) {
+            console.error("Không thể thu hồi token đăng xuất:", error);
+        }
+        window.location.replace("index.html");
     });
 
 loanTableBody.addEventListener("click", async function(event) {

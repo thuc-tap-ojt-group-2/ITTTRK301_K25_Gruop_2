@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="loans.css">
 </head>
-<body data-roles="ADMIN">
+<body data-roles="ADMIN,LIBRARIAN">
     <div class="app">
         <aside>
             <div class="logo">
@@ -17,9 +17,12 @@
             </div>
 
             <nav>
-                <a href="index.html">Tổng quan</a>
-                <a href="books.html">Quản lý sách</a>
-                <a href="loans.html" class="on">Duyệt đăng ký mượn</a>
+                <a href="dashboard.html">Tổng quan</a>
+                <a href="books.html">Quản lý sách / thể loại</a>
+                <a href="loans.html" class="on">Phiếu mượn</a>
+                <a href="readers.html">Độc giả</a>
+                <a href="fines.html">Tiền phạt</a>
+                <a href="admin.html" data-roles="ADMIN">Tài khoản và nhật ký</a>
                 <a href="loan-return.html">Quản lý mượn / trả</a>
             </nav>
 
@@ -94,7 +97,6 @@
                             <option value="RETURNED">Đã trả</option>
                             <option value="REJECTED">Bị từ chối</option>
                             <option value="CANCELLED">Đã hủy</option>
-                            <option value="RESERVED">Đặt trước</option>
                         </select>
                     </div>
 
