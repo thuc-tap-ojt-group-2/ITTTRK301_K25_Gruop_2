@@ -19,6 +19,7 @@ from app.models import (
     User,
 )
 from app.reservation_service import ReservationService
+from app.routers.admin import list_audit_logs
 from app.routers.auth import change_password, login, logout, register
 from app.schemas import PasswordChangeRequest, UserLogin, UserRegister
 
@@ -137,6 +138,30 @@ class AuthAndLoanTests(unittest.TestCase):
         with self.assertRaises(HTTPException) as error:
             get_current_user(token, self.db)
         self.assertEqual(error.exception.status_code, 401)
+
+    def test_audit_logs_resolve_actor_names_and_handle_unknown_actors(self):
+        reader = self.db.get(User, 1)
+        reader.full_name = "Nguyễn An"
+        self.db.add_all(
+            [
+                AuditLog(actor_id=1, action="LOGIN", detail="AUTH: Đăng nhập"),
+                AuditLog(actor_id=99, action="LOGIN", detail="AUTH: Đăng nhập"),
+                AuditLog(actor_id=None, action="LOGIN_FAILED", detail="AUTH: Thất bại"),
+            ]
+        )
+        self.db.commit()
+
+        logs = list_audit_logs(limit=10, db=self.db, _current_user=reader)
+        actors = {log["actor_id"]: log["actor_name"] for log in logs}
+
+        self.assertEqual(
+            actors,
+            {
+                1: "Nguyễn An (reader-1)",
+                99: "Tài khoản #99 (không còn tồn tại)",
+                None: "Khách / tài khoản không xác định",
+            },
+        )
 
     def test_request_does_not_decrement_stock_until_approval(self):
         loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=14)

@@ -89,6 +89,7 @@ class AdminUserResponse(BaseModel):
 class AuditLogResponse(BaseModel):
     id: int
     actor_id: Optional[int] = None
+    actor_name: Optional[str] = None
     action: str
     detail: Optional[str] = None
     created_at: datetime
