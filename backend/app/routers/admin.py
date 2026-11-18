@@ -97,9 +97,30 @@ def list_audit_logs(
     db: Session = Depends(get_db),
     _current_user: User = Depends(admin_only),
 ):
-    return (
-        db.query(AuditLog)
+    entries = (
+        db.query(AuditLog, User.full_name, User.username)
+        .outerjoin(User, User.id == AuditLog.actor_id)
         .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
         .limit(limit)
         .all()
     )
+    return [
+        {
+            "id": log.id,
+            "actor_id": log.actor_id,
+            "actor_name": (
+                f"{full_name} ({username})"
+                if full_name and username
+                else username
+                or (
+                    f"Tài khoản #{log.actor_id} (không còn tồn tại)"
+                    if log.actor_id is not None
+                    else "Khách / tài khoản không xác định"
+                )
+            ),
+            "action": log.action,
+            "detail": log.detail,
+            "created_at": log.created_at,
+        }
+        for log, full_name, username in entries
+    ]

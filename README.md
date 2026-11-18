@@ -89,12 +89,42 @@ Chỉ đối chiếu mã nguồn trong repository với phần việc được p
 - `python -m compileall -q app main.py migrate_auth_loan.py`: đạt.
 - `node --check` cho JavaScript đã sửa và `git diff --check`: đạt.
 
-### Còn cần làm trước bảo vệ
+## Kế hoạch công việc tuần tới (16–22/11/2026)
 
-- Chạy migration trên bản sao MySQL thật và kiểm thử khởi động API với database của nhóm.
-- Chạy end-to-end trên trình duyệt cho READER/LIBRARIAN/ADMIN; chưa kiểm thử browser trong lượt này.
-- Khi deploy, cấu hình `SECRET_KEY` riêng và giới hạn `FRONTEND_ORIGINS`; không dùng secret mặc định development.
-- Xác nhận với SRS nếu mã sinh viên bắt buộc là cột riêng; hiện username được dùng làm mã đăng nhập/mã sinh viên.
+### Đã hoàn thành đến 15/11
+
+- [x] Hoàn thiện các luồng code chính AUTH, BOOK, LOAN, LOG, RDR, FINE, STAT và RSV; đã cập nhật giao diện theo chức năng.
+- [x] Thêm quản trị tài khoản/nhật ký, dashboard, quản lý thể loại, độc giả, tiền phạt và đặt trước.
+- [x] Chạy 9/9 backend unit tests; compile Python, kiểm tra cú pháp JavaScript và `git diff --check` đều đạt.
+- [x] Cập nhật checklist phần việc theo từng thành viên trong README.
+
+### Việc cần làm trong tuần tới
+
+| Người phụ trách | Công việc | Tiêu chí hoàn thành |
+|---|---|---|
+| Nguyễn Văn Thông | Chạy migration trên bản sao MySQL; khởi động API và kiểm tra đăng nhập, logout, đổi mật khẩu, quyền ADMIN/LIBRARIAN/READER. | Migration chạy được trên DB cũ; API trả dữ liệu đúng và user sai quyền nhận `403`. |
+| Nguyễn Hoàng Thành | Kiểm tra dữ liệu sách/thể loại, tìm kiếm bỏ dấu, tồn kho, độc giả, tiền phạt, thống kê và hàng đợi đặt trước trên MySQL. | Số liệu khớp DB; đặt/hủy/giữ chỗ 48 giờ không vượt tồn kho; chốt các yêu cầu SRS về mã sinh viên riêng hay dùng username. |
+| Huỳnh Hồ Nhĩ Đan | Kiểm thử giao diện độc giả trên trình duyệt: đăng ký/đăng nhập, tìm sách, mượn/hủy, đặt trước/hủy, xem phạt, đổi mật khẩu. | Các luồng chạy với API thật; thông báo lỗi rõ ràng; kiểm tra desktop và điện thoại. |
+| Hà Ngọc Hoàng Tân | Kiểm thử giao diện staff/admin: CRUD sách/thể loại, duyệt/từ chối/trả, thu phạt, lịch sử độc giả, quản lý user/log và dashboard. | Các thao tác cập nhật đúng DB; phân quyền hiển thị và API được kiểm tra cho từng vai trò. |
+| Cả nhóm | Chạy kiểm thử end-to-end hồi quy, sửa lỗi phát hiện được và tổng duyệt kịch bản demo trước ngày bảo vệ 27/11. | Có danh sách ca kiểm thử đạt/chưa đạt; không trình bày tính năng chưa xác minh trên máy demo. |
+| Người triển khai | Cấu hình `SECRET_KEY` riêng và `FRONTEND_ORIGINS` phù hợp môi trường demo/production. | Không dùng secret mặc định development; frontend được phép gọi API từ đúng origin. |
+
+## Các hạng mục còn cần xử lý ngày 17/11/2026
+
+Mục này chỉ theo dõi phần chưa hoàn tất hoặc chưa được kiểm chứng; không lặp lại danh sách chức năng đã có. Hạn bên dưới theo bảng công việc nhóm.
+
+| Task | Phần còn thiếu | Việc cần làm / tiêu chí xác nhận |
+|---|---|---|
+| TH-08 — hạn 17/11 | Chưa xác nhận luồng Auth/Loan chạy xuyên suốt với MySQL và trình duyệt; tài khoản demo ở `index.html` là dữ liệu mock trong trình duyệt, không phải tài khoản backend. | Dùng tài khoản đăng ký thật để kiểm tra đăng nhập, quyền và nghiệp vụ mượn/trả qua API; ghi lại kết quả và lỗi tích hợp nếu có. |
+| TH-12 — bonus, hạn 17/11 | Chưa có API gia hạn phiếu mượn và giới hạn gia hạn một lần. | Bổ sung quy tắc trong `backend/app/loan_service.py`, endpoint trong `backend/app/routers/loans.py`, trường lưu số lần gia hạn và migration cho database cũ, cùng test thành công/lặp lại/không đủ điều kiện. Trước khi code cần chốt số ngày được gia hạn, xử lý phiếu quá hạn và phiếu có người đặt trước. |
+| TH-09 — hạn 18/11 | Chưa chốt đối chiếu các yêu cầu SRS M/S, rà NFR-02 và phương án Docker hay bản triển khai chạy thật. | Đối chiếu từng yêu cầu còn lại với API hiện có, ghi nhận rủi ro bảo mật và chọn một phương án chạy có thể kiểm chứng; lưu minh chứng kết quả. |
+| TH-10 — hạn 20/11 | Chưa xác nhận đồng bộ mã nguồn/tag `v1.0`, ghép báo cáo và slide của nhóm, và buổi tập bảo vệ. | Đồng bộ nhánh và phiên bản với nhóm, hoàn tất tài liệu chung, rồi chạy thử kịch bản demo trên đúng môi trường bảo vệ. |
+
+### Trạng thái kiểm tra local ngày 17/11
+
+- Bộ kiểm thử Auth/Loan chưa thay thế được kiểm thử tích hợp trên MySQL và trình duyệt; các luồng cần được kiểm tra với tài khoản thật trong database.
+- Trong lần kiểm tra hiện tại, frontend ở cổng `5500` trả `200`, còn kết nối tới backend ở cổng `8000` bị từ chối. Cần khởi động API rồi kiểm tra lại trước khi kết luận luồng frontend/backend hoạt động.
+- Không dùng các tài khoản demo hiển thị trên trang chủ để thử API backend nếu chưa tạo chúng trong database; đăng ký tài khoản backend riêng và cấp role cần thiết trên database local.
 
 ## Lịch sử cập nhật ngày 13/11/2026 (ảnh chụp trước khi hoàn thiện)
 
@@ -305,6 +335,24 @@ Script bổ sung 5 thể loại (Giáo dục, Kinh tế, Tiểu thuyết, Thiên
 và 10 sách, mỗi sách 2 bản. Script không sửa dữ liệu hiện có và có thể chạy lại
 mà không tạo thể loại hoặc sách trùng.
 
+Để tạo các tài khoản demo đang hiển thị trên trang đăng nhập, chạy trong terminal
+backend:
+
+```powershell
+python seed_demo_users.py
+```
+
+Tài khoản demo dùng mật khẩu `123456`:
+
+| Vai trò | Email đăng nhập |
+|---|---|
+| Quản trị viên | `admin@ptit.edu.vn` |
+| Thủ thư | `thuthu@ptit.edu.vn` |
+| Độc giả | `docgia@ptit.edu.vn` |
+
+Lệnh chỉ tạo tài khoản còn thiếu, không thay đổi tài khoản đã tồn tại. Đây là
+tài khoản phục vụ demo local; không tạo hoặc dùng chúng trên môi trường thật.
+
 Muốn thử với tài khoản quản trị, đăng ký một tài khoản trên trang đăng ký rồi nâng quyền:
 
 ```sql
@@ -338,7 +386,7 @@ Xem đầy đủ và thử trực tiếp tại `http://127.0.0.1:8000/docs`.
 | GET | `/api/readers`, `/api/readers/{id}/loans` | Danh sách và lịch sử độc giả | LIBRARIAN/ADMIN |
 | GET/PUT | `/api/fines` | Xem, đánh dấu khoản phạt đã thu | LIBRARIAN/ADMIN |
 | GET | `/api/fines/mine` | Khoản phạt cá nhân | READER |
-| GET | `/api/admin/users`, `/api/admin/logs` | Quản lý tài khoản và nhật ký | ADMIN |
+| GET | `/api/admin/users`, `/api/admin/logs` | Quản lý tài khoản và nhật ký (hiện tên tài khoản trong nhật ký) | ADMIN |
 | GET | `/api/stats/overview`, `/api/stats/top-books`, `/api/stats/monthly` | Thống kê dashboard | LIBRARIAN/ADMIN |
 
 Sau khi cập nhật schema, chạy `python migrate_auth_loan.py` từ thư mục `backend` trước khi dùng database cũ. `main.py` dùng danh sách `FRONTEND_ORIGINS` trong `backend/.env`; không cấu hình wildcard cho môi trường triển khai.
