@@ -78,7 +78,11 @@ async function loadAdminData() {
         logs.forEach(log => {
             const row = logTable.insertRow();
             appendAdminCell(row, log.created_at ? new Date(log.created_at).toLocaleString("vi-VN") : "—");
-            appendAdminCell(row, log.actor_id);
+            appendAdminCell(
+                row,
+                log.actor_name ||
+                    (log.actor_id == null ? "Khách / tài khoản không xác định" : `Tài khoản #${log.actor_id}`)
+            );
             appendAdminCell(row, log.action);
             appendAdminCell(row, log.detail);
         });
