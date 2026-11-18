@@ -57,9 +57,7 @@ function updateStatistics() {
         );
 
     document.getElementById("totalCategories").textContent =
-        new Set(
-            books.map(book => book.categoryName).filter(Boolean)
-        ).size;
+        categories.length;
 }
 
 function updateUserInformation() {
@@ -99,7 +97,9 @@ async function loadCategories() {
         option.textContent = category.name;
         categorySelect.appendChild(option);
     });
+
     displayCategories();
+    updateStatistics();
 }
 
 function showCategoryMessage(message, type = "success") {
@@ -110,6 +110,7 @@ function showCategoryMessage(message, type = "success") {
 
 function displayCategories() {
     categoryTable.replaceChildren();
+
     if (!categories.length) {
         const row = categoryTable.insertRow();
         const cell = row.insertCell();
@@ -122,11 +123,14 @@ function displayCategories() {
         const row = categoryTable.insertRow();
         const name = row.insertCell();
         name.textContent = category.name;
+
         const actions = row.insertCell();
+
         const edit = document.createElement("button");
         edit.type = "button";
         edit.className = "btn secondary";
         edit.textContent = "Sửa";
+
         edit.addEventListener("click", () => {
             categoryEditingId = category.id;
             categoryNameInput.value = category.name;
@@ -134,13 +138,17 @@ function displayCategories() {
             document.getElementById("cancelCategoryEdit").hidden = false;
             categoryNameInput.focus();
         });
+
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "btn danger";
         remove.textContent = "Xóa";
+
         remove.addEventListener("click", async () => {
             if (!confirm(`Bạn có chắc muốn xóa thể loại "${category.name}"?`)) return;
+
             remove.disabled = true;
+
             try {
                 await deleteCategory(category.id);
                 showCategoryMessage("Xóa thể loại thành công.");
@@ -151,6 +159,7 @@ function displayCategories() {
                 remove.disabled = false;
             }
         });
+
         actions.append(edit, document.createTextNode(" "), remove);
     });
 }
@@ -165,10 +174,14 @@ function resetCategoryForm() {
 
 categoryForm.addEventListener("submit", async event => {
     event.preventDefault();
+
     const name = categoryNameInput.value.trim();
+
     if (!name) return;
+
     const saveButton = document.getElementById("saveCategoryButton");
     saveButton.disabled = true;
+
     try {
         if (categoryEditingId === null) {
             await createCategory({ name });
@@ -177,10 +190,12 @@ categoryForm.addEventListener("submit", async event => {
             await updateCategory(categoryEditingId, { name });
             showCategoryMessage("Cập nhật thể loại thành công.");
         }
+
         categoryEditingId = null;
         categoryForm.reset();
         document.getElementById("saveCategoryButton").textContent = "Thêm thể loại";
         document.getElementById("cancelCategoryEdit").hidden = true;
+
         await loadCategories();
     } catch (error) {
         showCategoryMessage(error.message, "error");
@@ -574,6 +589,7 @@ document.getElementById("logoutButton").addEventListener(
         } catch (error) {
             console.error("Không thể thu hồi token đăng xuất:", error);
         }
+
         window.location.replace("index.html");
     }
 );
