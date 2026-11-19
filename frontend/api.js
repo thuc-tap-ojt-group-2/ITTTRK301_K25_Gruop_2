@@ -7,6 +7,7 @@ const API_BASE_URL = (
 async function apiRequest(path, options = {}) {
     const token = localStorage.getItem("access_token") ||
         localStorage.getItem("token");
+
     const isPublicAuthRequest =
         path === "/api/auth/login" || path === "/api/auth/register";
 
@@ -93,16 +94,16 @@ async function apiRequest(path, options = {}) {
 
 async function getBooks(page = 1, size = 10, keyword = "") {
     const params = new URLSearchParams({ page, size });
+
     if (keyword.trim()) {
         params.set("keyword", keyword.trim());
     }
-    return await apiRequest(
-        `/api/books?${params}`
-    );
+
+    return await apiRequest(`/api/books?${params}`);
 }
 
 async function getCategories() {
-    return await apiRequest("/api/books/categories");
+    return await apiRequest("/api/categories");
 }
 
 async function createBook(book) {
@@ -175,9 +176,11 @@ async function returnLoanAPI(id) {
 
 async function getReaders(keyword = "") {
     const params = new URLSearchParams();
+
     if (keyword.trim()) {
         params.set("keyword", keyword.trim());
     }
+
     return await apiRequest(`/api/readers${params.size ? `?${params}` : ""}`);
 }
 
