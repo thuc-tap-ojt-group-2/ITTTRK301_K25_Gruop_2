@@ -23,6 +23,7 @@ def main() -> None:
         "created_at",
         "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
     )
+    _ensure_column("loans", "extension_count", "INT NOT NULL DEFAULT 0")
     print("AUTH/LOAN schema migration completed.")
 
 

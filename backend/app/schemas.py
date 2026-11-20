@@ -125,6 +125,7 @@ class LoanResponse(BaseModel):
     book_id: int
     status: str
     days: int
+    extension_count: int = 0
     borrow_date: Optional[date] = None
     due_date: Optional[date] = None
     return_date: Optional[date] = None

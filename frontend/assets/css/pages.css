@@ -1,0 +1,1806 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - PAGES STYLES
+ * pages.css: Định kiểu chuyên biệt cho từng trang
+ * (index/landing, login, register, dashboard, books, loans, readers, fines, admin)
+ * ====================================================================
+ */
+
+/* ====================================================================
+ * 1. TRANG CHỦ / LANDING PAGE (index.html)
+ * ==================================================================== */
+
+/* Hero section 2 cột cân đối: tỷ lệ 1.1fr 0.9fr, gap 64px, min-height 560px (LỖI 1 & LỖI 4) */
+.landing-hero {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 64px;
+    align-items: center;
+    padding: 48px 0 64px 0;
+    width: 100%;
+    min-height: 560px; /* Khóa min-height cố định khoảng 560px chống nhảy bố cục (LỖI 1) */
+    box-sizing: border-box;
+}
+
+.hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    width: 100%;
+}
+
+@media (min-width: 1200px) {
+    .hero-copy {
+        min-width: 520px; /* Cột trái không hẹp hơn 520px ở màn hình >= 1200px */
+    }
+}
+
+.hero-copy h1 {
+    font-size: clamp(38px, 4.4vw, 56px); /* H1 56px tối đa 3 dòng (LỖI 4) */
+    line-height: 1.2;
+    margin-bottom: var(--space-4);
+    color: var(--color-text-main);
+    max-width: 100%;
+    word-break: normal;
+}
+
+.hero-copy h1 em {
+    font-style: italic;
+    color: var(--color-primary);
+    font-weight: 800;
+}
+
+.hero-description {
+    font-size: 18px; /* Mô tả 18px rõ ràng, cân đối (LỖI 4) */
+    line-height: 1.65;
+    color: var(--color-text-muted);
+    margin-bottom: 28px;
+    max-width: 560px;
+}
+
+/* Thanh tìm kiếm Hero: cao 60px, nút "Tìm kiếm" cao bằng thanh (LỖI 4) */
+.hero-search-box {
+    width: 100%;
+    height: 60px; /* Thanh tìm kiếm cao 60px (LỖI 4) */
+    min-height: 60px;
+    background-color: var(--color-bg-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 30px rgba(15, 92, 66, 0.08);
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+    transition: border-color var(--duration-fast) var(--ease-standard),
+                box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.hero-search-box:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 12px 36px rgba(15, 92, 66, 0.15);
+}
+
+/* Select lọc cố định 140px, cao khớp thanh tìm kiếm */
+.hero-search-select {
+    flex: 0 0 140px;
+    width: 140px;
+    height: 100%;
+    min-height: 48px;
+    border: none;
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-main);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+/* Input co giãn linh hoạt */
+.hero-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    color: var(--color-text-main);
+    padding: 0 var(--space-3);
+    box-sizing: border-box;
+}
+
+.hero-search-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Nút tìm kiếm cố định, cao bằng thanh (48px trong khung 60px) */
+.hero-search-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    height: 100%;
+    min-height: 48px;
+    padding: 0 24px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    box-sizing: border-box;
+}
+
+/* Nhóm 2 nút Hero: cao 48px (LỖI 4) */
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.hero-actions .btn {
+    height: 48px; /* Nhóm 2 nút cao 48px chuẩn (LỖI 4) */
+    min-height: 48px;
+    padding: 0 24px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: var(--radius-btn);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-proof {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-primary-soft);
+    border: 1px solid rgba(15, 92, 66, 0.15);
+    border-radius: var(--radius-card);
+}
+
+.proof-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-circle);
+    background-color: var(--color-primary);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.hero-proof p {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-text-main);
+    margin: 0;
+}
+
+/* Cột phải Hero: Khối 3 bìa sách cao khoảng 400px trên vầng tròn xanh nhạt lớn (LỖI 4) */
+.hero-art {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 440px;
+    width: 100%;
+    overflow: visible;
+}
+
+/* Vầng tròn xanh nhạt lớn, bóng đổ mềm (LỖI 4) */
+.hero-art::before {
+    content: "";
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: var(--radius-circle);
+    background-color: var(--color-primary-soft);
+    z-index: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 24px 60px rgba(15, 92, 66, 0.10); /* Bóng đổ mềm */
+}
+
+/* Khối 3 bìa sách cao khoảng 400px (LỖI 4) */
+.hero-stacked-books {
+    position: relative;
+    width: 380px;
+    height: 420px; /* Khung hiển thị sách cao ~400px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    overflow: visible;
+}
+
+.hero-book-card {
+    position: absolute;
+    border-radius: 16px;
+    padding: var(--space-5);
+    color: #ffffff;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+    cursor: pointer;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.hero-book-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.25), rgba(0,0,0,0.15));
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+}
+
+/* 2 cuốn hai bên ~320-350px lệch góc và độ sâu, cuốn giữa cao ~400px */
+.hero-book-card--1 {
+    width: 230px;
+    height: 335px; /* Cuốn bên trái cao ~335px */
+    background: linear-gradient(135deg, #137547 0%, #0A4331 100%);
+    transform: rotate(-10deg) translate(-55px, 20px);
+    z-index: 1;
+}
+
+.hero-book-card--2 {
+    width: 260px;
+    height: 395px; /* Cuốn giữa cao ~400px */
+    background: linear-gradient(135deg, #1F4E79 0%, #102A43 100%);
+    transform: rotate(2deg) translate(5px, -10px);
+    z-index: 2;
+}
+
+.hero-book-card--3 {
+    width: 230px;
+    height: 335px; /* Cuốn bên phải cao ~335px */
+    background: linear-gradient(135deg, #C88A2E 0%, #7D5110 100%);
+    transform: rotate(12deg) translate(65px, 35px);
+    z-index: 3;
+}
+
+.hero-book-card:hover {
+    transform: translateY(-16px) scale(1.05) !important;
+    z-index: 10 !important;
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.3);
+}
+
+.hero-book-badge {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-pill);
+    align-self: flex-start;
+}
+
+.hero-book-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: auto;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.hero-book-author {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Thẻ nổi "Sách từ thư viện PTIT" ở góc dưới trái (LỖI 4) */
+.hero-badge-floating {
+    position: absolute;
+    bottom: 12px; /* Góc dưới trái chuẩn mực (LỖI 4) */
+    left: -16px;
+    background: var(--color-bg-surface);
+    color: var(--color-primary-dark);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 10px 28px rgba(15, 92, 66, 0.16);
+    border: 1px solid var(--color-border);
+    z-index: 5;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ====================================================================
+ * THỐNG KÊ 3 Ô SỐ LỚN ĐỀU (A5) - SỐ 44PX MÀU PRIMARY, NHÃN 15PX
+ * ==================================================================== */
+.landing-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-card);
+    margin: var(--space-10) 0;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.landing-stat {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    border-right: 1px solid var(--color-border-light); /* Vạch ngăn mảnh */
+}
+
+.landing-stat:last-child {
+    border-right: none;
+}
+
+.landing-stat strong {
+    font-size: 44px; /* Chuẩn A5: Số 44px màu primary */
+    font-weight: 800;
+    color: var(--color-primary);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.landing-stat span {
+    font-size: 15px; /* Chuẩn A5: Nhãn 15px */
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.landing-stats-note {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 13px; /* Chuẩn A5: Ghi chú 13px tương phản >= 4.5:1 */
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+}
+
+/* ====================================================================
+ * SECTION "SÁCH & GIÁO TRÌNH NỔI BẬT" (A4) - LƯỚI 6 CỘT ĐỀU, CARD CAO BẰNG NHAU
+ * ==================================================================== */
+.featured-books-section {
+    padding: var(--space-8) 0 var(--space-16);
+    width: 100%;
+}
+
+.book-carousel {
+    width: 100%;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Lưới 6 cột đều nhau trên desktop, Gap 24px (A4) */
+.featured-books-grid,
+.book-track {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Card dọc: các card cùng hàng cao bằng nhau */
+.featured-book-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    transition: transform var(--duration-hover) var(--ease-standard);
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+}
+
+/* Ảnh bìa: aspect-ratio 2/3, bo 12px, hover nâng 6px (LỖI 3) */
+.featured-book-card {
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+}
+
+.featured-book-card:hover {
+    transform: translateY(-6px); /* Hover nâng 6px theo yêu cầu LỖI 3 */
+    box-shadow: 0 16px 32px rgba(10, 67, 49, 0.16);
+}
+
+.featured-book-cover {
+    width: 100%;
+    aspect-ratio: 2 / 3; /* Tỉ lệ bìa sách 2:3 chuẩn (LỖI 3) */
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+}
+
+.featured-book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--duration-hover) var(--ease-standard);
+}
+
+/* Bìa dự phòng đa dạng màu sắc theo thể loại + họa tiết gáy sách + tên sách căn giữa (LỖI 3) */
+.featured-book-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 18px 16px;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    position: relative;
+    background: transparent; /* Màu gradient riêng biệt được gán theo từng thể loại trong JS */
+    border-radius: 12px;
+}
+
+/* Họa tiết gáy sách trên bìa dự phòng (LỖI 3) */
+.featured-book-fallback::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 14px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.25) 0%, rgba(0, 0, 0, 0.08) 70%, rgba(0, 0, 0, 0.3) 100%);
+    border-right: 1px dashed rgba(255, 255, 255, 0.35);
+    box-shadow: inset 2px 0 4px rgba(0, 0, 0, 0.2);
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.featured-book-fallback-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(0, 0, 0, 0.25);
+    padding: 3px 8px;
+    border-radius: 4px;
+    align-self: center;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.featured-book-fallback-icon {
+    width: 32px;
+    height: 32px;
+    color: var(--color-accent-gold);
+    opacity: 0.85;
+    margin: 8px 0;
+    align-self: center;
+}
+
+/* Tên sách chữ trắng căn giữa tối đa 3 dòng (LỖI 3) */
+.featured-book-fallback-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #FFFFFF;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: auto 0;
+    padding: 0 6px;
+}
+
+/* Tên tác giả nhỏ bên dưới, không chồng chữ lên chữ (LỖI 3) */
+.featured-book-fallback-author {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 6px;
+    width: 100%;
+}
+
+.featured-book-fallback-mark {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+    gap: 4px;
+}
+
+/* Thông tin đặt DƯỚI ảnh (không đè lên ảnh theo A4) */
+.featured-book-info {
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.featured-book-cat {
+    font-size: 12px; /* Thể loại 12px */
+    font-weight: 600;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+}
+
+/* Tên sách: tối đa 2 dòng (A4) */
+.featured-book-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--color-text-main);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 40px;
+    margin-bottom: 4px;
+}
+
+/* Tác giả: 14px, màu phụ (A4) */
+.featured-book-author {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.book-ticker-status {
+    text-align: center;
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-top: var(--space-4);
+}
+
+/* ====================================================================
+ * TRẠNG THÁI LỖI MÁY CHỦ TRANG CHỦ (HOMEPAGE ERROR STATE & RETRY)
+ * ==================================================================== */
+.homepage-error-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-10) var(--space-6);
+    background: var(--color-bg-surface);
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-card);
+    text-align: center;
+    gap: var(--space-3);
+    min-height: 240px;
+    box-shadow: var(--shadow-card);
+}
+
+.homepage-error-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-circle);
+    background: #FEF2F2;
+    color: #DC2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-2);
+}
+
+.homepage-error-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin: 0;
+}
+
+.homepage-error-detail {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    max-width: 480px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.btn-retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: var(--space-2);
+    cursor: pointer;
+}
+
+/* ====================================================================
+ * 3 LỢI ÍCH ĐÁNH SỐ (HIGHLIGHTS)
+ * ==================================================================== */
+.landing-highlights {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-8);
+    margin: var(--space-16) 0;
+    width: 100%;
+}
+
+.highlight-item {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+}
+
+.highlight-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--color-primary);
+}
+
+.highlight-number {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-circle);
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-size: 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.highlight-item h2 {
+    font-size: 20px;
+    margin-bottom: var(--space-2);
+}
+
+/* ====================================================================
+ * VỀ THƯ VIỆN (A6) - 2 CỘT, ĐOẠN VĂN TỐI ĐA ~60 KÝ TỰ/DÒNG
+ * ==================================================================== */
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-10);
+    align-items: center;
+    margin-bottom: var(--space-10);
+    width: 100%;
+}
+
+.about-grid p {
+    max-width: 65ch; /* Chuẩn A6: đoạn văn tối đa khoảng 60-65 ký tự/dòng */
+    line-height: 1.75;
+    font-size: 16px;
+}
+
+.about-note {
+    background: linear-gradient(135deg, var(--color-primary-soft) 0%, #f0f7f3 100%);
+    border-left: 4px solid var(--color-accent-gold); /* Viền vàng phải theo A6 */
+    border-radius: 0 var(--radius-card) var(--radius-card) 0;
+    padding: var(--space-8) var(--space-10);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-5);
+    box-shadow: var(--shadow-sm);
+}
+
+.about-quote-icon {
+    font-size: 40px;
+    color: var(--color-accent-gold);
+    line-height: 1;
+}
+
+.about-note p {
+    font-size: 17px;
+    font-style: italic;
+    color: var(--color-primary-dark);
+    line-height: 1.6;
+}
+
+/* ====================================================================
+ * DỊCH VỤ THƯ VIỆN
+ * ==================================================================== */
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-8);
+    width: 100%;
+}
+
+.service-card {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+}
+
+.service-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--color-primary);
+}
+
+.service-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-btn);
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: var(--space-2);
+}
+
+.service-index {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--color-accent-gold);
+    text-transform: uppercase;
+}
+
+.service-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-desc);
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-top: auto;
+    padding-top: var(--space-4);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.service-link:hover {
+    color: var(--color-primary-dark);
+}
+
+/* ====================================================================
+ * 3 BƯỚC MƯỢN SÁCH (A6, A7) - SỐ 01/02/03 32PX MÀU VÀNG
+ * ==================================================================== */
+.rules-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+    width: 100%;
+}
+
+.rules-list article {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+}
+
+.rules-list article span {
+    font-size: 32px; /* Chuẩn A7: Số 01/02/03 32px */
+    font-weight: 800;
+    color: var(--color-accent-gold); /* Màu vàng */
+    line-height: 1;
+}
+
+/* ====================================================================
+ * KHỐI CTA XANH ĐẬM (A7, C9) - H2 34PX, NÚT TRẮNG CAO 48PX
+ * ==================================================================== */
+.landing-contact {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 50%, #063124 100%);
+    background-size: 200% 200%;
+    animation: cta-gradient-shift 20s ease infinite; /* C9: Chuyển động chậm 20s */
+    border-radius: var(--radius-lg);
+    padding: var(--space-16) var(--space-12);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin: var(--space-16) 0;
+    box-shadow: 0 16px 40px rgba(10, 67, 49, 0.25);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@keyframes cta-gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.landing-contact h2 {
+    color: #ffffff;
+    font-size: 34px; /* Chuẩn A7: H2 34px */
+    margin-top: var(--space-2);
+}
+
+.landing-contact .section-kicker {
+    color: var(--color-accent-gold-soft);
+}
+
+/* Nút trắng nhịp sáng nhẹ (pulse 3s một lần, dừng khi hover theo C9) */
+.landing-contact .btn--light {
+    animation: btn-pulse 3s infinite;
+}
+
+.landing-contact .btn--light:hover {
+    animation-play-state: paused;
+}
+
+@keyframes btn-pulse {
+    0%, 100% {
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+    50% {
+        box-shadow: 0 0 24px rgba(255, 255, 255, 0.6);
+    }
+}
+
+/* ====================================================================
+ * 2. TRANG ĐĂNG NHẬP / ĐĂNG KÝ (login.html, register.html)
+ * ==================================================================== */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-bg-page);
+}
+
+.auth-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-8);
+    border-bottom: 1px solid var(--color-border-light);
+    background-color: var(--color-bg-surface);
+}
+
+.auth-main {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1100px;
+    margin: auto;
+    padding: var(--space-8) var(--space-4);
+    gap: var(--space-12);
+    align-items: center;
+    width: 100%;
+}
+
+.auth-intro {
+    padding-right: var(--space-6);
+}
+
+.auth-intro h2 {
+    font-size: 36px;
+    line-height: 1.25;
+    margin-bottom: var(--space-4);
+    color: var(--color-primary-dark);
+}
+
+.auth-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0;
+}
+
+.auth-chips span {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary-dark);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+}
+
+.auth-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+}
+
+.auth-stats div {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-btn);
+    padding: var(--space-4);
+    text-align: center;
+}
+
+.auth-stats strong {
+    font-size: 26px;
+    color: var(--color-primary);
+    display: block;
+}
+
+.auth-card {
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-8);
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+.auth-card h1 {
+    font-size: 28px;
+    margin-bottom: var(--space-1);
+    color: var(--color-primary-dark);
+}
+
+.auth-card .sub {
+    font-size: var(--text-desc);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-6);
+}
+
+.auth-card .btn {
+    width: 100%;
+    min-height: 48px;
+    margin-top: var(--space-4);
+    font-size: 16px;
+}
+
+.auth-card .switch {
+    text-align: center;
+    font-size: var(--text-small);
+    color: var(--color-text-muted);
+    margin-top: var(--space-6);
+}
+
+.auth-card .switch a {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+/* ====================================================================
+ * 3. DASHBOARD / TỔNG QUAN (dashboard.html)
+ * ==================================================================== */
+.stats-grid,
+section.stats,
+section.statistics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+}
+
+.panel {
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--space-8);
+}
+
+.panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-5);
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.panel-head h2 {
+    font-size: var(--text-h2-inner);
+    color: var(--color-primary-dark);
+}
+
+.panel-description {
+    font-size: var(--text-small);
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* Biểu đồ tháng trực quan */
+.monthly-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-4);
+    min-height: 190px;
+    padding: var(--space-5) var(--space-2);
+    border-bottom: 1px solid var(--color-border-light);
+    margin-bottom: var(--space-5);
+}
+
+.chart-month {
+    display: flex;
+    flex: 1;
+    min-width: 32px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    height: 170px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.chart-bar {
+    width: min(38px, 80%);
+    min-height: 4px;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    transition: height 0.4s ease, background 0.2s ease;
+}
+
+.chart-month:hover .chart-bar {
+    background: linear-gradient(180deg, var(--color-accent-gold) 0%, var(--color-accent-gold-dark) 100%);
+}
+
+.chart-count {
+    color: var(--color-primary-dark);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* ====================================================================
+ * 4. QUẢN LÝ SÁCH (books.html)
+ * ==================================================================== */
+.tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.tools .search {
+    width: 280px;
+}
+
+.book-name {
+    font-weight: 600;
+    color: var(--color-primary-dark);
+}
+
+.actions {
+    display: inline-flex;
+    gap: var(--space-2);
+}
+
+/* ====================================================================
+ * 4. HIỆU ỨNG HERO 3D & SÁCH LẮT MỢT (NÂNG CẤP UI/UX)
+ * ==================================================================== */
+
+/* Khối chứa 3 bìa sách hero: perspective 1300px, preserve-3d */
+.hero-stacked-books {
+    perspective: 1300px;
+    transform-style: preserve-3d;
+    position: relative;
+}
+
+/* Mỗi bài sách hero: preserve-3d, chỉ animate transform/opacity (60fps) */
+.hero-book-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+    will-change: transform;
+}
+
+/* Hover: nghiêng nhẹ 3D + nâng lên + bóng gáy sách */
+.hero-book-card:hover,
+.hero-book-card:focus-visible {
+    transform: perspective(1300px) rotateX(-4deg) rotateY(6deg) translateY(-6px);
+    z-index: 2;
+}
+
+.hero-book-card--1:hover { transform: perspective(1300px) rotateX(-4deg) rotateY(8deg) translate(-6px, -8px); }
+.hero-book-card--2:hover { transform: perspective(1300px) rotateX(-4deg) rotateY(0deg) translateY(-8px); }
+.hero-book-card--3:hover { transform: perspective(1300px) rotateX(-4deg) rotateY(-8deg) translate(6px, -8px); }
+
+/* Ánh sáng lướt nhẹ (sheen/glow) dọc mặt bìa khi hover */
+.hero-book-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.45) 45%,
+        rgba(255, 255, 255, 0.15) 55%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: translateX(-110%) translateZ(1px);
+    opacity: 0;
+    transition: opacity var(--duration-hover) var(--ease-standard),
+                transform var(--duration-hover) var(--ease-standard);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.hero-book-card:hover::after,
+.hero-book-card:focus-visible::after {
+    transform: translateX(110%) translateZ(1px);
+    opacity: 1;
+}
+
+/* Badge thể loại trên bìa hero */
+.hero-book-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary-dark);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-xs);
+}
+
+/* Logo PTIT trong header: chuyển động đàn hồi nhẹ khi hover */
+.brand-logo {
+    display: inline-block;
+    transform-origin: center;
+    transition: transform var(--duration-hover) var(--ease-spring);
+}
+
+.brand-logo:hover {
+    transform: scale(1.08) rotate(-2deg);
+}
+
+/* ====================================================================
+ * Hero Book Cover: ảnh thật + lớp phủ gradient tối để chữ trắng nổi bật
+ * ==================================================================== */
+.hero-book-cover-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    margin-top: var(--space-3);
+}
+
+.hero-book-cover-wrapper img.hero-book-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform var(--duration-hover) var(--ease-standard);
+}
+
+.hero-book-card:hover .hero-book-img {
+    transform: scale(1.05);
+}
+
+/* Lớp phủ gradient tối phía dưới ảnh để chữ trắng nổi bật */
+.hero-book-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(15, 92, 66, 0.35) 0%,
+        rgba(10, 67, 49, 0.75) 60%,
+        rgba(10, 67, 49, 0.95) 100%
+    );
+    border-radius: 12px;
+    transition: opacity var(--duration-hover) var(--ease-standard);
+    pointer-events: none;
+}
+
+.hero-book-card:hover .hero-book-gradient {
+    opacity: 0.85;
+}
+
+/* Đảm bảo tiêu đề và tác giả nằm trên lớp phủ, màu trắng */
+.hero-book-card > div {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-book-card .hero-book-title {
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.hero-book-card .hero-book-author {
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    font-size: 13px;
+    margin: var(--space-1) 0 0 0;
+}
+
+/* ====================================================================
+ * 5. SÁCH & GIÁO TRÌNH NỔI BẬT - LƯỚI MỚI (thay thế lưới 6 cột bị nhíp)
+ * ==================================================================== */
+
+.featured-books-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+    width: 100%;
+}
+
+.featured-book-card {
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    border: 1px solid #e6ece9;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard),
+                border-color var(--duration-hover) var(--ease-standard);
+    will-change: transform;
+    height: 100%;
+    min-height: 0;
+}
+
+/* Khung bìa sách: tỷ lệ 3/4, object-fit cover, bo góc trên gọn gàng */
+.featured-book-cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background-color: var(--color-bg-subtle);
+    border-bottom: 1px solid #e6ece9;
+}
+
+.featured-book-cover img.featured-book-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform var(--duration-hover) var(--ease-standard);
+}
+
+.featured-book-card:hover .featured-book-img {
+    transform: scale(1.03) rotate(-1.5deg);
+}
+
+/* Bóng gáy sách dưới bìa khi card nổi */
+.featured-book-cover::after {
+    content: "";
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    bottom: -14px;
+    height: 14px;
+    background: rgba(18, 38, 30, 0.10);
+    border-radius: 50%;
+    filter: blur(6px);
+    opacity: 0;
+    transition: opacity var(--duration-hover) var(--ease-standard);
+    pointer-events: none;
+}
+
+.featured-book-card:hover .featured-book-cover::after {
+    opacity: 0.55;
+}
+
+/* Thông tin sách dưới bìa - flex:1 để đẩy nút hành động về đáy */
+.featured-book-info {
+    padding: var(--space-4) var(--space-4) var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Khối nội dung trung tâm co giãn để các card bằng cao */
+.featured-book-info > *:not(.featured-book-action) {
+    flex-shrink: 0;
+}
+
+/* Dòng 1: Pill badge thể loại - nền #e7f3ee, chữ #0b6e4f */
+.featured-book-cat {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 1px 10px;
+    border-radius: var(--radius-pill);
+    background-color: #e7f3ee;
+    color: #0b6e4f;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    align-self: flex-start;
+}
+
+/* Nút hành động ở chân card - đồng đều chiều cao tất cả card */
+.featured-book-action {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 var(--space-4);
+    border: none;
+    background-color: #0b6e4f;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 0 0 14px 14px;
+    cursor: pointer;
+    transition: background-color var(--duration-hover) var(--ease-standard),
+                transform var(--duration-hover) var(--ease-standard);
+    text-decoration: none;
+}
+
+.featured-book-action:hover {
+    background-color: #085a41;
+    transform: translateY(-1px);
+}
+
+.featured-book-action:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/* Dòng 2: Tên sách in đậm, tối đa 2 dòng, không dính chữ */
+.featured-book-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text-main);
+    line-height: 1.45;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    letter-spacing: -0.005em;
+}
+
+/* Dòng 3: Tác giả màu xám dịu, dòng riêng, kèm icon nhỏ */
+.featured-book-author {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.featured-book-author::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-circle);
+    background-color: var(--color-text-light);
+    flex-shrink: 0;
+}
+
+/* Hover card: nâng lên, bóng đậm hơn, viền sáng */
+.featured-book-card:hover,
+.featured-book-card:focus-visible {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--color-primary-light);
+    z-index: 3;
+}
+
+.featured-book-card:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+}
+
+/* ====================================================================
+ * 6. THẺ TIỆN ÍCH (HIGHLIGHTS) - STAGGERED FADE-UP
+ * ==================================================================== */
+
+.landing-highlights {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+    margin-top: var(--space-8);
+}
+
+.highlight-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard),
+                border-color var(--duration-hover) var(--ease-standard);
+}
+
+.highlight-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--color-primary-light);
+}
+
+.highlight-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-circle);
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary-dark);
+    font-size: 18px;
+    font-weight: 800;
+    box-shadow: var(--shadow-xs);
+}
+
+.highlight-item h2 {
+    font-size: var(--text-h3);
+    color: var(--color-text-main);
+    margin: 0;
+}
+
+.highlight-item p {
+    font-size: var(--text-desc);
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: var(--line-desc);
+}
+
+/* ====================================================================
+ * 7. THẺ THỐNG KÊ (STATS) - COUNT-UP & STAGGER
+ * ==================================================================== */
+
+.landing-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+}
+
+.landing-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-6);
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    min-width: 0;
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+}
+
+.landing-stat strong {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--color-primary-dark);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    transition: color var(--duration-normal) var(--ease-standard);
+}
+
+.landing-stat span {
+    font-size: var(--text-small);
+    color: var(--color-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.landing-stat:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.landing-stats-note {
+    margin-top: var(--space-4);
+    font-size: var(--text-small);
+    color: var(--color-text-subtle);
+    text-align: center;
+}
+
+.filter-panel {
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-8);
+}
+
+.filter-heading h2 {
+    font-size: 18px;
+    margin-bottom: var(--space-1);
+}
+
+.filter-heading p {
+    font-size: var(--text-small);
+    margin-bottom: var(--space-4);
+}
+
+.filters {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.filter-field label {
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--color-text-main);
+}
+
+.search-field {
+    flex-grow: 1;
+}
+
+.loan-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.btn-approve {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-btn);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.btn-approve:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.btn-reject {
+    background-color: var(--color-danger);
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-btn);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.btn-reject:hover {
+    background-color: var(--color-danger-dark);
+}
+
+/* ====================================================================
+ * 6. QUẢN LÝ TIỀN PHẠT (fines.html)
+ * ==================================================================== */
+.fines-hero-card {
+    background: linear-gradient(135deg, var(--color-primary-soft) 0%, #ffffff 100%);
+    border: 1px solid var(--color-primary-soft-hover);
+    border-radius: var(--radius-card);
+    padding: var(--space-6) var(--space-8);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-8);
+}
+
+.fines-hero-card h3 {
+    font-size: 16px;
+    color: var(--color-primary-dark);
+    margin-bottom: var(--space-1);
+}
+
+.fines-hero-amount {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--color-danger);
+    letter-spacing: -0.02em;
+}
+
+/* ====================================================================
+ * 7. QUẢN TRỊ HỆ THỐNG (admin.html)
+ * ==================================================================== */
+#userTable select {
+    min-height: 36px;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+#logTable td {
+    font-size: 13px;
+}
+
+/* ====================================================================
+ * 8. GIỚI THIỆU (ABOUT) - STAGGERED FADE-UP
+ * ==================================================================== */
+
+.about-section .about-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--space-10);
+    align-items: flex-start;
+}
+
+.about-section h2 {
+    font-size: clamp(28px, 3.5vw, 40px);
+    line-height: 1.3;
+    margin-bottom: var(--space-4);
+    color: var(--color-text-main);
+}
+
+.about-section p {
+    font-size: var(--text-desc);
+    color: var(--color-text-muted);
+    line-height: var(--line-desc);
+    margin-bottom: var(--space-4);
+}
+
+.about-note {
+    position: relative;
+    padding-left: var(--space-6);
+    color: var(--color-text-muted);
+}
+
+.about-note p {
+    margin: 0;
+    font-size: var(--text-desc);
+    line-height: var(--line-desc);
+}
+
+.about-quote-icon {
+    position: absolute;
+    left: 0;
+    top: -4px;
+    font-size: 48px;
+    color: var(--color-primary-soft);
+    line-height: 1;
+}
+
+/* Staggered fade-up cho featured books (xuất hiện lệch nhịp khi cuộn tới) */
+.featured-books-grid .featured-book-card:nth-child(1) { transition-delay: 0.00s; }
+.featured-books-grid .featured-book-card:nth-child(2) { transition-delay: 0.08s; }
+.featured-books-grid .featured-book-card:nth-child(3) { transition-delay: 0.16s; }
+.featured-books-grid .featured-book-card:nth-child(4) { transition-delay: 0.24s; }
+.featured-books-grid .featured-book-card:nth-child(5) { transition-delay: 0.32s; }
+.featured-books-grid .featured-book-card:nth-child(6) { transition-delay: 0.40s; }
+
+/* Bìa dự phòng khi không có ảnh thật từ API */
+.featured-book-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--space-4);
+    gap: var(--space-3);
+    text-align: center;
+    color: var(--color-text-inverse);
+    box-sizing: border-box;
+}
+
+.featured-book-fallback-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.9;
+}
+
+.featured-book-fallback-icon {
+    width: 30px;
+    height: 30px;
+    color: var(--color-text-inverse);
+    opacity: 0.9;
+}
+
+.featured-book-fallback-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.featured-book-fallback-author {
+    font-size: 12px;
+    color: var(--color-text-inverse);
+    opacity: 0.85;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.featured-book-fallback-mark {
+    margin-top: auto;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text-inverse);
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

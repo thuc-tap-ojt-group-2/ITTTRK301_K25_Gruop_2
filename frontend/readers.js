@@ -1,33 +1,62 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - QUẢN LÝ ĐỘC GIẢ
+ * readers.js: Tải danh sách độc giả, avatar chữ cái đầu, badge trạng thái,
+ *             tìm kiếm độc giả và xem lịch sử các lượt mượn sách.
+ * ====================================================================
+ */
+
 const readerTable = document.getElementById("readerTable");
 const readerMessage = document.getElementById("pageMessage");
 const readerSearch = document.getElementById("searchInput");
 let readerSearchTimer;
 
+const avatarColors = ["#0F5C42", "#1F528D", "#C8913A", "#6A4C93", "#1E8E5A", "#C0392B"];
+
 function showReaderError(message) {
     readerMessage.textContent = message;
     readerMessage.hidden = false;
-    readerMessage.className = "error";
+    readerMessage.className = "message error";
+    if (typeof PTIT !== "undefined" && PTIT.showToast) {
+        PTIT.showToast(message, "error");
+    }
 }
 
 async function showReaderHistory(reader) {
     const body = document.getElementById("historyTable");
     body.replaceChildren();
-    document.getElementById("historyTitle").textContent = `Lịch sử mượn — ${reader.fullName}`;
+    document.getElementById("historyTitle").textContent = `Lịch sử mượn sách — ${reader.fullName || reader.username}`;
+
     try {
         const history = await getReaderLoans(reader.id);
-        if (!history.length) {
+        if (!history || !history.length) {
             const row = body.insertRow();
             const cell = row.insertCell();
             cell.colSpan = 5;
-            cell.textContent = "Độc giả chưa có lịch sử mượn.";
+            cell.className = "empty";
+            cell.textContent = "Độc giả chưa có lịch sử mượn sách nào.";
         } else {
             history.forEach(loan => {
                 const row = body.insertRow();
-                [loan.bookTitle, loan.status, loan.borrowDate, loan.dueDate, loan.returnDate]
-                    .forEach(value => {
-                        const cell = row.insertCell();
-                        cell.textContent = value || "—";
-                    });
+                const bookCell = row.insertCell();
+                bookCell.textContent = loan.bookTitle || loan.book?.title || "—";
+                bookCell.style.fontWeight = "600";
+
+                const statusCell = row.insertCell();
+                const statusBadge = document.createElement("span");
+                const st = String(loan.status || "").toUpperCase();
+                statusBadge.className = `badge ${st === "RETURNED" ? "badge--success" : st === "BORROWING" ? "badge--info" : "badge--warning"}`;
+                statusBadge.textContent = st === "RETURNED" ? "Đã trả" : st === "BORROWING" ? "Đang mượn" : "Chờ duyệt";
+                statusCell.appendChild(statusBadge);
+
+                const borrowCell = row.insertCell();
+                borrowCell.textContent = loan.borrowDate ? new Date(loan.borrowDate).toLocaleDateString("vi-VN") : "—";
+
+                const dueCell = row.insertCell();
+                dueCell.textContent = loan.dueDate ? new Date(loan.dueDate).toLocaleDateString("vi-VN") : "—";
+
+                const returnCell = row.insertCell();
+                returnCell.textContent = loan.returnDate ? new Date(loan.returnDate).toLocaleDateString("vi-VN") : "—";
             });
         }
         document.getElementById("historyDialog").showModal();
@@ -41,34 +70,94 @@ async function loadReaders() {
     readerTable.replaceChildren();
     const loading = readerTable.insertRow().insertCell();
     loading.colSpan = 6;
-    loading.textContent = "Đang tải...";
+    loading.className = "empty";
+    loading.textContent = "Đang tải danh sách độc giả...";
+
     try {
         const readers = await getReaders(readerSearch.value);
         readerTable.replaceChildren();
-        if (!readers.length) {
+
+        if (!readers || !readers.length) {
             const cell = readerTable.insertRow().insertCell();
             cell.colSpan = 6;
-            cell.textContent = "Không tìm thấy độc giả.";
+            cell.className = "empty";
+            cell.textContent = "Không tìm thấy độc giả nào phù hợp.";
             return;
         }
-        readers.forEach(reader => {
+
+        readers.forEach((reader, index) => {
             const row = readerTable.insertRow();
-            [reader.username, reader.fullName, reader.email, reader.active ? "Hoạt động" : "Đã khóa", reader.borrowingCount]
-                .forEach(value => {
-                    const cell = row.insertCell();
-                    cell.textContent = String(value ?? "—");
-                });
-            const action = row.insertCell();
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "btn secondary";
-            button.textContent = "Lịch sử";
-            button.addEventListener("click", () => showReaderHistory(reader));
-            action.appendChild(button);
+
+            // Mã sinh viên
+            const codeCell = row.insertCell();
+            codeCell.textContent = reader.username || "—";
+            codeCell.style.fontFamily = "var(--font-mono)";
+            codeCell.style.fontWeight = "700";
+            codeCell.style.color = "var(--color-primary)";
+
+            // Họ tên kèm Avatar chữ cái đầu
+            const nameCell = row.insertCell();
+            const displayName = reader.fullName || reader.username || "Độc giả";
+            const initial = displayName.trim().charAt(0).toUpperCase() || "U";
+            const color = avatarColors[Math.abs(displayName.charCodeAt(0)) % avatarColors.length];
+
+            const nameWrap = document.createElement("div");
+            nameWrap.style.display = "flex";
+            nameWrap.style.alignItems = "center";
+            nameWrap.style.gap = "10px";
+
+            const avatarEl = document.createElement("span");
+            avatarEl.className = "avatar";
+            avatarEl.style.width = "34px";
+            avatarEl.style.height = "34px";
+            avatarEl.style.fontSize = "14px";
+            avatarEl.style.backgroundColor = color;
+            avatarEl.textContent = initial;
+
+            const nameStrong = document.createElement("strong");
+            nameStrong.textContent = displayName;
+            nameStrong.style.color = "var(--color-text-main)";
+
+            nameWrap.append(avatarEl, nameStrong);
+            nameCell.appendChild(nameWrap);
+
+            // Email
+            const emailCell = row.insertCell();
+            emailCell.textContent = reader.email || "—";
+            emailCell.style.color = "var(--color-text-muted)";
+
+            // Trạng thái (badge)
+            const statusCell = row.insertCell();
+            statusCell.style.textAlign = "center";
+            const statusBadge = document.createElement("span");
+            statusBadge.className = `badge ${reader.active ? "badge--success" : "badge--danger"}`;
+            statusBadge.textContent = reader.active ? "Hoạt động" : "Đã khóa";
+            statusCell.appendChild(statusBadge);
+
+            // Phiếu hoạt động
+            const loanCountCell = row.insertCell();
+            loanCountCell.style.textAlign = "center";
+            const loanCountBadge = document.createElement("span");
+            loanCountBadge.className = "badge badge--neutral";
+            loanCountBadge.textContent = `${reader.borrowingCount || 0} phiếu`;
+            loanCountCell.appendChild(loanCountBadge);
+
+            // Thao tác
+            const actionCell = row.insertCell();
+            actionCell.style.textAlign = "right";
+
+            const historyBtn = document.createElement("button");
+            historyBtn.type = "button";
+            historyBtn.className = "btn btn--secondary btn--sm";
+            historyBtn.textContent = "Lịch sử";
+            historyBtn.title = "Xem lịch sử mượn sách";
+            historyBtn.addEventListener("click", () => showReaderHistory(reader));
+
+            actionCell.appendChild(historyBtn);
         });
     } catch (error) {
         readerTable.replaceChildren();
-        showReaderError("Không thể tải độc giả: " + error.message);
+        showReaderError("Không thể tải danh sách độc giả: " + error.message);
     }
 }
 
@@ -76,14 +165,30 @@ const readerUser = getCurrentUser();
 const readerName = readerUser.full_name || readerUser.fullName || readerUser.username || "Nhân viên";
 document.getElementById("userName").textContent = readerName;
 document.getElementById("userAvatar").textContent = readerName.trim().charAt(0).toUpperCase() || "U";
+
 readerSearch.addEventListener("input", () => {
     clearTimeout(readerSearchTimer);
-    readerSearchTimer = setTimeout(loadReaders, 250);
+    readerSearchTimer = setTimeout(loadReaders, 300);
 });
+
 document.getElementById("refreshButton").addEventListener("click", loadReaders);
 document.getElementById("closeHistory").addEventListener("click", () => document.getElementById("historyDialog").close());
+
+const closeHistoryIcon = document.getElementById("closeHistoryIcon");
+if (closeHistoryIcon) {
+    closeHistoryIcon.addEventListener("click", () => document.getElementById("historyDialog").close());
+}
+
 document.getElementById("logoutButton").addEventListener("click", async () => {
-    try { await logoutAPI(); } catch (error) { console.error("Không thể thu hồi token đăng xuất:", error); }
+    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+    if (!confirmed) return;
+
+    try {
+        await logoutAPI();
+    } catch (error) {
+        console.error("Không thể thu hồi token đăng xuất:", error);
+    }
     window.location.replace("index.html");
 });
+
 if (isAuthorized) loadReaders();

@@ -30,6 +30,7 @@ def _to_response(db: Session, loan: Loan) -> LoanResponse:
         book_id=loan.book_id,
         status=loan.status,
         days=loan.days,
+        extension_count=loan.extension_count or 0,
         borrow_date=loan.borrow_date,
         due_date=loan.due_date,
         return_date=loan.return_date,
@@ -84,6 +85,16 @@ def cancel_loan(
     current_user: User = Depends(reader_only),
 ):
     loan = LoanService.cancel_request(db, loan_id, current_user.id)
+    return _to_response(db, loan)
+
+
+@router.post("/{loan_id}/extend", response_model=LoanResponse)
+def extend_loan(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(reader_only),
+):
+    loan = LoanService.extend(db, loan_id, current_user.id)
     return _to_response(db, loan)
 
 

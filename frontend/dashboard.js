@@ -1,24 +1,32 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - DASHBOARD LOGIC
+ * dashboard.js: Tải số liệu tổng quan, top sách mượn nhiều, biểu đồ 6 tháng,
+ *               và danh sách sách sắp đến hạn hoàn trả.
+ * ====================================================================
+ */
 
 const dashboardMessage = document.getElementById("pageMessage");
 
 function dashboardMoney(value) {
-    return `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+    return `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
 }
 
-function dashboardCell(row, value) {
+function dashboardCell(row, value, alignRight = false) {
     const cell = document.createElement("td");
-
-    cell.textContent = value == null
-        ? "—"
-        : String(value);
-
+    cell.textContent = value == null ? "—" : String(value);
+    if (alignRight) {
+        cell.style.textAlign = "right";
+        cell.style.fontWeight = "600";
+    }
     row.appendChild(cell);
+    return cell;
 }
 
 function showDashboardError(message) {
     dashboardMessage.textContent = message;
     dashboardMessage.hidden = false;
-    dashboardMessage.className = "error";
+    dashboardMessage.className = "message error";
 }
 
 function showDashboardMessage(message) {
@@ -29,6 +37,7 @@ function showDashboardMessage(message) {
 
 function renderTopBooks(topBooks) {
     const topBody = document.getElementById("topBooks");
+    if (!topBody) return;
     topBody.replaceChildren();
 
     if (!Array.isArray(topBooks) || topBooks.length === 0) {
@@ -36,6 +45,7 @@ function renderTopBooks(topBooks) {
         const cell = row.insertCell();
 
         cell.colSpan = 3;
+        cell.className = "empty";
         cell.textContent = "Chưa có dữ liệu mượn sách.";
 
         return;
@@ -46,13 +56,14 @@ function renderTopBooks(topBooks) {
 
         dashboardCell(row, book.title);
         dashboardCell(row, book.author);
-        dashboardCell(row, book.borrowCount);
+        dashboardCell(row, book.borrowCount, true);
     });
 }
 
 function renderMonthlyStats(monthly) {
     const monthlyBody = document.getElementById("monthlyStats");
     const chart = document.getElementById("monthlyChart");
+    if (!monthlyBody || !chart) return;
 
     monthlyBody.replaceChildren();
     chart.replaceChildren();
@@ -62,6 +73,7 @@ function renderMonthlyStats(monthly) {
         const cell = row.insertCell();
 
         cell.colSpan = 2;
+        cell.className = "empty";
         cell.textContent = "Chưa có dữ liệu thống kê.";
 
         return;
@@ -76,7 +88,7 @@ function renderMonthlyStats(monthly) {
         const row = monthlyBody.insertRow();
 
         dashboardCell(row, item.month);
-        dashboardCell(row, item.loanCount);
+        dashboardCell(row, item.loanCount, true);
 
         const column = document.createElement("div");
         column.className = "chart-month";
@@ -92,7 +104,7 @@ function renderMonthlyStats(monthly) {
         const percentage =
             (Number(item.loanCount) || 0) / maxLoans * 100;
 
-        bar.style.height = `${Math.max(2, percentage)}%`;
+        bar.style.height = `${Math.max(4, percentage)}%`;
         bar.setAttribute("aria-hidden", "true");
 
         const label = document.createElement("span");
@@ -128,6 +140,40 @@ async function loadDashboard() {
         renderTopBooks(topBooks);
         renderMonthlyStats(monthly);
 
+        // Tải danh sách sách sắp đến hạn & đang mượn
+        const upcomingDueBody = document.getElementById("upcomingDueTable");
+        if (upcomingDueBody && typeof getLoans === "function") {
+            try {
+                const loans = await getLoans("BORROWING");
+                const loanList = Array.isArray(loans) ? loans : (loans.items || loans.data || []);
+                upcomingDueBody.replaceChildren();
+
+                if (!loanList.length) {
+                    const row = upcomingDueBody.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 5;
+                    cell.className = "empty";
+                    cell.textContent = "Hiện không có phiếu mượn nào đang trong trạng thái mượn.";
+                } else {
+                    loanList.slice(0, 5).forEach(loan => {
+                        const row = upcomingDueBody.insertRow();
+                        dashboardCell(row, "#" + (loan.id || loan.loan_id || "—"));
+                        dashboardCell(row, loan.user?.full_name || loan.reader?.full_name || loan.username || "Độc giả");
+                        dashboardCell(row, loan.book?.title || loan.book_title || "Sách");
+                        dashboardCell(row, loan.due_date ? new Date(loan.due_date).toLocaleDateString("vi-VN") : "14 ngày");
+                        
+                        const statusCell = row.insertCell();
+                        const badge = document.createElement("span");
+                        badge.className = "badge badge--info";
+                        badge.textContent = "Đang mượn";
+                        statusCell.appendChild(badge);
+                    });
+                }
+            } catch {
+                // Không bắt buộc nếu backend chưa có filter
+            }
+        }
+
         showDashboardMessage("Dữ liệu thống kê đã được cập nhật.");
     } catch (error) {
         showDashboardError(
@@ -157,6 +203,9 @@ document.getElementById("refreshButton").addEventListener(
 document.getElementById("logoutButton").addEventListener(
     "click",
     async () => {
+        const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+        if (!confirmed) return;
+
         try {
             await logoutAPI();
         } catch (error) {

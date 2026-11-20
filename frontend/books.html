@@ -1,33 +1,66 @@
 <!DOCTYPE html>
 <html lang="vi">
+<!--
+  THƯ VIỆN PTIT - QUẢN LÝ SÁCH & THỂ LOẠI (books.html)
+  Thanh tìm kiếm, bộ lọc thể loại & tình trạng sách, lưới card / bảng quản lý sách,
+  badge Còn sách / Hết sách, nút Sửa / Xóa, phân trang, và form modal thêm/sửa sách.
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý sách | Thư viện PTIT</title>
-    <link rel="stylesheet" href="books.css">
+    <link rel="icon" href="assets/images/logo.png">
+    
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Hệ thống CSS chuẩn hóa theo đúng thứ tự -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/pages.css">
+    <link rel="stylesheet" href="assets/css/effects.css">
+    <link rel="stylesheet" href="assets/css/preloader.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
 <body data-roles="ADMIN,LIBRARIAN">
     <div class="layout">
+        <!-- Sidebar trái -->
         <aside class="sidebar">
             <div class="brand">
                 Thư viện PTIT
                 <small>Hệ thống quản lý</small>
             </div>
 
-            <div class="menu-title">Quản lý thư viện</div>
+            <p class="menu-title">Quản lý thư viện</p>
 
             <nav class="nav">
-                <a href="dashboard.html">Tổng quan</a>
-                <a href="books.html" class="active">Quản lý sách / thể loại</a>
-                <a href="loans.html">Phiếu mượn</a>
-                <a href="readers.html">Độc giả</a>
-                <a href="fines.html">Tiền phạt</a>
-                <a href="admin.html" data-roles="ADMIN">Tài khoản và nhật ký</a>
+                <a href="dashboard.html">
+                    <span aria-hidden="true">📊</span> Tổng quan
+                </a>
+                <a href="books.html" class="active">
+                    <span aria-hidden="true">📚</span> Quản lý sách / thể loại
+                </a>
+                <a href="loans.html">
+                    <span aria-hidden="true">📝</span> Phiếu mượn
+                </a>
+                <a href="readers.html">
+                    <span aria-hidden="true">👥</span> Độc giả
+                </a>
+                <a href="fines.html">
+                    <span aria-hidden="true">💰</span> Tiền phạt
+                </a>
+                <a href="admin.html" data-roles="ADMIN">
+                    <span aria-hidden="true">⚙️</span> Tài khoản và nhật ký
+                </a>
             </nav>
 
             <div class="user">
                 <div class="user-info">
-                    <div class="avatar" id="userAvatar">TV</div>
+                    <span class="avatar" id="userAvatar">TV</span>
                     <div>
                         <strong id="userName">Thủ thư</strong>
                         <span id="userRole">Quản trị hệ thống</span>
@@ -40,108 +73,132 @@
             </div>
         </aside>
 
+        <!-- Lớp phủ mờ mobile sidebar -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+        <!-- Vùng nội dung chính -->
         <main class="main">
             <header class="topbar">
-                <div>
-                    <h1>Quản lý sách</h1>
-                    <p>
-                        Thêm, chỉnh sửa, tìm kiếm và quản lý danh sách sách trong thư viện.
-                    </p>
-                </div>
-
-                <div class="admin" id="welcomeMessage">
-                    Xin chào, Thủ thư
-                </div>
-            </header>
-
-            <section class="stats">
-                <div class="stat">
-                    <p>Tổng đầu sách</p>
-                    <strong id="totalTitles">0</strong>
-                </div>
-
-                <div class="stat">
-                    <p>Tổng số bản</p>
-                    <strong id="totalCopies">0</strong>
-                </div>
-
-                <div class="stat">
-                    <p>Thể loại</p>
-                    <strong id="totalCategories">0</strong>
-                </div>
-            </section>
-
-            <section class="panel" style="margin-top:20px">
-                <div class="panel-head">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button type="button" class="menu-toggle" id="sidebarToggle" aria-label="Mở menu quản lý">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
                     <div>
-                        <h2>Quản lý thể loại</h2>
-                        <p class="panel-description">
-                            Thêm, đổi tên hoặc xóa thể loại chưa được gán sách.
-                        </p>
+                        <h1>Quản lý sách</h1>
+                        <p>Thêm mới, tìm kiếm, lọc thể loại và cập nhật số lượng bản sách.</p>
                     </div>
                 </div>
 
-                <form id="categoryForm" class="tools">
-                    <input class="search" id="categoryName" type="text" maxlength="100" required placeholder="Tên thể loại">
-                    <button class="btn primary" id="saveCategoryButton" type="submit">Thêm thể loại</button>
-                    <button class="btn secondary" id="cancelCategoryEdit" type="button" hidden>Hủy sửa</button>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <div class="admin" id="welcomeMessage" style="font-size: 14px; font-weight: 600; color: var(--color-primary-dark);">
+                        Xin chào, Thủ thư
+                    </div>
+                    <button class="btn btn--primary btn--sm" id="addBookButton" type="button">
+                        + Thêm sách mới
+                    </button>
+                </div>
+            </header>
+
+            <!-- Hàng thẻ thống kê sách -->
+            <section class="stats stats-grid" aria-label="Thống kê số lượng sách">
+                <article class="stat card--stat">
+                    <p>Tổng đầu sách</p>
+                    <strong id="totalTitles">0</strong>
+                </article>
+
+                <article class="stat card--stat">
+                    <p>Tổng số bản sách</p>
+                    <strong id="totalCopies" style="color: var(--color-info);">0</strong>
+                </article>
+
+                <article class="stat card--stat">
+                    <p>Thể loại có sách</p>
+                    <strong id="totalCategories" style="color: var(--color-accent-gold-dark);">0</strong>
+                </article>
+            </section>
+
+            <!-- Quản lý thể loại -->
+            <section class="panel" style="margin-top: 24px;">
+                <div class="panel-head">
+                    <div>
+                        <h2>Quản lý thể loại</h2>
+                        <p class="panel-description">Thêm mới, đổi tên hoặc xóa các thể loại sách trong kho.</p>
+                    </div>
+                </div>
+                
+                <form id="categoryForm" class="tools" style="flex-wrap: wrap;">
+                    <input class="search" id="categoryName" type="text" maxlength="100" required placeholder="Nhập tên thể loại mới..." style="min-width: 260px;">
+                    <button class="btn btn--primary" id="saveCategoryButton" type="submit">Thêm thể loại</button>
+                    <button class="btn btn--secondary" id="cancelCategoryEdit" type="button" hidden>Hủy sửa</button>
                 </form>
 
-                <div id="categoryMessage" class="message" hidden></div>
+                <div id="categoryMessage" class="message" hidden style="margin-top: 16px;"></div>
 
-                <div class="table-wrapper">
+                <div class="table-wrapper" style="margin-top: 16px;">
                     <table>
                         <thead>
                             <tr>
-                                <th>Thể loại</th>
-                                <th>Thao tác</th>
+                                <th>Tên thể loại</th>
+                                <th style="text-align: right; width: 180px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="categoryTable">
-                            <tr>
-                                <td colspan="2">Đang tải...</td>
-                            </tr>
+                            <tr><td colspan="2" class="empty">Đang tải danh sách thể loại...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
+            <!-- Danh sách sách & Bộ lọc -->
             <section class="panel">
                 <div class="panel-head">
                     <div>
-                        <h2>Danh sách sách</h2>
-                        <p class="panel-description">
-                            Dữ liệu được tải từ Backend.
-                        </p>
+                        <h2>Danh mục sách</h2>
+                        <p class="panel-description">Danh sách toàn bộ sách trong hệ thống thư viện.</p>
                     </div>
 
-                    <div class="tools">
+                    <div class="tools" style="flex-wrap: wrap; gap: 12px;">
+                        <!-- Lọc thể loại nhanh -->
+                        <select id="filterCategorySelect" class="search" style="width: auto; min-width: 160px;" aria-label="Lọc theo thể loại">
+                            <option value="">Tất cả thể loại</option>
+                        </select>
+
+                        <!-- Lọc tình trạng Còn sách / Hết sách -->
+                        <select id="filterAvailabilitySelect" class="search" style="width: auto; min-width: 150px;" aria-label="Lọc theo tình trạng">
+                            <option value="">Tất cả tình trạng</option>
+                            <option value="available">Còn sách</option>
+                            <option value="empty">Hết sách</option>
+                        </select>
+
+                        <!-- Tìm kiếm tên sách, tác giả -->
                         <input
                             class="search"
                             id="searchInput"
                             type="search"
-                            placeholder="Tìm tên sách hoặc tác giả..."
+                            placeholder="Tìm tên sách, tác giả hoặc mã..."
+                            style="min-width: 260px;"
                         >
-
-                        <button class="btn primary" id="addBookButton">
-                            + Thêm sách
-                        </button>
                     </div>
                 </div>
 
-                <div id="messageBox" class="message" hidden></div>
+                <div id="messageBox" class="message" hidden role="alert"></div>
 
+                <!-- Bảng danh sách sách -->
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>Mã sách</th>
+                                <th style="width: 100px;">Mã sách</th>
                                 <th>Tên sách</th>
                                 <th>Tác giả</th>
                                 <th>Thể loại</th>
-                                <th>Tổng số bản</th>
-                                <th>Còn lại</th>
-                                <th>Thao tác</th>
+                                <th style="text-align: center;">Tổng bản</th>
+                                <th style="text-align: center;">Tình trạng</th>
+                                <th style="text-align: right; width: 160px;">Thao tác</th>
                             </tr>
                         </thead>
 
@@ -155,57 +212,60 @@
                     </table>
                 </div>
 
+                <!-- Phân trang -->
                 <div class="pagination">
-                    <button id="previousPage" class="btn secondary">
-                        Trang trước
+                    <button id="previousPage" class="btn btn--secondary btn--sm">
+                        ← Trang trước
                     </button>
 
                     <span id="pageInfo">Trang 1</span>
 
-                    <button id="nextPage" class="btn secondary">
-                        Trang sau
+                    <button id="nextPage" class="btn btn--secondary btn--sm">
+                        Trang sau →
                     </button>
                 </div>
             </section>
         </main>
     </div>
 
+    <!-- Modal Thêm / Chỉnh sửa sách -->
     <div class="overlay" id="bookModal">
         <div class="modal">
-            <h2 id="modalTitle">Thêm sách</h2>
+            <button type="button" class="close-btn" id="modalCloseIcon" aria-label="Đóng">&times;</button>
+            <h2 id="modalTitle">Thêm sách mới</h2>
 
-            <form id="bookForm">
+            <form id="bookForm" novalidate>
                 <div class="field">
-                    <label for="bookName">Tên sách</label>
+                    <label for="bookName">Tên sách <span style="color: var(--color-danger);">*</span></label>
                     <input
                         id="bookName"
                         type="text"
                         required
                         maxlength="255"
-                        placeholder="Nhập tên sách"
+                        placeholder="Nhập tên sách..."
                     >
                 </div>
 
                 <div class="field">
-                    <label for="bookAuthor">Tác giả</label>
+                    <label for="bookAuthor">Tác giả <span style="color: var(--color-danger);">*</span></label>
                     <input
                         id="bookAuthor"
                         type="text"
                         required
                         maxlength="150"
-                        placeholder="Nhập tên tác giả"
+                        placeholder="Nhập họ tên tác giả..."
                     >
                 </div>
 
                 <div class="field">
-                    <label for="bookCategory">Thể loại</label>
+                    <label for="bookCategory">Thể loại <span style="color: var(--color-danger);">*</span></label>
                     <select id="bookCategory" required>
                         <option value="">Đang tải thể loại...</option>
                     </select>
                 </div>
 
                 <div class="field">
-                    <label for="bookQuantity">Tổng số bản</label>
+                    <label for="bookQuantity">Tổng số bản sách <span style="color: var(--color-danger);">*</span></label>
                     <input
                         id="bookQuantity"
                         type="number"
@@ -218,21 +278,19 @@
                 <div id="modalMessage" class="message" role="alert" aria-live="polite" hidden></div>
 
                 <div class="field">
-                    <label for="bookImage">
-                        Đường dẫn ảnh bìa (không bắt buộc)
-                    </label>
+                    <label for="bookImage">Đường dẫn ảnh bìa (không bắt buộc)</label>
                     <input
                         id="bookImage"
                         type="url"
                         maxlength="500"
-                        placeholder="https://example.com/book.jpg"
+                        placeholder="https://example.com/book-cover.jpg"
                     >
                 </div>
 
                 <div class="modal-actions">
                     <button
                         type="button"
-                        class="btn secondary"
+                        class="btn btn--secondary"
                         id="cancelButton"
                     >
                         Hủy
@@ -240,7 +298,7 @@
 
                     <button
                         type="submit"
-                        class="btn primary"
+                        class="btn btn--primary"
                         id="saveButton"
                     >
                         Lưu sách
@@ -250,8 +308,14 @@
         </div>
     </div>
 
+    <div class="page-transition-overlay" aria-hidden="true"></div>
+    <!-- Scripts -->
     <script src="auth.js"></script>
     <script src="api.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/animations.js"></script>
+    <script src="assets/js/effects.js"></script>
+    <script src="assets/js/page-transition.js"></script>
     <script src="books.js"></script>
 </body>
 </html>

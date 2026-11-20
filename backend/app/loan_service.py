@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import HTTPException, status
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from app.log_service import create_system_log
@@ -12,6 +13,7 @@ from app.services import FineService
 
 ACTIVE_LOAN_STATUSES = ("PENDING", "BORROWING")
 ALLOWED_LOAN_DAYS = (7, 14, 30)
+LOAN_EXTENSION_DAYS = 7
 
 
 class LoanService:
@@ -326,6 +328,90 @@ class LoanService:
             resource="LOAN",
             user_id=librarian_id,
             details=f"Nhận trả phiếu mượn ID {loan.id}; tiền phạt {fine_amount}đ",
+        )
+        db.commit()
+        db.refresh(loan)
+        return loan
+
+    @staticmethod
+    def extend(db: Session, loan_id: int, user_id: int) -> Loan:
+        loan = (
+            db.query(Loan)
+            .filter(Loan.id == loan_id, Loan.user_id == user_id)
+            .with_for_update()
+            .first()
+        )
+        if loan is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy phiếu mượn",
+            )
+        if loan.status != "BORROWING":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Chỉ có thể gia hạn phiếu đang được mượn",
+            )
+        if loan.due_date is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Phiếu mượn chưa có hạn trả",
+            )
+        if loan.due_date < date.today():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Không thể gia hạn phiếu đã quá hạn",
+            )
+        if (loan.extension_count or 0) >= 1:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Mỗi phiếu mượn chỉ được gia hạn một lần",
+            )
+
+        book = (
+            db.query(Book)
+            .filter(Book.id == loan.book_id)
+            .with_for_update()
+            .first()
+        )
+        if book is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy sách của phiếu mượn",
+            )
+
+        now = datetime.now(timezone.utc)
+        active_reservation = (
+            db.query(Reservation)
+            .filter(
+                Reservation.book_id == loan.book_id,
+                Reservation.user_id != user_id,
+                or_(
+                    Reservation.status == "WAITING",
+                    and_(
+                        Reservation.status == "HOLDING",
+                        Reservation.hold_expires_at > now,
+                    ),
+                ),
+            )
+            .first()
+        )
+        if active_reservation is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Không thể gia hạn vì độc giả khác đang chờ hoặc giữ chỗ cuốn sách",
+            )
+
+        loan.due_date += timedelta(days=LOAN_EXTENSION_DAYS)
+        loan.extension_count = (loan.extension_count or 0) + 1
+        create_system_log(
+            db,
+            action="EXTEND_LOAN",
+            resource="LOAN",
+            user_id=user_id,
+            details=(
+                f"Gia hạn phiếu mượn ID {loan.id} thêm {LOAN_EXTENSION_DAYS} ngày; "
+                f"hạn trả mới {loan.due_date.isoformat()}"
+            ),
         )
         db.commit()
         db.refresh(loan)

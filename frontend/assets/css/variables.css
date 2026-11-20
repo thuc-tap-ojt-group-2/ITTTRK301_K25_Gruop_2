@@ -1,0 +1,177 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - DESIGN SYSTEM VARIABLES
+ * variables.css: Khai báo toàn bộ biến CSS dùng chung cho hệ thống
+ * (Màu sắc, typography, khoảng cách, bo góc, bóng đổ, z-index, animation)
+ * ====================================================================
+ */
+
+:root {
+    /* --- BẢNG MÀU CHÍNH (BRAND COLORS) --- */
+    --color-primary: #0F5C42;
+    --color-primary-dark: #0A4331;
+    --color-primary-light: #187D5C;
+    --color-primary-soft: #E8F3EC;
+    --color-primary-soft-hover: #D7ECDF;
+
+    /* --- NỀN & BỀ MẶT (SURFACES & BACKGROUNDS) --- */
+    --color-bg-page: #F7FAF8;
+    --color-bg-surface: #FFFFFF;
+    --color-bg-card: #FFFFFF;
+    --color-bg-subtle: #F0F5F2;
+    --color-bg-muted: #EBF1ED;
+
+    /* --- VĂN BẢN (TYPOGRAPHY COLORS) --- */
+    --color-text-main: #12261E;
+    --color-text-muted: #4B5563;
+    --color-text-subtle: #6B7280;
+    --color-text-light: #9CA3AF;
+    --color-text-inverse: #FFFFFF;
+
+    /* --- ĐIỂM NHẤN (ACCENT COLORS) --- */
+    --color-accent-gold: #C8913A;
+    --color-accent-gold-soft: #FDF6EC;
+    --color-accent-gold-dark: #A37227;
+
+    /* --- ĐƯỜNG VIỀN (BORDERS) --- */
+    --color-border: #D9E5DE;
+    --color-border-light: #EBF2ED;
+    --color-border-focus: #0F5C42;
+
+    /* --- TRẠNG THÁI (STATUS COLORS) --- */
+    --color-success: #1E8E5A;
+    --color-success-dark: #156B43;
+    --color-success-soft: #E7F7EE;
+
+    --color-warning: #D98E04;
+    --color-warning-dark: #A76B00;
+    --color-warning-soft: #FDF4E6;
+
+    --color-danger: #C0392B;
+    --color-danger-dark: #962D22;
+    --color-danger-soft: #FCEBE9;
+
+    --color-info: #2A6FBA;
+    --color-info-dark: #1F528D;
+    --color-info-soft: #EAF2FA;
+
+    /* --- FOOTER TRÊN NỀN TỐI (WCAG AA CONTRAST >= 4.5:1) --- */
+    --footer-bg: #0A4331;
+    --footer-heading: #FFFFFF;
+    --footer-text: rgba(255, 255, 255, 0.85);
+    --footer-muted: rgba(255, 255, 255, 0.70);
+    --footer-link-accent: #E3B35C;
+    --footer-border: rgba(255, 255, 255, 0.12);
+    --footer-box-bg: #FFFFFF;
+
+    /* --- FONT CHỮ --- */
+    --font-sans: "Be Vietnam Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* --- THANG CỠ CHỮ & DÒNG (TYPOGRAPHY SCALE - KHÔNG CÓ CHỮ < 12PX) --- */
+    --text-h1-landing: 54px;
+    --line-h1-landing: 1.2;
+
+    --text-h1-inner: 32px;
+    --line-h1-inner: 1.3;
+
+    --text-h2-landing: 38px;
+    --line-h2-landing: 1.3;
+
+    --text-h2-inner: 24px;
+    --line-h2-inner: 1.35;
+
+    --text-h3: 20px;
+    --line-h3: 1.4;
+
+    --text-body: 16px;
+    --line-body: 1.7;
+
+    --text-desc: 15px;
+    --line-desc: 1.6;
+
+    --text-small: 14px;
+    --line-small: 1.5;
+
+    --text-eyebrow: 12px;
+    --line-eyebrow: 1.4;
+
+    --letter-spacing-heading: -0.01em;
+    --letter-spacing-eyebrow: 0.08em;
+
+    /* --- KHOẢNG CÁCH (SPACING - BỘI SỐ CỦA 8PX) --- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 28px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+    --space-24: 96px;
+
+    /* --- BO GÓC (BORDER RADIUS) --- */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-btn: 12px;
+    --radius-input: 12px;
+    --radius-card: 20px;
+    --radius-lg: 24px;
+    --radius-pill: 9999px;
+    --radius-circle: 50%;
+
+    /* --- BÓNG ĐỔ (ELEVATION & SHADOWS) --- */
+    --shadow-xs: 0 1px 3px rgba(18, 38, 30, 0.05);
+    --shadow-sm: 0 3px 8px rgba(18, 38, 30, 0.06);
+    --shadow-card: 0 8px 24px rgba(18, 38, 30, 0.07);
+    --shadow-hover: 0 16px 36px rgba(15, 92, 66, 0.14);
+    --shadow-modal: 0 24px 60px rgba(18, 38, 30, 0.25);
+    --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-glow-gold: 0 0 24px rgba(200, 145, 58, 0.35);
+    --shadow-glow-primary: 0 0 30px rgba(15, 92, 66, 0.30);
+
+    /* --- FOCUS RING (ACCESSIBILITY) --- */
+    --focus-ring: 0 0 0 3px rgba(15, 92, 66, 0.25);
+    --focus-ring-danger: 0 0 0 3px rgba(192, 57, 43, 0.25);
+
+    /* --- THỜI LƯỢNG CHUYỂN ĐỘNG (ANIMATION DURATIONS) --- */
+    --duration-instant: 0.1s;
+    --duration-fast: 0.2s;
+    --duration-hover: 0.25s;
+    --duration-normal: 0.35s;
+    --duration-reveal: 0.7s;
+    --duration-stagger: 0.08s;
+    --duration-counter: 1.2s;
+    --duration-header: 0.3s;
+    --duration-preloader: 2.8s;
+
+    /* --- HÀM EASING (EASING CURVES) --- */
+    --ease-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-out-smooth: cubic-bezier(0.77, 0, 0.18, 1);
+    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --hover-lift: translateY(-4px);
+
+    /* --- THANG Z-INDEX (STACKING ORDER) --- */
+    --z-negative: -1;
+    --z-base: 1;
+    --z-card: 10;
+    --z-sticky: 500;
+    --z-progress: 501;
+    --z-drawer: 1000;
+    --z-modal: 2000;
+    --z-toast: 3000;
+    --z-back-top: 4000;
+    --z-preloader: 99999;
+
+    /* --- KÍCH THƯỚC BỐ CỤC (LAYOUT DIMENSIONS) --- */
+    --container-max: 1200px;
+    --header-height: 72px;
+    --header-height-scrolled: 60px;
+    --sidebar-width: 270px;
+    --min-touch-target: 44px;
+}
