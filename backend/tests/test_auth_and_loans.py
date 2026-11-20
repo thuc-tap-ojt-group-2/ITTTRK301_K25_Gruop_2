@@ -1,8 +1,8 @@
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
 from app import auth_service
@@ -15,13 +15,16 @@ from app.models import (
     Book,
     Category,
     Fine,
+    Reservation,
     RevokedToken,
     User,
 )
 from app.reservation_service import ReservationService
+from app.routers.loans import extend_loan
 from app.routers.admin import list_audit_logs
 from app.routers.auth import change_password, login, logout, register
 from app.schemas import PasswordChangeRequest, UserLogin, UserRegister
+import migrate_auth_loan
 
 
 class AuthAndLoanTests(unittest.TestCase):
@@ -200,6 +203,145 @@ class AuthAndLoanTests(unittest.TestCase):
         with self.assertRaises(HTTPException) as too_many:
             LoanService.create_request(self.db, user_id=1, book_id=4, days=7)
         self.assertEqual(too_many.exception.status_code, 409)
+
+    def test_request_accepts_thirty_days(self):
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=30)
+        self.assertEqual(loan.days, 30)
+        self.assertEqual(loan.status, "PENDING")
+
+    def test_overdue_loan_blocks_new_request(self):
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=7)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+        loan.due_date = date.today() - timedelta(days=1)
+        self.db.add(
+            Book(
+                id=2,
+                title="Another book",
+                author="Test author",
+                category_id=1,
+                total_copies=1,
+                available_copies=1,
+            )
+        )
+        self.db.commit()
+
+        with self.assertRaises(HTTPException) as overdue:
+            LoanService.create_request(self.db, user_id=1, book_id=2, days=7)
+        self.assertEqual(overdue.exception.status_code, 409)
+        self.assertIn("quá hạn", overdue.exception.detail)
+
+    def test_loan_can_be_extended_once_by_seven_days(self):
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=14)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+        original_due_date = loan.due_date
+
+        extended = LoanService.extend(self.db, loan.id, user_id=1)
+
+        self.assertEqual(extended.due_date, original_due_date + timedelta(days=7))
+        self.assertEqual(extended.extension_count, 1)
+
+    def test_loan_cannot_be_extended_twice(self):
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=14)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+        LoanService.extend(self.db, loan.id, user_id=1)
+        due_date_after_first_extension = loan.due_date
+
+        with self.assertRaises(HTTPException) as second_extension:
+            LoanService.extend(self.db, loan.id, user_id=1)
+
+        self.assertEqual(second_extension.exception.status_code, 409)
+        self.assertEqual(loan.due_date, due_date_after_first_extension)
+        self.assertEqual(loan.extension_count, 1)
+
+    def test_overdue_loan_cannot_be_extended(self):
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=7)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+        loan.due_date = date.today() - timedelta(days=1)
+        self.db.commit()
+
+        with self.assertRaises(HTTPException) as overdue:
+            LoanService.extend(self.db, loan.id, user_id=1)
+
+        self.assertEqual(overdue.exception.status_code, 409)
+        self.assertIn("quá hạn", overdue.exception.detail)
+        self.assertEqual(loan.extension_count, 0)
+
+    def test_reservation_by_another_reader_blocks_extension(self):
+        self.db.add(
+            User(
+                id=3,
+                username="reader-2",
+                email="reader2@library.org",
+                password_hash=auth_service.hash_password("secret1"),
+                role="READER",
+            )
+        )
+        self.db.commit()
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=14)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+        created_reservation = ReservationService.create(
+            self.db, user_id=3, book_id=1
+        )
+
+        with self.assertRaises(HTTPException) as reservation:
+            LoanService.extend(self.db, loan.id, user_id=1)
+
+        self.assertEqual(reservation.exception.status_code, 409)
+        self.assertIn("đang chờ hoặc giữ chỗ", reservation.exception.detail)
+        self.assertEqual(loan.extension_count, 0)
+
+        created_reservation.status = "HOLDING"
+        created_reservation.hold_expires_at = datetime.now(timezone.utc) + timedelta(
+            hours=1
+        )
+        self.db.commit()
+        with self.assertRaises(HTTPException):
+            LoanService.extend(self.db, loan.id, user_id=1)
+
+        created_reservation.hold_expires_at = datetime.now(timezone.utc) - timedelta(
+            minutes=1
+        )
+        self.db.commit()
+        extended = LoanService.extend(self.db, loan.id, user_id=1)
+        self.assertEqual(extended.extension_count, 1)
+
+    def test_extend_loan_route_returns_updated_loan(self):
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=14)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+
+        response = extend_loan(
+            loan_id=loan.id,
+            db=self.db,
+            current_user=self.db.get(User, 1),
+        )
+
+        self.assertEqual(response.extension_count, 1)
+        self.assertEqual(response.due_date, loan.due_date)
+
+    def test_extension_migration_is_idempotent_for_existing_database(self):
+        migration_engine = create_engine("sqlite://")
+        original_engine = migrate_auth_loan.engine
+        try:
+            with migration_engine.begin() as connection:
+                connection.execute(
+                    text("CREATE TABLE loans (id INTEGER PRIMARY KEY)")
+                )
+            migrate_auth_loan.engine = migration_engine
+
+            migrate_auth_loan._ensure_column(
+                "loans", "extension_count", "INT NOT NULL DEFAULT 0"
+            )
+            migrate_auth_loan._ensure_column(
+                "loans", "extension_count", "INT NOT NULL DEFAULT 0"
+            )
+
+            columns = inspect(migration_engine).get_columns("loans")
+            self.assertEqual(
+                sum(column["name"] == "extension_count" for column in columns), 1
+            )
+        finally:
+            migrate_auth_loan.engine = original_engine
+            migration_engine.dispose()
 
     def test_book_search_matches_vietnamese_without_diacritics(self):
         self.db.add(

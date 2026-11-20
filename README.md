@@ -109,22 +109,23 @@ Chỉ đối chiếu mã nguồn trong repository với phần việc được p
 | Cả nhóm | Chạy kiểm thử end-to-end hồi quy, sửa lỗi phát hiện được và tổng duyệt kịch bản demo trước ngày bảo vệ 27/11. | Có danh sách ca kiểm thử đạt/chưa đạt; không trình bày tính năng chưa xác minh trên máy demo. |
 | Người triển khai | Cấu hình `SECRET_KEY` riêng và `FRONTEND_ORIGINS` phù hợp môi trường demo/production. | Không dùng secret mặc định development; frontend được phép gọi API từ đúng origin. |
 
-## Các hạng mục còn cần xử lý ngày 17/11/2026
+## Trạng thái các thẻ TH ngày 18/11/2026
 
 Mục này chỉ theo dõi phần chưa hoàn tất hoặc chưa được kiểm chứng; không lặp lại danh sách chức năng đã có. Hạn bên dưới theo bảng công việc nhóm.
 
 | Task | Phần còn thiếu | Việc cần làm / tiêu chí xác nhận |
 |---|---|---|
-| TH-08 — hạn 17/11 | Chưa xác nhận luồng Auth/Loan chạy xuyên suốt với MySQL và trình duyệt; tài khoản demo ở `index.html` là dữ liệu mock trong trình duyệt, không phải tài khoản backend. | Dùng tài khoản đăng ký thật để kiểm tra đăng nhập, quyền và nghiệp vụ mượn/trả qua API; ghi lại kết quả và lỗi tích hợp nếu có. |
-| TH-12 — bonus, hạn 17/11 | Chưa có API gia hạn phiếu mượn và giới hạn gia hạn một lần. | Bổ sung quy tắc trong `backend/app/loan_service.py`, endpoint trong `backend/app/routers/loans.py`, trường lưu số lần gia hạn và migration cho database cũ, cùng test thành công/lặp lại/không đủ điều kiện. Trước khi code cần chốt số ngày được gia hạn, xử lý phiếu quá hạn và phiếu có người đặt trước. |
-| TH-09 — hạn 18/11 | Chưa chốt đối chiếu các yêu cầu SRS M/S, rà NFR-02 và phương án Docker hay bản triển khai chạy thật. | Đối chiếu từng yêu cầu còn lại với API hiện có, ghi nhận rủi ro bảo mật và chọn một phương án chạy có thể kiểm chứng; lưu minh chứng kết quả. |
-| TH-10 — hạn 20/11 | Chưa xác nhận đồng bộ mã nguồn/tag `v1.0`, ghép báo cáo và slide của nhóm, và buổi tập bảo vệ. | Đồng bộ nhánh và phiên bản với nhóm, hoàn tất tài liệu chung, rồi chạy thử kịch bản demo trên đúng môi trường bảo vệ. |
+| TH-08 — hạn 17/11 | Có unit tests Auth/Loan, nhưng chưa chạy luồng end-to-end qua MySQL và trình duyệt. | Đã thêm test cho BR03, thời hạn 30 ngày và hàm endpoint gia hạn; toàn bộ 18 test chạy đạt trên SQLite trong bộ nhớ. Kịch bản demo ở `docs/pre-defense-runbook.md`; nhóm vẫn cần chạy thử trên máy bảo vệ và lưu kết quả thật. |
+| TH-12 — bonus, hạn 17/11 | Code gia hạn đã có; chưa chạy migration/kiểm chứng trên bản sao MySQL. | `POST /api/loans/{loan_id}/extend`: cộng 7 ngày một lần, chỉ phiếu đang mượn chưa quá hạn, chặn khi độc giả khác chờ/giữ sách. Cần sao lưu DB demo, chạy migration và kiểm thử Swagger trước khi demo. |
+| TH-09 — hạn 18/11 | Chưa đối chiếu chính xác NFR-02 vì bản SRS chính thức không có trong workspace; chưa xác minh triển khai trên MySQL thật. | Đã có Docker Compose, Dockerfile backend/frontend, migration khởi động và hướng dẫn bảo mật. Cần Docker Desktop chạy thành công trên máy demo và ghi kết quả MySQL/trình duyệt; SRS/NFR chính thức vẫn phải đối chiếu trước khi đóng task. |
+| TH-10 — hạn 20/11 | Chưa xác nhận báo cáo/slide cuối và buổi tập của cả nhóm; chưa gắn tag `v1.0`. | Đã có deck Marp tại `docs/defense-slides.md`, runbook và checklist buổi tập tại `docs/defense-rehearsal.md`. Nhớ ghép nội dung thực tế, tập đúng thời lượng và ghi kết quả; chỉ gắn tag sau khi được nhóm trưởng xác nhận. |
 
-### Trạng thái kiểm tra local ngày 17/11
+### Trạng thái kiểm tra local ngày 18/11
 
-- Bộ kiểm thử Auth/Loan chưa thay thế được kiểm thử tích hợp trên MySQL và trình duyệt; các luồng cần được kiểm tra với tài khoản thật trong database.
-- Trong lần kiểm tra hiện tại, frontend ở cổng `5500` trả `200`, còn kết nối tới backend ở cổng `8000` bị từ chối. Cần khởi động API rồi kiểm tra lại trước khi kết luận luồng frontend/backend hoạt động.
-- Không dùng các tài khoản demo hiển thị trên trang chủ để thử API backend nếu chưa tạo chúng trong database; đăng ký tài khoản backend riêng và cấp role cần thiết trên database local.
+- `python -m unittest discover -s tests -v`: **18/18 test đạt** bằng SQLite trong bộ nhớ.
+- Migration chưa được chạy trên MySQL local; chưa chạy server hoặc thay đổi dữ liệu database.
+- Không dùng các tài khoản demo hiển thị trên trang chủ để thử API backend nếu chưa tạo chúng trong database; chuẩn bị tài khoản riêng trong database demo.
+- Kịch bản bảo vệ và hướng dẫn demo/triển khai ở `docs/pre-defense-runbook.md`; đây chưa phải bằng chứng rằng nhóm đã tập hoặc đã kiểm thử MySQL/trình duyệt.
 
 ## Lịch sử cập nhật ngày 13/11/2026 (ảnh chụp trước khi hoàn thiện)
 

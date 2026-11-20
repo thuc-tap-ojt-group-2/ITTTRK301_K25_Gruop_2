@@ -1,57 +1,133 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - QUẢN LÝ TIỀN PHẠT
+ * fines.js: Tải danh sách khoản phạt quá hạn, tính tổng tiền phạt nổi bật,
+ *           hiển thị badge trạng thái và xử lý thu tiền phạt.
+ * ====================================================================
+ */
+
 const fineTable = document.getElementById("fineTable");
 const fineMessage = document.getElementById("pageMessage");
 
 function fineMoney(value) {
-    return `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+    return `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
 }
 
 async function loadFines() {
     fineMessage.hidden = true;
     try {
         const fines = await getFines();
-        document.getElementById("fineCount").textContent = `${fines.length} khoản`;
+        const safeFines = Array.isArray(fines) ? fines : [];
+
+        document.getElementById("fineCount").textContent = `${safeFines.length} khoản phạt`;
+
+        // Tính tổng tiền phạt chưa thanh toán
+        const totalUnpaid = safeFines
+            .filter(fine => !fine.paid)
+            .reduce((sum, fine) => sum + Number(fine.amount || 0), 0);
+        
+        const totalFinesEl = document.getElementById("totalFinesSum");
+        if (totalFinesEl) {
+            totalFinesEl.textContent = fineMoney(totalUnpaid);
+        }
+
         fineTable.replaceChildren();
-        if (!fines.length) {
+
+        if (!safeFines.length) {
             const cell = fineTable.insertRow().insertCell();
             cell.colSpan = 7;
-            cell.textContent = "Chưa có khoản phạt.";
+            cell.className = "empty";
+            cell.textContent = "Hiện không có khoản phạt nào trong hệ thống.";
             return;
         }
-        fines.forEach(fine => {
+
+        safeFines.forEach(fine => {
             const row = fineTable.insertRow();
-            [fine.loanId, fine.username, fine.bookTitle, fine.overdueDays, fineMoney(fine.amount),
-                fine.type === "PROVISIONAL" ? "Tạm tính" : fine.paid ? "Đã thanh toán" : "Chưa thanh toán"]
-                .forEach(value => {
-                    const cell = row.insertCell();
-                    cell.textContent = String(value ?? "—");
-                });
-            const action = row.insertCell();
+
+            // Mã phiếu
+            const idCell = row.insertCell();
+            idCell.textContent = `#${fine.loanId || "—"}`;
+            idCell.style.fontFamily = "var(--font-mono)";
+            idCell.style.fontWeight = "700";
+            idCell.style.color = "var(--color-primary)";
+
+            // Độc giả
+            const readerCell = row.insertCell();
+            readerCell.textContent = fine.username || "Độc giả";
+            readerCell.style.fontWeight = "600";
+
+            // Sách
+            const bookCell = row.insertCell();
+            bookCell.textContent = fine.bookTitle || "Sách";
+
+            // Số ngày trễ
+            const daysCell = row.insertCell();
+            daysCell.style.textAlign = "center";
+            const overdueDays = Number(fine.overdueDays || 0);
+            daysCell.innerHTML = `<span class="badge ${overdueDays > 7 ? 'badge--danger' : 'badge--warning'}">${overdueDays} ngày</span>`;
+
+            // Số tiền phạt
+            const amountCell = row.insertCell();
+            amountCell.style.textAlign = "right";
+            amountCell.style.fontWeight = "700";
+            amountCell.style.color = "var(--color-danger)";
+            amountCell.textContent = fineMoney(fine.amount);
+
+            // Trạng thái badge
+            const statusCell = row.insertCell();
+            statusCell.style.textAlign = "center";
+            const statusBadge = document.createElement("span");
+
+            if (fine.type === "PROVISIONAL") {
+                statusBadge.className = "badge badge--warning";
+                statusBadge.textContent = "Tạm tính";
+            } else if (fine.paid) {
+                statusBadge.className = "badge badge--success";
+                statusBadge.textContent = "Đã nộp";
+            } else {
+                statusBadge.className = "badge badge--danger";
+                statusBadge.textContent = "Chưa nộp";
+            }
+            statusCell.appendChild(statusBadge);
+
+            // Thao tác
+            const actionCell = row.insertCell();
+            actionCell.style.textAlign = "right";
+
             if (fine.type === "FINALIZED" && !fine.paid) {
                 const button = document.createElement("button");
                 button.type = "button";
-                button.className = "btn primary";
-                button.textContent = "Đã thu";
+                button.className = "btn btn--primary btn--sm";
+                button.textContent = "Đã thu tiền";
                 button.addEventListener("click", async () => {
-                    if (!confirm(`Xác nhận đã thu ${fineMoney(fine.amount)} cho phiếu #${fine.loanId}?`)) return;
+                    const confirmed = confirm(`Xác nhận đã thu đủ số tiền ${fineMoney(fine.amount)} cho phiếu mượn #${fine.loanId}?`);
+                    if (!confirmed) return;
+
                     button.disabled = true;
                     try {
                         await markFinePaid(fine.id);
+                        if (typeof PTIT !== "undefined" && PTIT.showToast) {
+                            PTIT.showToast(`Đã thu ${fineMoney(fine.amount)} cho phiếu #${fine.loanId}`, "success");
+                        }
                         await loadFines();
                     } catch (error) {
                         fineMessage.textContent = "Không thể cập nhật khoản phạt: " + error.message;
+                        fineMessage.className = "message error";
                         fineMessage.hidden = false;
                     } finally {
                         button.disabled = false;
                     }
                 });
-                action.appendChild(button);
+                actionCell.appendChild(button);
             } else {
-                action.textContent = "—";
+                actionCell.textContent = "—";
+                actionCell.style.color = "var(--color-text-light)";
             }
         });
     } catch (error) {
         fineTable.replaceChildren();
-        fineMessage.textContent = "Không thể tải khoản phạt: " + error.message;
+        fineMessage.textContent = "Không thể tải danh sách khoản phạt: " + error.message;
+        fineMessage.className = "message error";
         fineMessage.hidden = false;
     }
 }
@@ -62,7 +138,15 @@ document.getElementById("userName").textContent = fineUserName;
 document.getElementById("userAvatar").textContent = fineUserName.trim().charAt(0).toUpperCase() || "U";
 document.getElementById("refreshButton").addEventListener("click", loadFines);
 document.getElementById("logoutButton").addEventListener("click", async () => {
-    try { await logoutAPI(); } catch (error) { console.error("Không thể thu hồi token đăng xuất:", error); }
+    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+    if (!confirmed) return;
+
+    try {
+        await logoutAPI();
+    } catch (error) {
+        console.error("Không thể thu hồi token đăng xuất:", error);
+    }
     window.location.replace("index.html");
 });
+
 if (isAuthorized) loadFines();

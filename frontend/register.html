@@ -1,64 +1,127 @@
 <!DOCTYPE html>
 <html lang="vi">
+<!--
+  THƯ VIỆN PTIT - TRANG ĐĂNG KÝ
+  Card form căn giữa, tối đa 440px, nhãn rõ trên ô nhập 48px,
+  hiện/ẩn mật khẩu, nút full-width, link chuyển sang đăng nhập, bảo toàn toàn bộ JS hooks.
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng ký | Thư viện PTIT</title>
+    <title>Đăng ký độc giả | Thư viện PTIT</title>
     <link rel="icon" href="assets/images/logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/common.css">
-    <link rel="stylesheet" href="assets/css/auth.css">
+    
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Hệ thống CSS chuẩn hóa theo đúng thứ tự -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/pages.css">
+    <link rel="stylesheet" href="assets/css/effects.css">
+    <link rel="stylesheet" href="assets/css/preloader.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
-<body>
-<header class="top">
-    <a class="brand" href="index.html" data-go="back">
-        <img src="assets/images/logo.png" alt="Logo PTIT">
-        <span><small>Học viện Công nghệ Bưu chính Viễn thông</small><strong>THƯ VIỆN PTIT</strong></span>
+<body class="auth-page">
+
+<header class="auth-header">
+    <a class="brand" href="index.html" data-go="back" aria-label="Về trang chủ Thư viện PTIT">
+        <img src="assets/images/logo.png" alt="Logo PTIT" width="44" height="44">
+        <span class="brand-text">
+            <small>Học viện Công nghệ Bưu chính Viễn thông</small>
+            <strong>THƯ VIỆN PTIT</strong>
+        </span>
     </a>
-    <a class="back" href="index.html" data-go="back">← Về trang chủ</a>
+    <a class="btn btn--ghost" href="index.html" data-go="back">← Về trang chủ</a>
 </header>
-<main>
-    <section class="intro">
-        <h2>Bắt đầu hành trình tri thức.</h2>
-        <p>Tạo tài khoản trong một phút và mượn cuốn sách đầu tiên của bạn ngay hôm nay.</p>
-        <div class="chips"><span>Tra cứu thông minh</span><span>Đăng ký mượn trực tuyến</span><span>Theo dõi hạn trả</span></div>
-        <div class="stats">
-            <div><strong data-stat="titles">0</strong><span>Đầu sách</span></div>
-            <div><strong data-stat="copies">0</strong><span>Bản sách</span></div>
-            <div><strong data-stat="categories">0</strong><span>Thể loại</span></div>
+
+<main class="auth-main">
+    <section class="auth-intro">
+        <div class="eyebrow"><span aria-hidden="true">✦</span> ĐĂNG KÝ THÀNH VIÊN</div>
+        <h2>Bắt đầu hành trình<br>chinh phục tri thức.</h2>
+        <p>Tạo tài khoản độc giả trong một phút bằng mã sinh viên để mượn sách trực tuyến và truy cập kho giáo trình số của Học viện.</p>
+        
+        <div class="auth-chips">
+            <span>Mượn sách trực tuyến</span>
+            <span>Gia hạn linh hoạt</span>
+            <span>Đánh giá sách</span>
+        </div>
+
+        <div class="auth-stats">
+            <div>
+                <strong data-stat="titles">0</strong>
+                <span>Đầu sách</span>
+            </div>
+            <div>
+                <strong data-stat="copies">0</strong>
+                <span>Bản sách</span>
+            </div>
+            <div>
+                <strong data-stat="categories">0</strong>
+                <span>Thể loại</span>
+            </div>
         </div>
     </section>
+
+    <!-- Card form đăng ký căn giữa, tối đa 440px -->
     <form id="registerForm" class="auth-card" novalidate>
-        <h1>Tạo tài khoản độc giả</h1>
+        <h1>Tạo tài khoản</h1>
         <p class="sub">Đăng ký bằng mã sinh viên để mượn sách trực tuyến.</p>
-        <div id="authMessage" class="message" hidden></div>
-        <div class="field" style="--i:1">
+        
+        <!-- Khung hiển thị thông báo lỗi / thành công -->
+        <div id="authMessage" class="message" hidden role="alert"></div>
+
+        <div class="field">
             <label for="fullName">Họ và tên</label>
-            <input id="fullName" autocomplete="name">
+            <input id="fullName" type="text" autocomplete="name" required placeholder="Ví dụ: Nguyễn Văn A">
         </div>
-        <div class="field" style="--i:2">
-            <label for="username">Mã sinh viên (dùng để đăng nhập)</label>
-            <input id="username" autocomplete="username">
+
+        <div class="field">
+            <label for="username">Mã sinh viên (tên đăng nhập)</label>
+            <input id="username" type="text" autocomplete="username" required placeholder="Ví dụ: B22DCCN001">
         </div>
-        <div class="field" style="--i:3">
-            <label for="email">Email</label>
-            <input id="email" type="email" autocomplete="email">
+
+        <div class="field">
+            <label for="email">Địa chỉ Email</label>
+            <input id="email" type="email" autocomplete="email" required placeholder="Ví dụ: a.nguyen@ptit.edu.vn">
         </div>
-        <div class="field" style="--i:4">
+
+        <div class="field">
             <label for="password">Mật khẩu (ít nhất 6 ký tự)</label>
-            <input id="password" type="password" autocomplete="new-password">
+            <div class="password-wrap">
+                <input id="password" type="password" autocomplete="new-password" required placeholder="Tối thiểu 6 ký tự">
+            </div>
         </div>
-        <div class="field" style="--i:5">
+
+        <div class="field">
             <label for="confirmPassword">Nhập lại mật khẩu</label>
-            <input id="confirmPassword" type="password" autocomplete="new-password">
+            <div class="password-wrap">
+                <input id="confirmPassword" type="password" autocomplete="new-password" required placeholder="Nhập lại mật khẩu trên">
+            </div>
         </div>
-        <button id="submitButton" class="btn" type="submit">Tạo tài khoản</button>
-        <p class="switch">Đã có tài khoản? <a href="login.html" data-go="back">Đăng nhập</a></p>
+
+        <button id="submitButton" class="btn btn--primary btn--full" type="submit">Tạo tài khoản độc giả</button>
+
+        <p class="switch">
+            Đã có tài khoản? <a href="login.html" data-go="back">Đăng nhập ngay</a>
+        </p>
     </form>
 </main>
-<footer>© 2026 Thực Tập OJT RekkeiSoft HCM , PTIT.</footer>
+
+<footer style="text-align: center; padding: 24px; font-size: 14px; color: var(--color-text-muted); border-top: 1px solid var(--color-border-light);">
+    © 2026 Học viện Công nghệ Bưu chính Viễn thông. Mọi quyền được bảo lưu.
+</footer>
+
+<div class="page-transition-overlay" aria-hidden="true"></div>
 <script src="api.js"></script>
 <script src="assets/js/ui.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/effects.js"></script>
+<script src="assets/js/page-transition.js"></script>
 <script src="assets/js/auth.js"></script>
 </body>
 </html>

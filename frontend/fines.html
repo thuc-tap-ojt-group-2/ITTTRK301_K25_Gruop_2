@@ -1,37 +1,152 @@
 <!DOCTYPE html>
 <html lang="vi">
+<!--
+  THƯ VIỆN PTIT - QUẢN LÝ TIỀN PHẠT (fines.html)
+  Bảng khoản phạt quá hạn, tổng tiền phạt nổi bật, badge Đã nộp / Chưa nộp / Tạm tính,
+  định dạng tiền VNĐ chuẩn (ví dụ 25.000 ₫), nút xác nhận thu tiền rõ ràng.
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý tiền phạt | Thư viện PTIT</title>
-    <link rel="stylesheet" href="books.css">
+    <link rel="icon" href="assets/images/logo.png">
+    
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Hệ thống CSS chuẩn hóa theo đúng thứ tự -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/pages.css">
+    <link rel="stylesheet" href="assets/css/effects.css">
+    <link rel="stylesheet" href="assets/css/preloader.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
 <body data-roles="ADMIN,LIBRARIAN">
     <div class="layout">
+        <!-- Sidebar trái -->
         <aside class="sidebar">
-            <div class="brand">Thư viện PTIT<small>Hệ thống quản lý</small></div>
+            <div class="brand">
+                Thư viện PTIT
+                <small>Hệ thống quản lý</small>
+            </div>
+
             <p class="menu-title">Điều hướng</p>
+
             <nav class="nav">
-                <a href="dashboard.html">Tổng quan</a>
-                <a href="books.html">Quản lý sách / thể loại</a>
-                <a href="loans.html">Phiếu mượn</a>
-                <a href="readers.html">Độc giả</a>
-                <a class="active" href="fines.html">Tiền phạt</a>
-                <a data-roles="ADMIN" href="admin.html">Tài khoản và nhật ký</a>
+                <a href="dashboard.html">
+                    <span aria-hidden="true">📊</span> Tổng quan
+                </a>
+                <a href="books.html">
+                    <span aria-hidden="true">📚</span> Quản lý sách / thể loại
+                </a>
+                <a href="loans.html">
+                    <span aria-hidden="true">📝</span> Phiếu mượn
+                </a>
+                <a href="readers.html">
+                    <span aria-hidden="true">👥</span> Độc giả
+                </a>
+                <a class="active" href="fines.html">
+                    <span aria-hidden="true">💰</span> Tiền phạt
+                </a>
+                <a data-roles="ADMIN" href="admin.html">
+                    <span aria-hidden="true">⚙️</span> Tài khoản và nhật ký
+                </a>
             </nav>
-            <div class="user"><div class="user-info"><span class="avatar" id="userAvatar">U</span><strong id="userName">Đang tải...</strong></div><button class="logout-btn" id="logoutButton" type="button">Đăng xuất</button></div>
+
+            <div class="user">
+                <div class="user-info">
+                    <span class="avatar" id="userAvatar">U</span>
+                    <div>
+                        <strong id="userName">Đang tải...</strong>
+                        <span style="font-size: 12px; color: var(--color-text-muted);">Nhân viên thư viện</span>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutButton" type="button">Đăng xuất</button>
+            </div>
         </aside>
+
+        <!-- Lớp phủ mờ mobile sidebar -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+        <!-- Vùng nội dung chính -->
         <main class="main">
-            <header class="topbar"><div><h1>Quản lý tiền phạt</h1><p>Khoản đã chốt và tiền phạt tạm tính cho sách quá hạn.</p></div><button class="btn secondary" id="refreshButton" type="button">Làm mới</button></header>
+            <header class="topbar">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button type="button" class="menu-toggle" id="sidebarToggle" aria-label="Mở menu quản lý">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1>Quản lý tiền phạt</h1>
+                        <p>Theo dõi các khoản phạt đã chốt và tiền phạt tạm tính cho sách quá hạn.</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="btn btn--primary btn--sm" id="refreshButton" type="button">Làm mới dữ liệu</button>
+                </div>
+            </header>
+
+            <!-- Thẻ tổng tiền phạt nổi bật -->
+            <section class="fines-hero-card" aria-label="Tổng tiền phạt cần thu">
+                <div>
+                    <h3>Tổng tiền phạt chưa thanh toán</h3>
+                    <p style="font-size: 14px; color: var(--color-text-muted); margin: 0;">Số tiền phạt phát sinh do độc giả mượn tài liệu quá hạn.</p>
+                </div>
+                <div style="text-align: right;">
+                    <div class="fines-hero-amount" id="totalFinesSum">0 ₫</div>
+                    <span class="badge badge--neutral" id="fineCount">0 khoản phạt</span>
+                </div>
+            </section>
+
             <section class="panel">
-                <div class="panel-head"><div><h2>Danh sách khoản phạt</h2></div><span id="fineCount">0 khoản</span></div>
-                <p id="pageMessage" role="status" hidden></p>
-                <div class="table-wrapper"><table><thead><tr><th>Mã phiếu</th><th>Độc giả</th><th>Sách</th><th>Trễ (ngày)</th><th>Số tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody id="fineTable"><tr><td colspan="7">Đang tải...</td></tr></tbody></table></div>
+                <div class="panel-head">
+                    <div>
+                        <h2>Danh sách các khoản phạt</h2>
+                        <p class="panel-description">Chi tiết từng phiếu mượn có phát sinh phí trễ hạn.</p>
+                    </div>
+                </div>
+
+                <p id="pageMessage" class="message" role="status" hidden></p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 110px;">Mã phiếu</th>
+                                <th>Độc giả</th>
+                                <th>Tên sách</th>
+                                <th style="text-align: center; width: 120px;">Trễ (ngày)</th>
+                                <th style="text-align: right; width: 140px;">Số tiền phạt</th>
+                                <th style="text-align: center; width: 150px;">Trạng thái</th>
+                                <th style="text-align: right; width: 130px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fineTable">
+                            <tr><td colspan="7" class="empty">Đang tải danh sách khoản phạt...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </main>
     </div>
+
+    <div class="page-transition-overlay" aria-hidden="true"></div>
+    <!-- Scripts -->
     <script src="auth.js"></script>
     <script src="api.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/animations.js"></script>
+    <script src="assets/js/effects.js"></script>
+    <script src="assets/js/page-transition.js"></script>
     <script src="fines.js"></script>
 </body>
 </html>

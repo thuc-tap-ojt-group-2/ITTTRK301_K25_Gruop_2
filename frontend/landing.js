@@ -1,84 +1,396 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - LANDING PAGE SCRIPT
+ * landing.js: Xử lý dữ liệu sách nổi bật từ backend, skeleton shimmer,
+ *             bìa dự phòng CSS gradient 6 màu, trạng thái lỗi máy chủ (error state),
+ *             nút Thử lại, chuẩn hóa URL ảnh tương đối, và số nhảy thống kê thực tế.
+ * ====================================================================
+ */
+
 const bookTrack = document.getElementById("bookTrack");
 const bookTickerStatus = document.getElementById("bookTickerStatus");
 const bookCarousel = document.getElementById("bookCarousel");
-const coverColors = ["#0b6e4f", "#17679a", "#b7852f", "#6a4c93", "#c0392b", "#2f9e6d"];
+const homeStatsStatus = document.getElementById("homeStatsStatus");
 
+/**
+ * Bảng 6 màu gradient chuẩn mực theo từng nhóm thể loại:
+ * 1. Xanh lá: Giáo trình, CNTT, Khoa học, Lập trình
+ * 2. Xanh dương đậm: Viễn thông, Kỹ thuật, Mạng, Điện tử
+ * 3. Vàng đất: Kinh tế, Quản trị, Khởi nghiệp, Tài chính
+ * 4. Đỏ rượu: Văn học, Tiểu thuyết, Lịch sử, Văn hóa
+ * 5. Tím than: An toàn thông tin, Mật mã, Triết học
+ * 6. Xanh ngọc: Khám phá, Thiên văn, Tự nhiên, Môi trường
+ */
+const CATEGORY_GRADIENTS = {
+    green: "linear-gradient(145deg, #137547 0%, #0A4331 100%)",
+    navy: "linear-gradient(145deg, #1F4E79 0%, #102A43 100%)",
+    amber: "linear-gradient(145deg, #C88A2E 0%, #7D5110 100%)",
+    wine: "linear-gradient(145deg, #9E2A2B 0%, #541314 100%)",
+    purple: "linear-gradient(145deg, #5A3D7A 0%, #2A1740 100%)",
+    teal: "linear-gradient(145deg, #028090 0%, #00434E 100%)"
+};
+
+const GRADIENT_PALETTE = [
+    CATEGORY_GRADIENTS.green,
+    CATEGORY_GRADIENTS.navy,
+    CATEGORY_GRADIENTS.amber,
+    CATEGORY_GRADIENTS.wine,
+    CATEGORY_GRADIENTS.purple,
+    CATEGORY_GRADIENTS.teal
+];
+
+/**
+ * Lấy màu gradient đại diện cho thể loại sách
+ */
+function getCategoryGradient(categoryName, index) {
+    if (!categoryName) return GRADIENT_PALETTE[index % GRADIENT_PALETTE.length];
+    const cat = categoryName.toLowerCase();
+    if (cat.includes("công nghệ") || cat.includes("cntt") || cat.includes("giáo") || cat.includes("lập trình") || cat.includes("phần mềm")) {
+        return CATEGORY_GRADIENTS.green;
+    }
+    if (cat.includes("viễn thông") || cat.includes("điện tử") || cat.includes("mạng") || cat.includes("kỹ thuật")) {
+        return CATEGORY_GRADIENTS.navy;
+    }
+    if (cat.includes("kinh tế") || cat.includes("tài chính") || cat.includes("khởi nghiệp") || cat.includes("quản trị")) {
+        return CATEGORY_GRADIENTS.amber;
+    }
+    if (cat.includes("tiểu thuyết") || cat.includes("văn học") || cat.includes("lịch sử") || cat.includes("văn hóa")) {
+        return CATEGORY_GRADIENTS.wine;
+    }
+    if (cat.includes("an toàn") || cat.includes("attt") || cat.includes("bảo mật") || cat.includes("triết học")) {
+        return CATEGORY_GRADIENTS.purple;
+    }
+    if (cat.includes("khám phá") || cat.includes("thiên văn") || cat.includes("tự nhiên") || cat.includes("khoa học")) {
+        return CATEGORY_GRADIENTS.teal;
+    }
+    return GRADIENT_PALETTE[index % GRADIENT_PALETTE.length];
+}
+
+/**
+ * Hiển thị 3 cuốn sách nổi bật ở khu vực Hero (CNTT, ATTT, Viễn thông)
+ * Lấy ảnh bìa và thông tin trực tiếp từ API /api/books
+ */
+function renderHeroBooks(books) {
+    if (!Array.isArray(books) || books.length === 0) return;
+
+    // Chọn 3 cuốn sách khác nhau, ưu tiên sách có ảnh
+    const withImage = books.filter(b => b.imageUrl || b.image_url);
+    const selected = withImage.slice(0, 3);
+
+    const heroIds = ["hero-book-1", "hero-book-2", "hero-book-3"];
+    selected.forEach(function (book, i) {
+        const el = document.getElementById(heroIds[i]);
+        if (!el) return;
+
+        const titleEl = el.querySelector(".hero-book-title");
+        const authorEl = el.querySelector(".hero-book-author");
+        const badgeEl = el.querySelector(".hero-book-badge");
+        const imgEl = el.querySelector(".hero-book-img");
+        const category = book.categoryName || book.category_name || "Tài liệu";
+
+        if (titleEl) titleEl.textContent = book.title || "Sách học tập PTIT";
+        if (authorEl) authorEl.textContent = book.author || "Học viện PTIT";
+        if (badgeEl) badgeEl.textContent = category;
+
+        if (imgEl && (book.imageUrl || book.image_url)) {
+            const rawUrl = book.imageUrl || book.image_url;
+            let cleanUrl = String(rawUrl).trim();
+            if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
+                cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
+            }
+            imgEl.src = cleanUrl;
+            imgEl.style.display = "block";
+        }
+
+        // Cập nhật aria-label
+        el.setAttribute("aria-label", [book.title, book.author].filter(Boolean).join(" — "));
+    });
+}
+
+/**
+ * Hiển thị 6 thẻ khung xương (Skeleton Shimmer) trong khi chờ dữ liệu API
+ */
+function renderSkeletonCards() {
+    if (!bookTrack) return;
+    bookTrack.replaceChildren();
+
+    for (let i = 0; i < 6; i++) {
+        const skeleton = document.createElement("div");
+        skeleton.className = "skeleton-card";
+        skeleton.setAttribute("aria-hidden", "true");
+        skeleton.innerHTML = `
+            <div class="skeleton-cover skeleton-shimmer"></div>
+            <div class="skeleton-line skeleton-shimmer" style="width: 80%; margin-top: 14px;"></div>
+            <div class="skeleton-line skeleton-shimmer" style="width: 50%; margin-top: 8px;"></div>
+        `;
+        bookTrack.appendChild(skeleton);
+    }
+}
+
+/**
+ * Tạo bìa sách dự phòng CSS gradient đa dạng chuẩn thiết kế:
+ * - Họa tiết gáy sách bằng CSS bên mép trái
+ * - Gradient riêng biệt theo thể loại trong bảng 6 màu hài hòa
+ * - Tên sách chữ trắng căn giữa tối đa 3 dòng (line-clamp)
+ * - Tên tác giả nhỏ bên dưới, phân cách rõ ràng, không bao giờ chồng chữ
+ */
+function createFallbackCover(bookTitle, categoryName, authorName, gradient) {
+    const fallback = document.createElement("div");
+    fallback.className = "featured-book-fallback";
+    fallback.style.background = gradient;
+
+    // 1. Nhãn thể loại ở trên cùng
+    const tag = document.createElement("span");
+    tag.className = "featured-book-fallback-tag";
+    tag.textContent = categoryName || "Giáo trình PTIT";
+
+    // 2. Icon sách SVG thanh lịch ở giữa
+    const icon = document.createElement("div");
+    icon.className = "featured-book-fallback-icon";
+    icon.innerHTML = `
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+    `;
+
+    // 3. Tên sách chữ trắng căn giữa tối đa 3 dòng
+    const titleEl = document.createElement("strong");
+    titleEl.className = "featured-book-fallback-title";
+    titleEl.textContent = bookTitle || "Tài liệu học tập PTIT";
+
+    // 4. Tên tác giả nhỏ bên dưới
+    const authorEl = document.createElement("div");
+    authorEl.className = "featured-book-fallback-author";
+    authorEl.textContent = authorName || "Học viện PTIT";
+
+    // 5. Dấu hiệu thương hiệu Thư viện PTIT
+    const mark = document.createElement("div");
+    mark.className = "featured-book-fallback-mark";
+    mark.innerHTML = '<span aria-hidden="true">✦</span> Thư viện PTIT';
+
+    fallback.append(tag, icon, titleEl, authorEl, mark);
+    return fallback;
+}
+
+/**
+ * Tạo card sách chuẩn UI/UX:
+ * - Ảnh bìa aspect-ratio 2/3, bo góc 12px
+ * - Kiểm tra ảnh thật từ API: hiển thị ảnh thật khi có, tự ẩn fallback
+ * - Tên sách và tác giả luôn nằm DƯỚI ảnh (không đè lên ảnh)
+ * - Hover nâng 6px và bóng đổ mượt
+ */
 function createBookCard(book, index) {
     const card = document.createElement("article");
-    const title = document.createElement("strong");
-    const author = document.createElement("span");
-    const copy = document.createElement("div");
-    const category = document.createElement("span");
-    const imageUrl = typeof book.imageUrl === "string" ? book.imageUrl : book.image_url;
-
-    card.className = "ticker-book";
-    card.style.backgroundColor = coverColors[index % coverColors.length];
+    card.className = "featured-book-card ticker-book tilt-enabled";
     card.setAttribute("aria-label", [book.title, book.author].filter(Boolean).join(" — "));
+    card.tabIndex = 0;
 
-    if (typeof imageUrl === "string" && imageUrl.trim()) {
+    // Chuyển đến trang tra cứu sách khi click hoặc nhấn Enter
+    card.addEventListener("click", function () {
+        const query = book.title || "";
+        window.location.href = "books.html" + (query ? "?keyword=" + encodeURIComponent(query) : "");
+    });
+    card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            card.click();
+        }
+    });
+
+    const categoryName = book.categoryName || book.category_name || "Tài liệu PTIT";
+    const bookTitle = book.title || "Tài liệu học tập PTIT";
+    const bookAuthor = book.author || "Học viện PTIT";
+    const gradient = getCategoryGradient(categoryName, index);
+
+    // 1. Khung bìa sách (aspect-ratio 2/3)
+    const coverWrapper = document.createElement("div");
+    coverWrapper.className = "featured-book-cover";
+    coverWrapper.style.background = gradient;
+
+    // Tạo sẵn bìa dự phòng đa dạng màu sắc
+    const fallbackCover = createFallbackCover(bookTitle, categoryName, bookAuthor, gradient);
+    coverWrapper.appendChild(fallbackCover);
+
+    // Kiểm tra và hiển thị ảnh thật từ API nếu có
+    const rawImageUrl = typeof book.imageUrl === "string" ? book.imageUrl : book.image_url;
+
+    if (typeof rawImageUrl === "string" && rawImageUrl.trim().length > 0) {
+        let cleanUrl = rawImageUrl.trim();
+        // Bình thường hóa đường dẫn nếu là relative path từ máy chủ
+        if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
+            cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
+        }
+
         const image = document.createElement("img");
-        image.src = imageUrl.trim();
-        image.alt = "";
+        image.className = "featured-book-img";
+        image.alt = bookTitle;
         image.loading = "lazy";
-        image.addEventListener("error", function () {
-            card.remove();
-            console.warn("Không tải được ảnh bìa sách:", imageUrl);
-            if (bookTrack.children.length === 0) {
-                bookTickerStatus.textContent = "Không tải được ảnh bìa sách. Vui lòng kiểm tra các đường dẫn imageUrl trong database.";
-                bookTickerStatus.hidden = false;
+        image.style.display = "none"; // Ẩn tạm chờ tải hoàn tất
+
+        image.onload = function () {
+            image.style.display = "block";
+            if (fallbackCover.parentNode) {
+                fallbackCover.style.display = "none";
             }
-        }, { once: true });
-        card.appendChild(image);
-    } else {
-        return null;
+        };
+
+        image.onerror = function () {
+            image.remove();
+            fallbackCover.style.display = "flex";
+        };
+
+        image.src = cleanUrl;
+        coverWrapper.appendChild(image);
     }
 
-    category.className = "ticker-book-category";
-    category.textContent = book.categoryName || book.category_name || "Sách thư viện";
-    title.className = "ticker-book-title";
-    title.textContent = book.title || "Chưa có tên sách";
-    author.className = "ticker-book-author";
-    author.textContent = book.author || "Chưa có thông tin tác giả";
-    copy.className = "ticker-book-copy";
-    copy.append(title, author);
-    card.append(category, copy);
+    // 2. Khối thông tin đặt DƯỚI ảnh bìa (không đè lên ảnh)
+    const info = document.createElement("div");
+    info.className = "featured-book-info";
+
+    const catEl = document.createElement("span");
+    catEl.className = "featured-book-cat ticker-book-category";
+    catEl.textContent = categoryName;
+
+    const titleEl = document.createElement("strong");
+    titleEl.className = "featured-book-title ticker-book-title";
+    titleEl.textContent = bookTitle;
+
+    const authorEl = document.createElement("p");
+    authorEl.className = "featured-book-author ticker-book-author";
+    authorEl.textContent = bookAuthor;
+
+    info.append(catEl, titleEl, authorEl);
+
+    // Nút hành động ở đáy card để đồng đều chiều cao tất cả card
+    const actionBtn = document.createElement("button");
+    actionBtn.type = "button";
+    actionBtn.className = "featured-book-action";
+    actionBtn.textContent = "Xem chi tiết";
+    actionBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const query = book.title || "";
+        window.location.href = "books.html" + (query ? "?keyword=" + encodeURIComponent(query) : "");
+    });
+
+    info.appendChild(actionBtn);
+    card.append(coverWrapper, info);
+
     return card;
 }
 
+/**
+ * Hiển thị tối đa 6 cuốn sách trong lưới sách nổi bật
+ */
 function renderBookTicker(books) {
+    if (!bookTrack) return;
     bookTrack.replaceChildren();
 
-    const booksWithCovers = books.filter(function (book) {
-        const imageUrl = typeof book.imageUrl === "string" ? book.imageUrl : book.image_url;
-        return typeof imageUrl === "string" && Boolean(imageUrl.trim());
-    });
+    if (!Array.isArray(books) || books.length === 0) {
+        renderEmptyState("Hiện chưa có cuốn sách nào trong danh mục.");
+        return;
+    }
 
-    booksWithCovers.forEach(function (book, index) {
+    const displayList = books.slice(0, 6);
+    displayList.forEach(function (book, index) {
         const card = createBookCard(book, index);
         if (card) {
             bookTrack.appendChild(card);
         }
     });
 
-    if (booksWithCovers.length === 0) {
-        bookTickerStatus.textContent = books.length === 0
-            ? "Thư viện chưa có đầu sách để hiển thị."
-            : "Thư viện chưa có sách kèm ảnh bìa trong database.";
-        bookTickerStatus.hidden = false;
-        return;
+    if (bookTickerStatus) {
+        bookTickerStatus.hidden = true;
     }
 
-    bookTickerStatus.hidden = true;
+    // Kích hoạt hiệu ứng 3D Tilt cho các card mới
+    if (window.PTIT_EFFECTS && typeof window.PTIT_EFFECTS.initTilt === "function") {
+        window.PTIT_EFFECTS.initTilt();
+    }
 }
 
+/**
+ * Hiển thị giao diện thông báo lỗi máy chủ kèm nút Thử lại (Không che giấu bằng số ảo)
+ */
+function renderErrorState(errorMessage) {
+    if (!bookTrack) return;
+    bookTrack.replaceChildren();
+
+    const errorContainer = document.createElement("div");
+    errorContainer.className = "homepage-error-state";
+    errorContainer.setAttribute("role", "alert");
+    errorContainer.innerHTML = `
+        <div class="homepage-error-icon" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <p class="homepage-error-title">Không tải được dữ liệu từ hệ thống</p>
+        <p class="homepage-error-detail">${errorMessage || "Vui lòng kiểm tra trạng thái máy chủ backend."}</p>
+        <button type="button" class="btn btn--secondary btn-retry" id="btnRetryHomepage">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            Thử lại
+        </button>
+    `;
+
+    bookTrack.appendChild(errorContainer);
+
+    const retryBtn = errorContainer.querySelector("#btnRetryHomepage");
+    if (retryBtn) {
+        retryBtn.addEventListener("click", function () {
+            loadHomepageData();
+        });
+    }
+
+    if (bookTickerStatus) {
+        bookTickerStatus.hidden = true;
+    }
+}
+
+/**
+ * Hiển thị trạng thái danh mục trống
+ */
+function renderEmptyState(message) {
+    if (!bookTrack) return;
+    bookTrack.replaceChildren();
+
+    const emptyContainer = document.createElement("div");
+    emptyContainer.className = "homepage-error-state";
+    emptyContainer.innerHTML = `
+        <p class="homepage-error-title">${message || "Hiện chưa có dữ liệu sách."}</p>
+    `;
+    bookTrack.appendChild(emptyContainer);
+}
+
+/**
+ * Đặt lại các chỉ số thống kê về dạng gạch ngang "—"
+ */
+function resetHomepageStats() {
+    document.querySelectorAll("[data-home-stat]").forEach(function (element) {
+        element.textContent = "—";
+        element.removeAttribute("data-target");
+    });
+}
+
+/**
+ * Cập nhật số liệu thống kê thư viện và kích hoạt số nhảy khi API trả về thành công
+ */
 function renderHomepageStats(response, books) {
     const categories = new Set();
-    const copies = books.reduce(function (total, book) {
+    const booksList = Array.isArray(books) ? books : [];
+
+    const copies = booksList.reduce(function (total, book) {
         const value = Number(book.totalCopies ?? book.total_copies ?? 0);
         return total + (Number.isFinite(value) ? value : 0);
     }, 0);
 
-    books.forEach(function (book) {
+    booksList.forEach(function (book) {
         const category = book.categoryName || book.category_name;
         const categoryId = book.categoryId ?? book.category_id;
         const key = category || categoryId;
@@ -87,125 +399,120 @@ function renderHomepageStats(response, books) {
         }
     });
 
-    const titleCount = Number(response.totalElements ?? response.total ?? books.length);
+    const titleCount = Number(response.totalElements ?? response.total ?? booksList.length);
     const stats = {
-        titles: Number.isFinite(titleCount) ? titleCount : books.length,
+        titles: Number.isFinite(titleCount) ? titleCount : booksList.length,
         copies: copies,
         categories: categories.size
     };
 
     document.querySelectorAll("[data-home-stat]").forEach(function (element) {
-        element.textContent = Number(stats[element.dataset.homeStat]).toLocaleString("vi-VN");
+        const statKey = element.dataset.homeStat;
+        if (stats[statKey] !== undefined) {
+            const targetVal = Number(stats[statKey]);
+            element.setAttribute("data-target", targetVal);
+
+            if (window.PTIT_EFFECTS && typeof window.PTIT_EFFECTS.animateValue === "function") {
+                window.PTIT_EFFECTS.animateValue(element, 0, targetVal, 1200);
+            } else {
+                element.textContent = targetVal.toLocaleString("vi-VN");
+            }
+        }
     });
+
+    if (homeStatsStatus) {
+        homeStatsStatus.textContent = "Số liệu thống kê được đồng bộ trực tiếp từ hệ thống thư viện";
+    }
 }
 
-let tickerIndex = 0;
-let tickerDirection = 1;
-let tickerPaused = false;
-
-function moveBookTicker() {
-    if (tickerPaused || bookTrack.children.length < 2) {
-        return;
-    }
-
-    const maxOffset = Math.max(0, bookTrack.scrollWidth - bookCarousel.clientWidth);
-    const card = bookTrack.firstElementChild;
-    const gap = parseFloat(window.getComputedStyle(bookTrack).columnGap) || 0;
-    const step = card.getBoundingClientRect().width + gap;
-    const maxIndex = Math.ceil(maxOffset / step);
-
-    if (maxIndex === 0) {
-        tickerIndex = 0;
-        bookTrack.style.transform = "translateX(0)";
-        return;
-    }
-
-    if (tickerIndex >= maxIndex) {
-        tickerDirection = -1;
-    } else if (tickerIndex <= 0) {
-        tickerDirection = 1;
-    }
-
-    tickerIndex = Math.max(0, Math.min(maxIndex, tickerIndex + tickerDirection));
-    bookTrack.style.transform = "translateX(-" + Math.min(tickerIndex * step, maxOffset) + "px)";
-}
-
-bookCarousel.addEventListener("mouseenter", function () {
-    tickerPaused = true;
-});
-bookCarousel.addEventListener("mouseleave", function () {
-    tickerPaused = false;
-});
-bookCarousel.addEventListener("focusin", function () {
-    tickerPaused = true;
-});
-bookCarousel.addEventListener("focusout", function () {
-    tickerPaused = false;
-});
-document.addEventListener("visibilitychange", function () {
-    tickerPaused = document.hidden;
-});
-
-if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    window.setInterval(moveBookTicker, 2800);
-}
-
+// API endpoint kết nối backend
 const homepageApiBaseUrl = (
     window.PTIT_API_BASE_URL ||
     (window.location.protocol === "https:" ? "https:" : "http:") +
         "//" + (window.location.hostname || "127.0.0.1") + ":8000"
 ).replace(/\/+$/, "");
 
-fetch(homepageApiBaseUrl + "/api/books?page=1&size=100")
-    .then(async function (response) {
-        let payload;
+/**
+ * Tải dữ liệu trang chủ từ backend
+ */
+function loadHomepageData() {
+    // 1. Hiển thị skeleton và đặt lại thống kê về "—"
+    renderSkeletonCards();
+    resetHomepageStats();
 
-        try {
-            payload = await response.json();
-        } catch {
-            throw new Error("Backend trả về dữ liệu không hợp lệ.");
-        }
+    if (homeStatsStatus) {
+        homeStatsStatus.textContent = "Đang đồng bộ số liệu từ máy chủ thư viện…";
+    }
 
-        if (!response.ok) {
-            const detail = payload && (payload.detail || payload.message);
-            throw new Error(typeof detail === "string" ? detail : "Máy chủ trả về lỗi HTTP " + response.status + ".");
-        }
+    const endpointUrl = homepageApiBaseUrl + "/api/books?page=1&size=100";
 
-        return payload;
-    })
-    .then(function (response) {
-        const books = Array.isArray(response)
-            ? response
-            : response && Array.isArray(response.content)
-                ? response.content
-                : response && Array.isArray(response.items)
-                    ? response.items
-                    : null;
+    fetch(endpointUrl)
+        .then(async function (response) {
+            let payload = null;
+            try {
+                payload = await response.json();
+            } catch {
+                // Nếu không phân tích được JSON từ phản hồi
+            }
 
-        if (books === null) {
-            throw new Error("Dữ liệu sách từ máy chủ không đúng định dạng.");
-        }
+            if (!response.ok) {
+                const detail = payload && (payload.detail || payload.message);
+                const errorInfo = {
+                    url: endpointUrl,
+                    status: response.status,
+                    statusText: response.statusText,
+                    detail: detail
+                };
+                console.error("Lỗi phản hồi từ API Thư viện PTIT:", errorInfo);
+                const errorMsg = typeof detail === "string" 
+                    ? detail 
+                    : `Máy chủ phản hồi mã lỗi HTTP ${response.status} (${response.statusText || "Lỗi yêu cầu"}).`;
+                throw new Error(errorMsg);
+            }
 
-        renderBookTicker(books);
-        renderHomepageStats(response, books);
-    })
-    .catch(function (error) {
-        const homeStatsStatus = document.getElementById("homeStatsStatus");
-        if (homeStatsStatus) {
-            homeStatsStatus.textContent = "Không tải được số liệu từ API thư viện.";
-        }
+            if (!payload) {
+                throw new Error("Phản hồi rỗng hoặc không đúng định dạng JSON.");
+            }
 
-        if (window.location.protocol === "file:") {
-            bookTickerStatus.textContent = "Trang đang mở bằng file://. Hãy mở bằng http://localhost:5500/index.html và kiểm tra Backend đang chạy tại cổng 8000.";
-        } else if (error instanceof TypeError) {
-            bookTickerStatus.textContent = "Không kết nối được API sách tại " + homepageApiBaseUrl + ". Nếu Backend đã chạy, hãy kiểm tra cổng 8000 và cấu hình CORS.";
-        } else {
-            bookTickerStatus.textContent = "Không tải được sách từ thư viện: " + error.message;
-        }
-        bookTickerStatus.hidden = false;
-        console.error("Không thể tải sách cho trang chủ:", error);
-    });
+            return payload;
+        })
+        .then(function (response) {
+            const books = Array.isArray(response)
+                ? response
+                : response && Array.isArray(response.content)
+                    ? response.content
+                    : response && Array.isArray(response.items)
+                        ? response.items
+                        : null;
 
+            if (books === null) {
+                throw new Error("Cấu trúc danh sách sách không đúng định dạng chuẩn.");
+            }
+
+            // Hiển thị sách và số liệu thống kê thực tế
+            renderBookTicker(books);
+            renderHomepageStats(response, books);
+            renderHeroBooks(books);
+        })
+        .catch(function (error) {
+            console.error("Không thể kết nối đến API Thư viện PTIT:", {
+                url: endpointUrl,
+                message: error.message
+            });
+
+            // Hiển thị trạng thái lỗi rõ ràng, KHÔNG dùng số ảo hay dữ liệu giả
+            renderErrorState(error.message);
+
+            if (homeStatsStatus) {
+                homeStatsStatus.textContent = "Không thể tải số liệu từ hệ thống. Vui lòng kiểm tra kết nối máy chủ.";
+            }
+        });
+}
+
+// Bắt đầu tải dữ liệu khi trang sẵn sàng
+loadHomepageData();
+
+// Xử lý Active link khi cuộn trang
 const landingSections = document.querySelectorAll(".landing-page section[id]");
 const landingLinks = document.querySelectorAll(".nav-links a[href^='#']");
 

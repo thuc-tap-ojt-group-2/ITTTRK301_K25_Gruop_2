@@ -1,63 +1,107 @@
-
 <!DOCTYPE html>
 <html lang="vi">
+<!--
+  THƯ VIỆN PTIT - QUẢN LÝ PHIẾU MƯỢN (loans.html)
+  Bảng phiếu mượn (mã phiếu, sách, ngày mượn, hạn trả, trạng thái bằng badge màu),
+  tab lọc (Tất cả / Chờ duyệt / Đang mượn / Đã trả / Bị từ chối), nút Duyệt / Từ chối / Trả sách.
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duyệt đăng ký mượn | Thư viện PTIT</title>
     <link rel="icon" href="assets/images/logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="loans.css">
+    
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Hệ thống CSS chuẩn hóa theo đúng thứ tự -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/pages.css">
+    <link rel="stylesheet" href="assets/css/effects.css">
+    <link rel="stylesheet" href="assets/css/preloader.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
 </head>
 <body data-roles="ADMIN,LIBRARIAN">
-    <div class="app">
-        <aside>
-            <div class="logo">
+    <div class="layout">
+        <!-- Sidebar trái -->
+        <aside class="sidebar">
+            <div class="brand">
                 Thư viện PTIT
                 <small>Hệ thống quản lý</small>
             </div>
 
-            <nav>
-                <a href="dashboard.html">Tổng quan</a>
-                <a href="books.html">Quản lý sách / thể loại</a>
-                <a href="loans.html" class="on">Phiếu mượn</a>
-                <a href="readers.html">Độc giả</a>
-                <a href="fines.html">Tiền phạt</a>
-                <a href="admin.html" data-roles="ADMIN">Tài khoản và nhật ký</a>
+            <p class="menu-title">Quản lý thư viện</p>
+
+            <nav class="nav">
+                <a href="dashboard.html">
+                    <span aria-hidden="true">📊</span> Tổng quan
+                </a>
+                <a href="books.html">
+                    <span aria-hidden="true">📚</span> Quản lý sách / thể loại
+                </a>
+                <a href="loans.html" class="active">
+                    <span aria-hidden="true">📝</span> Phiếu mượn
+                </a>
+                <a href="readers.html">
+                    <span aria-hidden="true">👥</span> Độc giả
+                </a>
+                <a href="fines.html">
+                    <span aria-hidden="true">💰</span> Tiền phạt
+                </a>
+                <a href="admin.html" data-roles="ADMIN">
+                    <span aria-hidden="true">⚙️</span> Tài khoản và nhật ký
+                </a>
             </nav>
 
-            <div class="who">
+            <div class="user">
                 <div class="user-info">
-                    <div class="av" id="userAvatar">A</div>
-                    <b id="userName">Thủ thư</b>
+                    <span class="avatar" id="userAvatar">A</span>
+                    <div>
+                        <strong id="userName">Thủ thư</strong>
+                        <span style="font-size: 12px; color: var(--color-text-muted);">Quản trị viên</span>
+                    </div>
                 </div>
-                <span>Quản trị viên</span>
-                <br>
-                <button class="lo" type="button" id="logoutButton">
+
+                <button class="logout-btn" type="button" id="logoutButton">
                     Đăng xuất
                 </button>
             </div>
         </aside>
 
-        <main>
-            <div class="top">
-                <a class="ib" href="index.html">Trang chủ</a>
-                <button class="ib" type="button" id="refreshButton">
-                    Làm mới
-                </button>
-            </div>
+        <!-- Lớp phủ mờ mobile sidebar -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
 
-            <section class="head">
-                <div>
-                    <h1>Duyệt đăng ký mượn</h1>
-                    <p id="pageDescription">
-                        Theo dõi, tìm kiếm và xử lý các phiếu đăng ký mượn sách.
-                    </p>
+        <!-- Vùng nội dung chính -->
+        <main class="main">
+            <header class="topbar">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button type="button" class="menu-toggle" id="sidebarToggle" aria-label="Mở menu quản lý">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1>Duyệt đăng ký mượn</h1>
+                        <p id="pageDescription">Theo dõi, tìm kiếm và xử lý các phiếu đăng ký mượn sách.</p>
+                    </div>
                 </div>
-                <span class="total-label" id="resultCount">0 đăng ký</span>
-            </section>
 
-            <section class="statistics">
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span class="badge badge--neutral" id="resultCount" style="font-size: 14px; padding: 6px 14px;">0 đăng ký</span>
+                    <a class="btn btn--secondary btn--sm" href="index.html">Trang chủ</a>
+                    <button class="btn btn--primary btn--sm" type="button" id="refreshButton">Làm mới</button>
+                </div>
+            </header>
+
+            <!-- 4 Thẻ thống kê phiếu mượn -->
+            <section class="statistics stats-grid" aria-label="Thống kê trạng thái phiếu mượn">
                 <div class="stat-card">
                     <span>Tổng đăng ký</span>
                     <b id="totalLoans">0</b>
@@ -65,26 +109,36 @@
 
                 <div class="stat-card">
                     <span>Chờ duyệt</span>
-                    <b id="pendingLoans">0</b>
+                    <b id="pendingLoans" style="color: var(--color-warning);">0</b>
                 </div>
 
                 <div class="stat-card">
                     <span>Đang mượn</span>
-                    <b id="borrowingLoans">0</b>
+                    <b id="borrowingLoans" style="color: var(--color-info);">0</b>
                 </div>
 
                 <div class="stat-card">
                     <span>Đã trả</span>
-                    <b id="returnedLoans">0</b>
+                    <b id="returnedLoans" style="color: var(--color-success);">0</b>
                 </div>
             </section>
 
+            <!-- Bộ lọc & Tab lọc -->
             <section class="filter-panel">
                 <div class="filter-heading">
                     <div>
                         <h2>Lọc danh sách phiếu</h2>
-                        <p>Chọn trạng thái hoặc nhập thông tin để tìm phiếu mượn.</p>
+                        <p>Chọn tab trạng thái hoặc nhập mã phiếu, độc giả, tên sách để tìm kiếm.</p>
                     </div>
+                </div>
+
+                <!-- Tab lọc trực quan -->
+                <div class="tabs" id="statusTabs" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+                    <button type="button" class="btn btn--sm btn--primary tab-btn active" data-status="">Tất cả phiếu</button>
+                    <button type="button" class="btn btn--sm btn--secondary tab-btn" data-status="PENDING">Chờ duyệt</button>
+                    <button type="button" class="btn btn--sm btn--secondary tab-btn" data-status="BORROWING">Đang mượn</button>
+                    <button type="button" class="btn btn--sm btn--secondary tab-btn" data-status="RETURNED">Đã trả</button>
+                    <button type="button" class="btn btn--sm btn--secondary tab-btn" data-status="REJECTED">Bị từ chối</button>
                 </div>
 
                 <div class="filters">
@@ -105,11 +159,11 @@
                         <input
                             type="search"
                             id="searchInput"
-                            placeholder="Nhập mã phiếu, độc giả hoặc sách"
+                            placeholder="Nhập mã phiếu, tên độc giả, mã SV hoặc tên sách..."
                         >
                     </div>
 
-                    <button type="button" class="btn ghost" id="clearFilterButton">
+                    <button type="button" class="btn btn--secondary" id="clearFilterButton">
                         Xóa bộ lọc
                     </button>
                 </div>
@@ -117,29 +171,32 @@
 
             <div
                 id="messageBox"
-                class="message-box"
+                class="message"
                 role="status"
                 aria-live="polite"
                 hidden
             ></div>
 
-            <section class="card loan-card">
-                <div class="table-heading">
-                    <h2>Danh sách đăng ký mượn</h2>
-                    <span id="tableCount">0 kết quả</span>
+            <!-- Bảng danh sách phiếu mượn -->
+            <section class="panel loan-card">
+                <div class="panel-head">
+                    <div>
+                        <h2>Danh sách đăng ký mượn</h2>
+                    </div>
+                    <span class="badge badge--neutral" id="tableCount">0 kết quả</span>
                 </div>
 
-                <div class="table-wrap">
+                <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>Mã phiếu</th>
+                                <th style="width: 100px;">Mã phiếu</th>
                                 <th>Độc giả</th>
-                                <th>Sách</th>
+                                <th>Tên sách</th>
                                 <th>Ngày đăng ký</th>
                                 <th>Thời hạn</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
+                                <th style="text-align: center;">Trạng thái</th>
+                                <th style="text-align: right; width: 170px;">Thao tác</th>
                             </tr>
                         </thead>
 
@@ -153,35 +210,40 @@
                     </table>
                 </div>
 
+                <!-- Phân trang -->
                 <div class="pagination">
+                    <button
+                        type="button"
+                        class="btn btn--secondary btn--sm"
+                        id="previousPage"
+                        disabled
+                    >
+                        ← Trang trước
+                    </button>
+
                     <span id="pageInfo">Trang 1 / 1</span>
 
-                    <div>
-                        <button
-                            type="button"
-                            class="btn ghost"
-                            id="previousPage"
-                            disabled
-                        >
-                            Trước
-                        </button>
-
-                        <button
-                            type="button"
-                            class="btn ghost"
-                            id="nextPage"
-                            disabled
-                        >
-                            Sau
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        class="btn btn--secondary btn--sm"
+                        id="nextPage"
+                        disabled
+                    >
+                        Trang sau →
+                    </button>
                 </div>
             </section>
         </main>
     </div>
 
+    <div class="page-transition-overlay" aria-hidden="true"></div>
+    <!-- Scripts -->
     <script src="auth.js"></script>
     <script src="api.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/animations.js"></script>
+    <script src="assets/js/effects.js"></script>
+    <script src="assets/js/page-transition.js"></script>
     <script src="loans.js"></script>
 </body>
 </html>

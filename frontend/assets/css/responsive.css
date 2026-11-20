@@ -1,0 +1,461 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - RESPONSIVE STYLES (LUÔN LINK CUỐI CÙNG)
+ * responsive.css: Điểm ngắt màn hình (1920, 1440, 1280, 1024, 768, 480, 390)
+ * ====================================================================
+ */
+
+/* ====================================================================
+ * 1. MÀN HÌNH LỚN & CHUẨN (1920PX - 1280PX) - KHÔNG CO NHỎ NỘI DUNG (A1)
+ * ==================================================================== */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1200px;
+        margin-inline: auto;
+        padding-inline: 24px;
+        width: 100%;
+    }
+
+    .hero-copy {
+        min-width: 520px;
+    }
+}
+
+/* ====================================================================
+ * 2. MÀN HÌNH TABLET / LAPTOP NHỎ (MAX-WIDTH: 1024PX)
+ * ==================================================================== */
+@media (max-width: 1024px) {
+    :root {
+        --text-h1-landing: 40px;
+        --text-h2-landing: 30px;
+        --sidebar-width: 240px;
+    }
+
+    .landing-hero {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+        text-align: center;
+        padding: var(--space-12) 0;
+    }
+
+    .hero-copy {
+        align-items: center;
+        text-align: center;
+    }
+
+    .hero-description {
+        margin-inline: auto;
+    }
+
+    .hero-search-box {
+        margin-inline: auto;
+        max-width: 600px;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    .hero-proof {
+        margin-inline: auto;
+    }
+
+    .hero-art {
+        min-height: 380px;
+    }
+
+    /* Sách nổi bật 3 cột trên tablet (A4) */
+    .featured-books-grid,
+    .book-track {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-5);
+    }
+
+    .stats-grid,
+    section.stats,
+    section.statistics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .landing-highlights,
+    .service-grid,
+    .rules-list {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    /* Sách nổi bật trên tablet: bo góc nhẹ hơn, padding gọn */
+    .featured-book-card {
+        border-radius: 14px;
+    }
+    .featured-book-cover {
+        aspect-ratio: 2 / 3;
+    }
+    .featured-book-title {
+        font-size: 14px;
+    }
+    .featured-book-author {
+        font-size: 12.5px;
+    }
+
+    /* Hero stacked books trên tablet: giảm perspective nhẹ */
+    .hero-stacked-books {
+        perspective: 1000px;
+    }
+
+    /* Footer 2 cột trên tablet (A8) */
+    .footer-columns,
+    .footer__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-10);
+    }
+
+    .auth-main {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+
+    .auth-intro {
+        text-align: center;
+        padding-right: 0;
+    }
+
+    .auth-chips {
+        justify-content: center;
+    }
+
+    .auth-stats {
+        max-width: 500px;
+        margin-inline: auto;
+    }
+}
+
+/* ====================================================================
+ * 3. MÀN HÌNH MOBILE / MÁY TÍNH BẢNG ĐỨNG (MAX-WIDTH: 768PX)
+ * ==================================================================== */
+@media (max-width: 768px) {
+    :root {
+        --text-h1-landing: 32px;
+        --text-h2-landing: 26px;
+        --text-h1-inner: 24px;
+        --text-h2-inner: 20px;
+    }
+
+    /* Nhịp section trên mobile giảm còn 64px (A6) */
+    .section,
+    .landing-section {
+        padding-block: 64px;
+    }
+
+    /* Navbar Mobile: Nút Hamburger hiện, Khối nút desktop ẩn (A2) */
+    .hamburger,
+    .menu-toggle {
+        display: flex;
+    }
+
+    .nav-actions {
+        display: none !important;
+    }
+
+    /* Menu mobile drawer */
+    .nav-links {
+        display: none;
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        background-color: var(--color-bg-surface);
+        border-bottom: 2px solid var(--color-border);
+        flex-direction: column;
+        padding: var(--space-6);
+        gap: var(--space-4);
+        box-shadow: 0 20px 40px rgba(18, 38, 30, 0.18);
+        z-index: var(--z-drawer);
+        max-height: calc(100vh - var(--header-height));
+        overflow-y: auto;
+    }
+
+    .nav-links.show {
+        display: flex;
+    }
+
+    /* Cặp nút đăng nhập/đăng ký trong menu mobile CHỈ hiện khi drawer mở (A2) */
+    .nav-links.show .nav-actions-mobile {
+        display: flex !important;
+        flex-direction: column;
+        gap: var(--space-3);
+        width: 100%;
+        margin-top: var(--space-4);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border-light);
+    }
+
+    .nav-actions-mobile .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Sidebar trở thành Off-canvas Drawer trên mobile */
+    .layout,
+    .app {
+        flex-direction: column;
+    }
+
+    .sidebar,
+    aside {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100vh;
+        z-index: 1001;
+        transition: left var(--duration-normal) var(--ease-standard);
+        box-shadow: var(--shadow-modal);
+    }
+
+    .sidebar.open,
+    aside.open {
+        left: 0;
+    }
+
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(18, 38, 30, 0.5);
+        z-index: 1000;
+        backdrop-filter: blur(3px);
+    }
+
+    .main,
+    main {
+        padding: var(--space-4);
+    }
+
+    /* Sách nổi bật 2 cột trên mobile (A4) */
+    .featured-books-grid,
+    .book-track {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    /* Thống kê 3 ô số lớn xếp dọc trên mobile */
+    .landing-stats {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+        padding: var(--space-6);
+    }
+
+    .landing-stat {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border-light);
+        padding-bottom: var(--space-4);
+    }
+
+    .landing-stat:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    .about-note {
+        padding: var(--space-6);
+    }
+
+    .landing-contact {
+        flex-direction: column;
+        text-align: center;
+        padding: var(--space-10) var(--space-6);
+    }
+
+    .landing-contact .btn {
+        width: 100%;
+    }
+
+    /* Footer 1 cột trên mobile (A8) */
+    .footer-columns,
+    .footer__grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: var(--space-3);
+        text-align: center;
+        align-items: center;
+    }
+
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filters .btn {
+        width: 100%;
+    }
+
+    .back-to-top-floating {
+        bottom: 20px;
+        right: 20px;
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* ====================================================================
+ * 4. MÀN HÌNH ĐIỆN THOẠI NHỎ (MAX-WIDTH: 480PX)
+ * ==================================================================== */
+@media (max-width: 480px) {
+    :root {
+        --text-h1-landing: 28px;
+        --text-h2-landing: 22px;
+    }
+
+    .container {
+        padding-inline: var(--space-4); /* 16px */
+    }
+
+    /* Thanh tìm kiếm Hero: xếp thành 2 hàng (A3) */
+    .hero-search-box {
+        height: auto;
+        flex-wrap: wrap;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .hero-search-select {
+        flex: 0 0 110px;
+        width: 110px;
+        height: 44px;
+        font-size: 13px;
+        padding: 0 8px;
+    }
+
+    .hero-search-input {
+        flex: 1 1 calc(100% - 126px);
+        min-width: 0;
+        height: 44px;
+        font-size: 16px; /* 16px để chống auto-zoom trên iOS */
+        padding: 0 10px;
+    }
+
+    .hero-search-btn {
+        flex: 0 0 100%;
+        width: 100%;
+        height: 44px;
+        font-size: 15px;
+    }
+
+    /* Sách nổi bật: 1 cột trên mobile (A4) */
+    .featured-books-grid,
+    .book-track {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .featured-book-title {
+        font-size: 13px;
+        height: 36px;
+    }
+
+    .featured-book-author {
+        font-size: 12px;
+    }
+
+    .stats-grid,
+    section.stats,
+    section.statistics {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-art::before {
+        width: 280px;
+        height: 280px;
+    }
+
+    .hero-stacked-books {
+        width: 260px;
+        height: 320px;
+    }
+
+    .hero-book-card {
+        width: 160px;
+        height: 230px;
+        padding: var(--space-3);
+    }
+
+    .hero-book-card--1 {
+        transform: rotate(-8deg) translate(-25px, 8px);
+    }
+
+    .hero-book-card--2 {
+        transform: rotate(2deg) translate(15px, -10px);
+    }
+
+    .hero-book-card--3 {
+        transform: rotate(10deg) translate(35px, 20px);
+    }
+
+    .hero-badge-floating {
+        bottom: -20px;
+        left: 0;
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .auth-card {
+        padding: var(--space-6);
+        box-shadow: none;
+        border: none;
+        background: transparent;
+    }
+
+    .modal,
+    dialog.modal {
+        padding: var(--space-5);
+    }
+
+    .modal-actions,
+    .form-actions {
+        flex-direction: column-reverse;
+        gap: var(--space-2);
+    }
+
+    .modal-actions .btn,
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
+/* ====================================================================
+ * 5. MÀN HÌNH ĐIỆN THOẠI RẤT NHỎ (MAX-WIDTH: 390PX)
+ * ==================================================================== */
+@media (max-width: 390px) {
+    .container {
+        padding-inline: var(--space-3); /* 12px */
+    }
+
+    .hero-search-select {
+        flex: 0 0 95px;
+        width: 95px;
+        font-size: 12px;
+    }
+
+    .hero-search-input {
+        flex: 1 1 calc(100% - 105px);
+    }
+
+    .featured-books-grid,
+    .book-track {
+        gap: 12px;
+    }
+
+    .btn {
+        min-height: 44px;
+        padding: var(--space-2) var(--space-4);
+    }
+}

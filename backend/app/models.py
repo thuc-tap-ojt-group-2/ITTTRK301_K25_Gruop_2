@@ -38,6 +38,7 @@ class Loan(Base):
     book_id = Column(BigInteger, ForeignKey("books.id"), nullable=False)
     status = Column(String(20), nullable=False, default="PENDING")
     days = Column(Integer, nullable=False, default=14)
+    extension_count = Column(Integer, nullable=False, default=0, server_default="0")
     borrow_date = Column(Date, nullable=True)
     due_date = Column(Date, nullable=True)
     return_date = Column(Date, nullable=True)

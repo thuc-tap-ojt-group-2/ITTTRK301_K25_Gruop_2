@@ -1,3 +1,10 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - QUẢN LÝ PHIẾU MƯỢN
+ * loans.js: Duyệt phiếu đăng ký mượn, từ chối, nhận trả sách,
+ *           phân loại theo tab trạng thái và tìm kiếm độc giả/sách.
+ * ====================================================================
+ */
 
 const LOAN_PAGE_SIZE = 10;
 
@@ -13,6 +20,7 @@ const tableCount = document.getElementById("tableCount");
 const pageInfo = document.getElementById("pageInfo");
 const previousPageButton = document.getElementById("previousPage");
 const nextPageButton = document.getElementById("nextPage");
+const statusTabs = document.getElementById("statusTabs");
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, character => {
@@ -23,7 +31,6 @@ function escapeHTML(value) {
             '"': "&quot;",
             "'": "&#39;"
         };
-
         return entities[character];
     });
 }
@@ -34,7 +41,6 @@ function getLoanValue(loan, keys) {
             return loan[key];
         }
     }
-
     return "";
 }
 
@@ -55,15 +61,15 @@ function getStatusText(status) {
 
 function getStatusClass(status) {
     const classes = {
-        PENDING: "t-warn",
-        BORROWING: "t-info",
-        RETURNED: "t-ok",
-        REJECTED: "t-bad",
-        CANCELLED: "t-mut",
-        RESERVED: "t-warn"
+        PENDING: "badge--warning",
+        BORROWING: "badge--info",
+        RETURNED: "badge--success",
+        REJECTED: "badge--danger",
+        CANCELLED: "badge--neutral",
+        RESERVED: "badge--warning"
     };
 
-    return classes[String(status || "").toUpperCase()] || "t-mut";
+    return classes[String(status || "").toUpperCase()] || "badge--neutral";
 }
 
 function formatDate(value) {
@@ -72,7 +78,6 @@ function formatDate(value) {
     }
 
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) {
         return escapeHTML(value);
     }
@@ -117,22 +122,22 @@ function getRegisteredDate(loan) {
 
 function updateStatistics() {
     document.getElementById("totalLoans").textContent =
-        allLoans.length;
+        Number(allLoans.length).toLocaleString("vi-VN");
 
     document.getElementById("pendingLoans").textContent =
-        allLoans.filter(loan =>
+        Number(allLoans.filter(loan =>
             String(loan.status).toUpperCase() === "PENDING"
-        ).length;
+        ).length).toLocaleString("vi-VN");
 
     document.getElementById("borrowingLoans").textContent =
-        allLoans.filter(loan =>
+        Number(allLoans.filter(loan =>
             String(loan.status).toUpperCase() === "BORROWING"
-        ).length;
+        ).length).toLocaleString("vi-VN");
 
     document.getElementById("returnedLoans").textContent =
-        allLoans.filter(loan =>
+        Number(allLoans.filter(loan =>
             String(loan.status).toUpperCase() === "RETURNED"
-        ).length;
+        ).length).toLocaleString("vi-VN");
 }
 
 function getFilteredLoans() {
@@ -188,7 +193,7 @@ function displayLoans() {
         loanTableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="empty">
-                    Không tìm thấy đăng ký mượn phù hợp.
+                    Không tìm thấy đăng ký mượn nào phù hợp với bộ lọc.
                 </td>
             </tr>
         `;
@@ -204,27 +209,27 @@ function displayLoans() {
 
             return `
                 <tr>
-                    <td class="loan-id">#${escapeHTML(id || "—")}</td>
+                    <td style="font-family: var(--font-mono); font-weight: 700; color: var(--color-primary);">#${escapeHTML(id || "—")}</td>
                     <td>
-                        <b>${escapeHTML(readerName)}</b>
+                        <strong style="color: var(--color-text-main); display: block;">${escapeHTML(readerName)}</strong>
                         ${readerCode
-                            ? `<span class="sub-info">${escapeHTML(readerCode)}</span>`
+                            ? `<small style="color: var(--color-text-muted); font-family: var(--font-mono);">${escapeHTML(readerCode)}</small>`
                             : ""}
                     </td>
-                    <td>${escapeHTML(bookName)}</td>
+                    <td style="font-weight: 600;">${escapeHTML(bookName)}</td>
                     <td>${formatDate(registeredDate)}</td>
-                    <td>${days ? `${escapeHTML(days)} ngày` : "—"}</td>
-                    <td>
-                        <span class="tag ${getStatusClass(status)}">
+                    <td>${days ? `<span class="badge badge--neutral">${escapeHTML(days)} ngày</span>` : "—"}</td>
+                    <td style="text-align: center;">
+                        <span class="badge ${getStatusClass(status)}">
                             ${escapeHTML(getStatusText(status))}
                         </span>
                     </td>
-                    <td>
+                    <td style="text-align: right;">
                         ${status === "PENDING" ? `
-                            <div class="loan-actions">
+                            <div class="loan-actions" style="justify-content: flex-end;">
                                 <button
                                     type="button"
-                                    class="btn-approve"
+                                    class="btn btn--primary btn--sm"
                                     data-action="approve"
                                     data-id="${escapeHTML(id)}"
                                 >
@@ -233,7 +238,7 @@ function displayLoans() {
 
                                 <button
                                     type="button"
-                                    class="btn-reject"
+                                    class="btn btn--danger btn--sm"
                                     data-action="reject"
                                     data-id="${escapeHTML(id)}"
                                 >
@@ -243,11 +248,12 @@ function displayLoans() {
                         ` : status === "BORROWING" ? `
                             <button
                                 type="button"
-                                class="btn-approve"
+                                class="btn btn--secondary btn--sm"
+                                style="color: var(--color-success-dark); border-color: var(--color-success); background-color: var(--color-success-soft);"
                                 data-action="return"
                                 data-id="${escapeHTML(id)}"
                             >
-                                Nhận trả
+                                ✓ Trả sách
                             </button>
                         ` : "—"}
                     </td>
@@ -262,9 +268,13 @@ function displayLoans() {
     nextPageButton.disabled = currentPage >= totalPages;
 }
 
-function showMessage(message) {
+function showMessage(message, isError = false) {
     messageBox.textContent = message;
+    messageBox.className = `message ${isError ? "error" : "success"}`;
     messageBox.hidden = false;
+    if (typeof PTIT !== "undefined" && PTIT.showToast) {
+        PTIT.showToast(message, isError ? "error" : "success");
+    }
 }
 
 function hideMessage() {
@@ -278,7 +288,7 @@ async function loadLoans() {
     loanTableBody.innerHTML = `
         <tr>
             <td colspan="7" class="empty">
-                Đang tải danh sách đăng ký...
+                Đang tải danh sách đăng ký mượn...
             </td>
         </tr>
     `;
@@ -305,7 +315,8 @@ async function loadLoans() {
         displayLoans();
 
         showMessage(
-            error.message || "Không thể tải danh sách đăng ký mượn."
+            error.message || "Không thể tải danh sách đăng ký mượn.",
+            true
         );
     }
 }
@@ -324,8 +335,11 @@ function updateUserInformation() {
 
     document.getElementById("userAvatar").textContent =
         String(displayName).trim().charAt(0).toUpperCase() || "U";
-    document.querySelector(".who > span").textContent =
-        user.role === "ADMIN" ? "Quản trị viên" : "Thủ thư";
+    
+    const roleSpan = document.querySelector(".user-info span");
+    if (roleSpan) {
+        roleSpan.textContent = user.role === "ADMIN" ? "Quản trị viên" : "Thủ thư";
+    }
 }
 
 async function handleLoanAction(button) {
@@ -346,12 +360,12 @@ async function handleLoanAction(button) {
     }
 
     if (action === "approve" && typeof approveLoanAPI !== "function") {
-        showMessage("Backend chưa cung cấp API duyệt phiếu mượn.");
+        showMessage("Backend chưa cung cấp API duyệt phiếu mượn.", true);
         return;
     }
 
     if (action === "reject" && typeof rejectLoanAPI !== "function") {
-        showMessage("Backend chưa cung cấp API từ chối phiếu mượn.");
+        showMessage("Backend chưa cung cấp API từ chối phiếu mượn.", true);
         return;
     }
 
@@ -386,12 +400,13 @@ async function handleLoanAction(button) {
     try {
         await apiFunction(loanId);
 
-        showMessage(`Đã ${actionText} phiếu #${loanId}.`);
+        showMessage(`Đã ${actionText} phiếu mượn #${loanId} thành công.`);
 
         await loadLoans();
     } catch (error) {
         showMessage(
-            error.message || `Không thể ${actionText} phiếu mượn.`
+            error.message || `Không thể ${actionText} phiếu mượn.`,
+            true
         );
     } finally {
         rowButtons.forEach(item => {
@@ -400,7 +415,30 @@ async function handleLoanAction(button) {
     }
 }
 
+function syncTabsWithSelect(selectedStatus) {
+    if (!statusTabs) return;
+    statusTabs.querySelectorAll(".tab-btn").forEach(btn => {
+        const isMatch = btn.dataset.status === selectedStatus;
+        btn.classList.toggle("active", isMatch);
+        btn.classList.toggle("btn--primary", isMatch);
+        btn.classList.toggle("btn--secondary", !isMatch);
+    });
+}
+
+if (statusTabs) {
+    statusTabs.addEventListener("click", e => {
+        const btn = e.target.closest(".tab-btn");
+        if (!btn) return;
+        const targetStatus = btn.dataset.status;
+        statusFilter.value = targetStatus;
+        syncTabsWithSelect(targetStatus);
+        currentPage = 1;
+        displayLoans();
+    });
+}
+
 statusFilter.addEventListener("change", () => {
+    syncTabsWithSelect(statusFilter.value);
     currentPage = 1;
     displayLoans();
 });
@@ -413,6 +451,7 @@ searchInput.addEventListener("input", () => {
 document.getElementById("clearFilterButton")
     .addEventListener("click", () => {
         statusFilter.value = "";
+        syncTabsWithSelect("");
         searchInput.value = "";
         currentPage = 1;
         displayLoans();
@@ -442,6 +481,9 @@ nextPageButton.addEventListener("click", () => {
 
 document.getElementById("logoutButton")
     .addEventListener("click", async () => {
+        const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+        if (!confirmed) return;
+
         try {
             await logoutAPI();
         } catch (error) {

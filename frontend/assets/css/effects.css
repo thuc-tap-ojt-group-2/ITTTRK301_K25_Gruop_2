@@ -1,0 +1,265 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - MOTION & VISUAL EFFECTS
+ * effects.css: Thanh tiến trình cuộn, Reveal so le, Hero entrance,
+ *              Hover vệt sáng, Tilt 3D, Parallax chuột, Nút lên đầu trang nổi
+ * ====================================================================
+ */
+
+/* ====================================================================
+ * 1. THANH TIẾN TRÌNH CUỘN TRANG (C7: MẢNH 3PX MÀU VÀNG Ở ĐẦU TRANG)
+ * ==================================================================== */
+.scroll-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent-gold) 100%);
+    width: 100%;
+    transform-origin: left center;
+    transform: scaleX(0);
+    z-index: var(--z-progress);
+    pointer-events: none;
+    transition: transform 0.08s linear;
+}
+
+/* ====================================================================
+ * 2. HIỆU ỨNG REVEAL KHI CUỘN TRANG (C3: 60FPS CHỈ ANIMATE TRANSFORM & OPACITY)
+ * ==================================================================== */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity var(--duration-reveal) var(--ease-standard),
+                transform var(--duration-reveal) var(--ease-standard);
+    will-change: opacity, transform;
+}
+
+.reveal.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Hiệu ứng trễ so le (Stagger 80ms) cho các phần tử cùng nhóm */
+.reveal-stagger > *:nth-child(1) { transition-delay: 0.00s; }
+.reveal-stagger > *:nth-child(2) { transition-delay: 0.08s; }
+.reveal-stagger > *:nth-child(3) { transition-delay: 0.16s; }
+.reveal-stagger > *:nth-child(4) { transition-delay: 0.24s; }
+.reveal-stagger > *:nth-child(5) { transition-delay: 0.32s; }
+.reveal-stagger > *:nth-child(6) { transition-delay: 0.40s; }
+
+/* ====================================================================
+ * 3. HERO ENTRANCE (LỖI 1: TỰ CHẠY BẰNG CSS THUẦN, KHÔNG PHỤ THUỘC JS, LUÔN HIỆN)
+ * ==================================================================== */
+@keyframes heroEntranceFade {
+    0% {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-stagger-item {
+    opacity: 1; /* Fallback an toàn: luôn hiển thị ngay bằng HTML/CSS tĩnh, không phụ thuộc API hay JS */
+    animation: heroEntranceFade 0.6s var(--ease-standard) both;
+}
+
+.hero-stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.hero-stagger-item:nth-child(2) { animation-delay: 0.12s; }
+.hero-stagger-item:nth-child(3) { animation-delay: 0.18s; }
+.hero-stagger-item:nth-child(4) { animation-delay: 0.24s; }
+.hero-stagger-item:nth-child(5) { animation-delay: 0.30s; }
+.hero-stagger-item:nth-child(6) { animation-delay: 0.36s; }
+
+/* Khối 3 bìa sách bên phải lơ lửng nhẹ (float 6s, biên độ 8px) tự chạy */
+@keyframes hero-float-1 {
+    0%, 100% { transform: rotate(-10deg) translate(-55px, 20px); }
+    50%      { transform: rotate(-10deg) translate(-55px, 12px); }
+}
+
+@keyframes hero-float-2 {
+    0%, 100% { transform: rotate(2deg) translate(5px, -10px); }
+    50%      { transform: rotate(2deg) translate(5px, -18px); }
+}
+
+@keyframes hero-float-3 {
+    0%, 100% { transform: rotate(12deg) translate(65px, 35px); }
+    50%      { transform: rotate(12deg) translate(65px, 27px); }
+}
+
+.hero-book-card--1 {
+    animation: hero-float-1 6s ease-in-out infinite alternate;
+    animation-delay: 0.2s;
+}
+
+.hero-book-card--2 {
+    animation: hero-float-2 6s ease-in-out infinite alternate;
+    animation-delay: 0.8s;
+}
+
+.hero-book-card--3 {
+    animation: hero-float-3 6s ease-in-out infinite alternate;
+    animation-delay: 1.4s;
+}
+
+/* ====================================================================
+ * 4. PARALLAX CHUỘT NHẸ Ở KHỐI SÁCH HERO (C2: DI CHUYỂN TỐI ĐA 12PX)
+ * ==================================================================== */
+@media (hover: hover) and (pointer: fine) {
+    .hero-art-parallax {
+        transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0);
+        will-change: transform;
+        transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+    }
+}
+
+/* ====================================================================
+ * 5. CARD SÁCH: VỆT SÁNG LƯỚT QUA (SHINE) & TILT 3D (C5)
+ * ==================================================================== */
+.featured-book-cover::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.25) 50%,
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    transition: none;
+    pointer-events: none;
+}
+
+.featured-book-card:hover .featured-book-cover::after {
+    left: 200%;
+    transition: left 0.75s ease-in-out;
+}
+
+/* Hiệu ứng nghiêng 3D nhẹ (Tilt tối đa 6 độ) trên thiết bị có chuột */
+@media (hover: hover) and (pointer: fine) {
+    .tilt-enabled {
+        transform-style: preserve-3d;
+        transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        will-change: transform;
+    }
+
+    .tilt-enabled.is-tilting {
+        transform: perspective(1000px)
+                   rotateX(var(--tilt-x, 0deg))
+                   rotateY(var(--tilt-y, 0deg))
+                   translateY(-4px);
+    }
+}
+
+/* ====================================================================
+ * 6. NÚT "LÊN ĐẦU TRANG" NỔI Ở GÓC PHẢI DƯỚI (C10: HIỆN KHI CUỘN > 600PX)
+ * ==================================================================== */
+.back-to-top-floating {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-circle);
+    background-color: var(--color-primary-dark);
+    color: #FFFFFF;
+    border: 2px solid var(--color-accent-gold);
+    box-shadow: 0 8px 24px rgba(10, 67, 49, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: var(--z-back-top);
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity var(--duration-normal) var(--ease-standard),
+                transform var(--duration-normal) var(--ease-spring),
+                background-color var(--duration-fast) var(--ease-standard),
+                box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.back-to-top-floating.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.back-to-top-floating:hover {
+    background-color: var(--color-accent-gold);
+    color: var(--color-primary-dark);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(200, 145, 58, 0.45);
+}
+
+/* ====================================================================
+ * 7. CHUYỂN TRANG MƯỢT MÀ (C11: PAGE-TRANSITION FADE-IN / FADE-OUT)
+ * ==================================================================== */
+.page-transition-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--color-bg-page);
+    z-index: 99990;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s var(--ease-standard);
+}
+
+body.page-is-leaving .page-transition-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ====================================================================
+ * 8. TÔN TRỌNG TÙY CHỌN GIẢM CHUYỂN ĐỘNG (PREFERS-REDUCED-MOTION)
+ * ==================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .hero-stagger-item {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .hero-book-card--1,
+    .hero-book-card--2,
+    .hero-book-card--3 {
+        animation: none !important;
+    }
+
+    .landing-contact {
+        animation: none !important;
+    }
+
+    .landing-contact .btn--light {
+        animation: none !important;
+    }
+
+    .tilt-enabled {
+        transform: none !important;
+    }
+
+    .featured-book-cover::after {
+        display: none !important;
+    }
+}
