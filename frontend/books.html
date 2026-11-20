@@ -73,18 +73,35 @@
 
             <section class="panel" style="margin-top:20px">
                 <div class="panel-head">
-                    <div><h2>Quản lý thể loại</h2><p class="panel-description">Thêm, đổi tên hoặc xóa thể loại chưa được gán sách.</p></div>
+                    <div>
+                        <h2>Quản lý thể loại</h2>
+                        <p class="panel-description">
+                            Thêm, đổi tên hoặc xóa thể loại chưa được gán sách.
+                        </p>
+                    </div>
                 </div>
+
                 <form id="categoryForm" class="tools">
                     <input class="search" id="categoryName" type="text" maxlength="100" required placeholder="Tên thể loại">
                     <button class="btn primary" id="saveCategoryButton" type="submit">Thêm thể loại</button>
                     <button class="btn secondary" id="cancelCategoryEdit" type="button" hidden>Hủy sửa</button>
                 </form>
+
                 <div id="categoryMessage" class="message" hidden></div>
+
                 <div class="table-wrapper">
                     <table>
-                        <thead><tr><th>Thể loại</th><th>Thao tác</th></tr></thead>
-                        <tbody id="categoryTable"><tr><td colspan="2">Đang tải...</td></tr></tbody>
+                        <thead>
+                            <tr>
+                                <th>Thể loại</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryTable">
+                            <tr>
+                                <td colspan="2">Đang tải...</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -197,6 +214,8 @@
                         value="1"
                     >
                 </div>
+
+                <div id="modalMessage" class="message" role="alert" aria-live="polite" hidden></div>
 
                 <div class="field">
                     <label for="bookImage">
