@@ -1,4 +1,3 @@
-
 let books = [];
 let categories = [];
 let editingId = null;
@@ -11,6 +10,7 @@ const bookForm = document.getElementById("bookForm");
 const searchInput = document.getElementById("searchInput");
 const categorySelect = document.getElementById("bookCategory");
 const messageBox = document.getElementById("messageBox");
+const modalMessage = document.getElementById("modalMessage");
 const categoryForm = document.getElementById("categoryForm");
 const categoryNameInput = document.getElementById("categoryName");
 const categoryTable = document.getElementById("categoryTable");
@@ -30,6 +30,17 @@ function showMessage(message, type = "success") {
 
 function hideMessage() {
     messageBox.hidden = true;
+}
+
+function showModalMessage(message, type = "error") {
+    modalMessage.textContent = message;
+    modalMessage.className = `message ${type}`;
+    modalMessage.hidden = false;
+}
+
+function hideModalMessage() {
+    modalMessage.hidden = true;
+    modalMessage.textContent = "";
 }
 
 function getBookCode(id) {
@@ -337,6 +348,7 @@ function openAddModal() {
         "Lưu sách";
 
     hideMessage();
+    hideModalMessage();
     bookModal.classList.add("show");
 }
 
@@ -345,6 +357,7 @@ function closeModal() {
     bookForm.reset();
     editingId = null;
     hideMessage();
+    hideModalMessage();
 }
 
 function editBook(id) {
@@ -379,6 +392,7 @@ function editBook(id) {
     categorySelect.value = category ? category.id : "";
 
     hideMessage();
+    hideModalMessage();
     bookModal.classList.add("show");
 }
 
@@ -390,7 +404,7 @@ function validateBook() {
     const imageUrl = bookImage.value.trim();
 
     if (!title || !author || !categoryId) {
-        showMessage(
+        showModalMessage(
             "Vui lòng nhập đầy đủ tên sách, tác giả và thể loại.",
             "error"
         );
@@ -398,7 +412,7 @@ function validateBook() {
     }
 
     if (!Number.isInteger(total) || total < 1) {
-        showMessage(
+        showModalMessage(
             "Tổng số bản phải là số nguyên lớn hơn hoặc bằng 1.",
             "error"
         );
@@ -417,7 +431,7 @@ function validateBook() {
                 - Number(currentBook.reservedCopies || 0);
 
             if (total < borrowedCopies) {
-                showMessage(
+                showModalMessage(
                     `Tổng số bản không được nhỏ hơn ${borrowedCopies} bản đang được mượn.`,
                     "error"
                 );
@@ -427,7 +441,7 @@ function validateBook() {
     }
 
     if (imageUrl && !bookImage.checkValidity()) {
-        showMessage(
+        showModalMessage(
             "Đường dẫn ảnh bìa không hợp lệ.",
             "error"
         );
@@ -487,7 +501,7 @@ async function removeBook(id, button = null) {
 
 bookForm.addEventListener("submit", async function(event) {
     event.preventDefault();
-    hideMessage();
+    hideModalMessage();
 
     const bookData = validateBook();
 
@@ -511,7 +525,7 @@ bookForm.addEventListener("submit", async function(event) {
 
         await loadBooks();
     } catch (error) {
-        showMessage(error.message, "error");
+        showModalMessage(error.message, "error");
     } finally {
         saveButton.disabled = false;
     }

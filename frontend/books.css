@@ -400,6 +400,22 @@ td {
     outline: none;
 }
 
+.modal .message {
+    margin: 0 0 14px;
+}
+
+.modal .message.error {
+    background: #fff0ee;
+    color: #bd4035;
+    border-left: 4px solid #bd4035;
+    border-radius: 8px;
+}
+
+.modal .message.success {
+    background: #e8f4f0;
+    color: #267264;
+}
+
 .modal-actions {
     display: flex;
     justify-content: flex-end;

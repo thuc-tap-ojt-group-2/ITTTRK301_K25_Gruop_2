@@ -1,4 +1,3 @@
-
 const LOAN_PAGE_SIZE = 10;
 
 let allLoans = [];
