@@ -11,6 +11,14 @@ const userTable = document.getElementById("userTable");
 const logTable = document.getElementById("logTable");
 const currentAdmin = getCurrentUser();
 
+const USER_PAGE_SIZE = 10;
+let currentUserPage = 1;
+let allAdminUsers = [];
+
+const LOG_PAGE_SIZE = 10;
+let currentLogPage = 1;
+let allAdminLogs = [];
+
 function escapeAdmin(str) {
     return String(str || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
@@ -65,11 +73,18 @@ function updateAdminStats(users) {
 
 function createRoleSelect(user) {
     const roleSelect = document.createElement("select");
-    roleSelect.className = "search";
+    roleSelect.className = "input select-role";
+    roleSelect.style.width = "100%";
+    roleSelect.style.minWidth = "190px";
     roleSelect.style.minHeight = "36px";
+    roleSelect.style.boxSizing = "border-box";
     roleSelect.style.padding = "4px 8px";
     roleSelect.style.fontSize = "13px";
     roleSelect.style.fontWeight = "600";
+    roleSelect.style.borderRadius = "var(--radius-sm, 8px)";
+    roleSelect.style.border = "1px solid var(--color-border)";
+    roleSelect.style.backgroundColor = "var(--color-bg-surface)";
+    roleSelect.style.cursor = "pointer";
 
     const currentRole = normalizeAdminRole(user.role);
 
@@ -156,14 +171,24 @@ function createLockButton(user, statusCell) {
 }
 
 function renderAdminUsers(users) {
+    if (Array.isArray(users)) {
+        allAdminUsers = users;
+    }
     userTable.replaceChildren();
 
-    if (!Array.isArray(users) || users.length === 0) {
+    const totalItems = allAdminUsers.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / USER_PAGE_SIZE));
+    if (currentUserPage > totalPages) currentUserPage = totalPages;
+
+    const startIdx = (currentUserPage - 1) * USER_PAGE_SIZE;
+    const pageUsers = allAdminUsers.slice(startIdx, startIdx + USER_PAGE_SIZE);
+
+    if (totalItems === 0) {
         showAdminTableMessage(userTable, 5, "Chưa có tài khoản người dùng nào.");
         return;
     }
 
-    users.forEach(user => {
+    pageUsers.forEach(user => {
         const row = userTable.insertRow();
 
         // 1. Tài khoản & Tên đầy đủ
@@ -191,17 +216,44 @@ function renderAdminUsers(users) {
         actionCell.style.textAlign = "right";
         actionCell.appendChild(createLockButton(user, statusCell));
     });
+
+    const paginationContainer = document.getElementById("usersPagination");
+    if (typeof PTIT !== "undefined" && PTIT.renderPagination && paginationContainer) {
+        PTIT.renderPagination({
+            container: paginationContainer,
+            currentPage: currentUserPage,
+            totalPages: totalPages,
+            totalItems: totalItems,
+            pageSize: USER_PAGE_SIZE,
+            itemLabel: "tài khoản",
+            onPageChange: function(newPage) {
+                currentUserPage = newPage;
+                renderAdminUsers();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    }
 }
 
 function renderAdminLogs(logs) {
+    if (Array.isArray(logs)) {
+        allAdminLogs = logs;
+    }
     logTable.replaceChildren();
 
-    if (!Array.isArray(logs) || logs.length === 0) {
+    const totalItems = allAdminLogs.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / LOG_PAGE_SIZE));
+    if (currentLogPage > totalPages) currentLogPage = totalPages;
+
+    const startIdx = (currentLogPage - 1) * LOG_PAGE_SIZE;
+    const pageLogs = allAdminLogs.slice(startIdx, startIdx + LOG_PAGE_SIZE);
+
+    if (totalItems === 0) {
         showAdminTableMessage(logTable, 4, "Chưa có nhật ký hoạt động hệ thống.");
         return;
     }
 
-    logs.forEach(log => {
+    pageLogs.forEach(log => {
         const row = logTable.insertRow();
 
         // Thời gian
@@ -232,6 +284,22 @@ function renderAdminLogs(logs) {
         const detailCell = appendAdminCell(row, log.detail);
         detailCell.style.fontSize = "13px";
     });
+
+    const paginationContainer = document.getElementById("logsPagination");
+    if (typeof PTIT !== "undefined" && PTIT.renderPagination && paginationContainer) {
+        PTIT.renderPagination({
+            container: paginationContainer,
+            currentPage: currentLogPage,
+            totalPages: totalPages,
+            totalItems: totalItems,
+            pageSize: LOG_PAGE_SIZE,
+            itemLabel: "nhật ký",
+            onPageChange: function(newPage) {
+                currentLogPage = newPage;
+                renderAdminLogs();
+            }
+        });
+    }
 }
 
 async function loadAdminUsers() {

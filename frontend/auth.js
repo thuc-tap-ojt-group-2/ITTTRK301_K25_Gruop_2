@@ -1,3 +1,11 @@
+/**
+ * ====================================================================
+ * THƯ VIỆN PTIT - BẢO VỆ PHÂN QUYỀN HỆ THỐNG (RBAC AUTH GUARD)
+ * auth.js: Kiểm tra phiên đăng nhập JWT, phân quyền truy cập trang
+ *          (ADMIN / LIBRARIAN / READER) và hiển thị menu theo quyền.
+ * ====================================================================
+ */
+
 function getAccessToken() {
     return localStorage.getItem("access_token") ||
         localStorage.getItem("token");

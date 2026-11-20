@@ -12,6 +12,8 @@ PTIT.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matche
 /* ====================================================================
  * 1. LOADING TOÀN TRÀNG (FULL-SCREEN LOADING OVERLAY)
  * ==================================================================== */
+let ptitLoadingTimer = null;
+
 PTIT.showLoading = function (text) {
     let box = document.getElementById("ptitLoading");
 
@@ -35,12 +37,21 @@ PTIT.showLoading = function (text) {
         textEl.textContent = text || "Đang xử lý...";
     }
     box.classList.add("show");
+    box.style.display = "flex";
+
+    // Safety timeout: Tự động giải phóng sau 6s để tránh treo giao diện người dùng
+    clearTimeout(ptitLoadingTimer);
+    ptitLoadingTimer = setTimeout(function () {
+        PTIT.hideLoading();
+    }, 6000);
 };
 
 PTIT.hideLoading = function () {
+    clearTimeout(ptitLoadingTimer);
     const box = document.getElementById("ptitLoading");
     if (box !== null) {
         box.classList.remove("show");
+        box.style.display = "none";
     }
 };
 
@@ -166,7 +177,7 @@ PTIT.loadStats = function (done) {
         return;
     }
 
-    getBooks(1, 100)
+    getBooks(1, 10)
         .then(function (response) {
             let list = response.content || response.items || response;
             if (!Array.isArray(list)) list = [];
@@ -293,6 +304,110 @@ PTIT.initMobileSidebar = function () {
     }
 };
 
+/* ====================================================================
+ * 8. CHUẨN HÓA PHÂN TRANG (PAGINATION) TOÀN HỆ THỐNG
+ * ==================================================================== */
+PTIT.renderPagination = function ({
+    container,
+    currentPage = 1,
+    totalPages = 1,
+    totalItems = 0,
+    pageSize = 10,
+    itemLabel = "mục",
+    onPageChange
+}) {
+    if (!container) return;
+    container.replaceChildren();
+
+    if (totalItems <= 0 || totalPages <= 0) {
+        container.style.display = "none";
+        return;
+    }
+    container.style.display = "flex";
+
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
+
+    // 1. Dòng thông tin hiển thị số mục
+    const info = document.createElement("div");
+    info.className = "pagination-info";
+    info.textContent = `Hiển thị ${startItem}–${endItem} trên tổng ${totalItems} ${itemLabel}`;
+
+    // 2. Khối các nút điều khiển phân trang
+    const controls = document.createElement("div");
+    controls.className = "pagination-controls";
+
+    // Nút Trang trước
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "pagination-btn pagination-prev";
+    prevBtn.innerHTML = "← Trước";
+    prevBtn.disabled = currentPage <= 1;
+    prevBtn.setAttribute("aria-label", "Trang trước");
+    prevBtn.addEventListener("click", function () {
+        if (currentPage > 1 && typeof onPageChange === "function") {
+            onPageChange(currentPage - 1);
+        }
+    });
+    controls.appendChild(prevBtn);
+
+    // Danh sách số trang rút gọn với dấu '...'
+    const pages = [];
+    if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+        if (currentPage <= 4) {
+            pages.push(1, 2, 3, 4, 5, "...", totalPages);
+        } else if (currentPage >= totalPages - 3) {
+            pages.push(1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+        } else {
+            pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+        }
+    }
+
+    pages.forEach(function (p) {
+        if (p === "...") {
+            const ellipsis = document.createElement("span");
+            ellipsis.className = "pagination-ellipsis";
+            ellipsis.textContent = "…";
+            ellipsis.setAttribute("aria-hidden", "true");
+            controls.appendChild(ellipsis);
+        } else {
+            const numBtn = document.createElement("button");
+            numBtn.type = "button";
+            numBtn.className = "pagination-btn pagination-num" + (p === currentPage ? " active" : "");
+            numBtn.textContent = p;
+            numBtn.setAttribute("aria-label", "Trang " + p);
+            if (p === currentPage) {
+                numBtn.setAttribute("aria-current", "page");
+            }
+            numBtn.addEventListener("click", function () {
+                if (p !== currentPage && typeof onPageChange === "function") {
+                    onPageChange(p);
+                }
+            });
+            controls.appendChild(numBtn);
+        }
+    });
+
+    // Nút Trang sau
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "pagination-btn pagination-next";
+    nextBtn.innerHTML = "Sau →";
+    nextBtn.disabled = currentPage >= totalPages;
+    nextBtn.setAttribute("aria-label", "Trang sau");
+    nextBtn.addEventListener("click", function () {
+        if (currentPage < totalPages && typeof onPageChange === "function") {
+            onPageChange(currentPage + 1);
+        }
+    });
+    controls.appendChild(nextBtn);
+
+    container.appendChild(info);
+    container.appendChild(controls);
+};
+
 PTIT.initPasswordToggles = function () {
     document.querySelectorAll("input[type='password']").forEach(input => {
         // Nếu đã có nút toggle rồi thì bỏ qua
@@ -338,6 +453,7 @@ document.addEventListener("keydown", function (e) {
         document.querySelectorAll("dialog[open]").forEach(dialog => {
             dialog.close();
         });
+        document.body.style.overflow = "";
         const sidebar = document.querySelector(".sidebar.open, aside.open");
         if (sidebar) {
             sidebar.classList.remove("open");

@@ -10,6 +10,9 @@ const readerTable = document.getElementById("readerTable");
 const readerMessage = document.getElementById("pageMessage");
 const readerSearch = document.getElementById("searchInput");
 let readerSearchTimer;
+const READER_PAGE_SIZE = 10;
+let currentReaderPage = 1;
+let allReaders = [];
 
 const avatarColors = ["#0F5C42", "#1F528D", "#C8913A", "#6A4C93", "#1E8E5A", "#C0392B"];
 
@@ -65,27 +68,23 @@ async function showReaderHistory(reader) {
     }
 }
 
-async function loadReaders() {
-    readerMessage.hidden = true;
+function renderReaderPage() {
     readerTable.replaceChildren();
-    const loading = readerTable.insertRow().insertCell();
-    loading.colSpan = 6;
-    loading.className = "empty";
-    loading.textContent = "Đang tải danh sách độc giả...";
 
-    try {
-        const readers = await getReaders(readerSearch.value);
-        readerTable.replaceChildren();
+    const totalItems = allReaders.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / READER_PAGE_SIZE));
+    if (currentReaderPage > totalPages) currentReaderPage = totalPages;
 
-        if (!readers || !readers.length) {
-            const cell = readerTable.insertRow().insertCell();
-            cell.colSpan = 6;
-            cell.className = "empty";
-            cell.textContent = "Không tìm thấy độc giả nào phù hợp.";
-            return;
-        }
+    const startIdx = (currentReaderPage - 1) * READER_PAGE_SIZE;
+    const pageReaders = allReaders.slice(startIdx, startIdx + READER_PAGE_SIZE);
 
-        readers.forEach((reader, index) => {
+    if (!pageReaders.length) {
+        const cell = readerTable.insertRow().insertCell();
+        cell.colSpan = 6;
+        cell.className = "empty";
+        cell.textContent = "Không tìm thấy độc giả nào phù hợp.";
+    } else {
+        pageReaders.forEach((reader) => {
             const row = readerTable.insertRow();
 
             // Mã sinh viên
@@ -155,6 +154,39 @@ async function loadReaders() {
 
             actionCell.appendChild(historyBtn);
         });
+    }
+
+    const paginationContainer = document.getElementById("readersPagination");
+    if (typeof PTIT !== "undefined" && PTIT.renderPagination && paginationContainer) {
+        PTIT.renderPagination({
+            container: paginationContainer,
+            currentPage: currentReaderPage,
+            totalPages: totalPages,
+            totalItems: totalItems,
+            pageSize: READER_PAGE_SIZE,
+            itemLabel: "độc giả",
+            onPageChange: function(newPage) {
+                currentReaderPage = newPage;
+                renderReaderPage();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    }
+}
+
+async function loadReaders() {
+    readerMessage.hidden = true;
+    readerTable.replaceChildren();
+    const loading = readerTable.insertRow().insertCell();
+    loading.colSpan = 6;
+    loading.className = "empty";
+    loading.textContent = "Đang tải danh sách độc giả...";
+
+    try {
+        const readers = await getReaders(readerSearch.value);
+        allReaders = Array.isArray(readers) ? readers : [];
+        currentReaderPage = 1;
+        renderReaderPage();
     } catch (error) {
         readerTable.replaceChildren();
         showReaderError("Không thể tải danh sách độc giả: " + error.message);

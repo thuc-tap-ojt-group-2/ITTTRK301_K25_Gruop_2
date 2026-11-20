@@ -38,7 +38,7 @@
             const href = link.getAttribute("href");
             if (!href) return;
 
-            // Bỏ qua các liên kết đặc biệt
+            // Bỏ qua các liên kết đặc biệt, modal trigger, hoặc anchor link
             if (
                 href.startsWith("#") ||
                 href.startsWith("javascript:") ||
@@ -46,6 +46,10 @@
                 href.startsWith("tel:") ||
                 link.getAttribute("target") === "_blank" ||
                 link.hasAttribute("download") ||
+                link.hasAttribute("data-open") ||
+                link.hasAttribute("data-switch") ||
+                link.closest("[data-open]") ||
+                link.closest("[data-switch]") ||
                 event.ctrlKey ||
                 event.metaKey ||
                 event.shiftKey ||
@@ -66,7 +70,12 @@
 
             setTimeout(function () {
                 window.location.href = link.href;
-            }, 200);
+            }, 120);
+
+            // Safety timeout: Tự động gỡ bỏ class sau 1.5s phòng khi chuyển trang bị hủy/chặn
+            setTimeout(function () {
+                document.body.classList.remove("page-is-leaving");
+            }, 1500);
         });
     }
 

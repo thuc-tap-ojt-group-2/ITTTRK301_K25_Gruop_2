@@ -261,10 +261,26 @@ function displayLoans() {
         }).join("");
     }
 
-    pageInfo.textContent = `Trang ${currentPage} / ${totalPages}`;
-
-    previousPageButton.disabled = currentPage <= 1;
-    nextPageButton.disabled = currentPage >= totalPages;
+    const paginationContainer = document.getElementById("loansPagination") || document.querySelector(".pagination");
+    if (typeof PTIT !== "undefined" && PTIT.renderPagination && paginationContainer) {
+        PTIT.renderPagination({
+            container: paginationContainer,
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalItems: filteredLoans.length,
+            pageSize: LOAN_PAGE_SIZE,
+            itemLabel: "phiếu mượn",
+            onPageChange: function(newPage) {
+                currentPage = newPage;
+                renderLoans();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    } else {
+        pageInfo.textContent = `Trang ${currentPage} / ${totalPages}`;
+        previousPageButton.disabled = currentPage <= 1;
+        nextPageButton.disabled = currentPage >= totalPages;
+    }
 }
 
 function showMessage(message, isError = false) {
