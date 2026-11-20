@@ -292,34 +292,72 @@ const panels = { login: $('panel-login'), register: $('panel-register') };
 let lastFocus = null;
 
 function showPanel(name) {
-  Object.entries(panels).forEach(([key, el]) => { el.hidden = key !== name; });
-  $('loginError').textContent = '';
-  $('regError').textContent = '';
+  Object.entries(panels).forEach(([key, el]) => {
+    if (el) el.hidden = key !== name;
+  });
+  const loginErr = $('loginError');
+  const regErr = $('regError');
+  const notice = $('loginNotice');
+  if (loginErr) { loginErr.textContent = ''; loginErr.hidden = true; }
+  if (regErr) { regErr.textContent = ''; regErr.hidden = true; }
+  if (notice) { notice.textContent = ''; notice.hidden = true; }
+
+  // Cập nhật trạng thái nút tab trong modal
+  document.querySelectorAll('[data-switch]').forEach(btn => {
+    const isActive = btn.dataset.switch === name;
+    btn.classList.toggle('active', isActive);
+    btn.classList.toggle('btn--primary', isActive);
+    btn.classList.toggle('btn--secondary', !isActive);
+  });
 }
 
 function openModal(name) {
   lastFocus = document.activeElement;
-  showPanel(name);
-  $('loginNotice').textContent = '';
-  overlay.hidden = false;
+  showPanel(name || 'login');
+  if (overlay) {
+    overlay.hidden = false;
+    overlay.classList.add('show');
+  }
   document.body.style.overflow = 'hidden';
-  panels[name].querySelector('input').focus();
+  if (panels[name]) {
+    const input = panels[name].querySelector('input');
+    if (input) setTimeout(() => input.focus(), 60);
+  }
 }
 
 function closeModal() {
-  overlay.hidden = true;
+  if (overlay) {
+    overlay.classList.remove('show');
+    overlay.hidden = true;
+  }
   document.body.style.overflow = '';
   if (lastFocus) lastFocus.focus();
 }
 
 document.querySelectorAll('[data-open]').forEach(btn =>
-  btn.addEventListener('click', () => openModal(btn.dataset.open)));
-document.querySelectorAll('[data-switch]').forEach(btn =>
-  btn.addEventListener('click', () => { showPanel(btn.dataset.switch); $('loginNotice').textContent = ''; }));
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal(btn.dataset.open);
+  }));
 
-$('closeBtn').addEventListener('click', closeModal);
-overlay.addEventListener('mousedown', e => { if (e.target === overlay) closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) closeModal(); });
+document.querySelectorAll('[data-switch]').forEach(btn =>
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPanel(btn.dataset.switch);
+  }));
+
+const closeBtn = $('closeBtn');
+if (closeBtn) {
+  closeBtn.addEventListener('click', closeModal);
+}
+if (overlay) {
+  overlay.addEventListener('mousedown', e => { if (e.target === overlay) closeModal(); });
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && overlay && (!overlay.hidden || overlay.classList.contains('show'))) {
+    closeModal();
+  }
+});
 
 document.querySelectorAll('.chip').forEach(chip =>
   chip.addEventListener('click', () => {
@@ -331,7 +369,7 @@ document.querySelectorAll('.chip').forEach(chip =>
 
 function setBusy(form, busy) {
   const btn = form.querySelector('button[type="submit"]');
-  btn.disabled = busy;
+  if (btn) btn.disabled = busy;
 }
 
 /* ---------- AUTH-01: Đăng ký ---------- */
@@ -346,11 +384,24 @@ $('registerForm').addEventListener('submit', async e => {
   const password = $('regPass').value;
   const confirm = $('regPass2').value;
 
-  if (!fullName || !studentId || !email || !password) { err.textContent = 'Vui lòng nhập đầy đủ thông tin.'; return; }
-  if (password.length < 6) { err.textContent = 'Mật khẩu cần có ít nhất 6 ký tự.'; return; }
-  if (password !== confirm) { err.textContent = 'Mật khẩu nhập lại chưa khớp.'; return; }
+  if (!fullName || !studentId || !email || !password) {
+    err.textContent = 'Vui lòng nhập đầy đủ thông tin.';
+    err.hidden = false;
+    return;
+  }
+  if (password.length < 6) {
+    err.textContent = 'Mật khẩu cần có ít nhất 6 ký tự.';
+    err.hidden = false;
+    return;
+  }
+  if (password !== confirm) {
+    err.textContent = 'Mật khẩu nhập lại chưa khớp.';
+    err.hidden = false;
+    return;
+  }
 
   err.textContent = '';
+  err.hidden = true;
   setBusy(form, true);
   // Email trùng sẽ được API trả lỗi qua `message`
   const res = await request(ENDPOINTS.register, {
@@ -364,12 +415,20 @@ $('registerForm').addEventListener('submit', async e => {
   });
   setBusy(form, false);
 
-  if (!res.ok) { err.textContent = res.message; return; }
+  if (!res.ok) {
+    err.textContent = res.message || 'Đăng ký không thành công.';
+    err.hidden = false;
+    return;
+  }
 
   form.reset();
   showPanel('login');
   $('loginEmail').value = email;
-  $('loginNotice').textContent = 'Đăng ký thành công! Hãy đăng nhập để tiếp tục.';
+  const notice = $('loginNotice');
+  if (notice) {
+    notice.textContent = 'Đăng ký thành công! Hãy đăng nhập để tiếp tục.';
+    notice.hidden = false;
+  }
 });
 
 /* ---------- AUTH-02: Đăng nhập ---------- */
@@ -380,10 +439,19 @@ $('loginForm').addEventListener('submit', async e => {
 
   const email = $('loginEmail').value.trim();
   const password = $('loginPassword').value;
-  if (!email || !password) { err.textContent = 'Vui lòng nhập email và mật khẩu.'; return; }
+  if (!email || !password) {
+    err.textContent = 'Vui lòng nhập email/tên đăng nhập và mật khẩu.';
+    err.hidden = false;
+    return;
+  }
 
   err.textContent = '';
-  $('loginNotice').textContent = '';
+  err.hidden = true;
+  const notice = $('loginNotice');
+  if (notice) {
+    notice.textContent = '';
+    notice.hidden = true;
+  }
   setBusy(form, true);
   const res = await request(ENDPOINTS.login, {
     method: 'POST',
@@ -391,7 +459,11 @@ $('loginForm').addEventListener('submit', async e => {
   });
   setBusy(form, false);
 
-  if (!res.ok) { err.textContent = res.message; return; }
+  if (!res.ok) {
+    err.textContent = res.message || 'Đăng nhập không thành công.';
+    err.hidden = false;
+    return;
+  }
 
   // Chấp nhận các dạng phản hồi phổ biến: {token, user} hoặc {data: {token, user}}
   const d = res.data.data && typeof res.data.data === 'object' ? res.data.data : res.data;

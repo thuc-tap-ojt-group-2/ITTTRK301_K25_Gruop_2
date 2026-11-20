@@ -425,58 +425,102 @@ tr:hover td {
 .overlay {
     position: fixed;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(18, 38, 30, 0.55);
-    backdrop-filter: blur(4px);
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(18, 38, 30, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: var(--z-modal);
     padding: var(--space-4);
     opacity: 0;
-    transition: opacity var(--duration-normal) var(--ease-standard);
+    visibility: hidden;
+    transition: opacity var(--duration-normal) var(--ease-standard),
+                visibility var(--duration-normal) var(--ease-standard);
 }
 
 .overlay.show,
 .overlay:not([hidden]) {
-    display: flex;
-    opacity: 1;
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.overlay[hidden] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .modal,
 dialog.modal {
     position: relative;
     width: 100%;
-    max-width: 540px;
+    max-width: 500px;
     background-color: var(--color-bg-surface);
     border-radius: var(--radius-card);
     border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-modal);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28), var(--shadow-modal);
     padding: var(--space-8);
-    transform: scale(0.96);
+    transform: scale(0.96) translateY(12px);
     opacity: 0;
+    visibility: hidden;
     transition: transform var(--duration-normal) var(--ease-spring),
-                opacity var(--duration-normal) var(--ease-standard);
-    max-height: 90vh;
+                opacity var(--duration-normal) var(--ease-standard),
+                visibility var(--duration-normal) var(--ease-standard);
+    max-height: calc(100vh - 48px);
     overflow-y: auto;
+    z-index: calc(var(--z-modal) + 1);
+    color: var(--color-text-main);
+    box-sizing: border-box;
 }
 
+/* Khung modal hiển thị sắc nét phía trên lớp nền mờ */
 .overlay.show .modal,
+.overlay:not([hidden]) .modal,
+.modal.show,
 dialog.modal[open] {
-    transform: scale(1);
-    opacity: 1;
+    transform: scale(1) translateY(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
 }
 
 dialog::backdrop {
-    background-color: rgba(18, 38, 30, 0.55);
-    backdrop-filter: blur(4px);
+    background-color: rgba(18, 38, 30, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 
 .modal h2 {
     font-size: var(--text-h2-inner);
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-2);
     color: var(--color-primary-dark);
+    padding-right: 36px;
+}
+
+.modal p.sub {
+    font-size: var(--text-small);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-4);
+    line-height: 1.5;
+}
+
+/* Khử border/shadow của panel bên trong modal */
+.modal .panel {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.modal .panel[hidden] {
+    display: none !important;
 }
 
 .modal-actions,
@@ -488,25 +532,134 @@ dialog::backdrop {
     margin-top: var(--space-6);
 }
 
-.close-btn {
+.close-btn,
+.modal .close-btn {
     position: absolute;
-    top: var(--space-5);
-    right: var(--space-5);
-    width: 36px;
-    height: 36px;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
+    line-height: 1;
     color: var(--color-text-muted);
+    background-color: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-circle);
-    transition: background-color var(--duration-fast) var(--ease-standard),
-                color var(--duration-fast) var(--ease-standard);
+    cursor: pointer;
+    z-index: 10;
+    transition: all var(--duration-fast) var(--ease-standard);
 }
 
-.close-btn:hover {
-    background-color: var(--color-bg-subtle);
+.close-btn:hover,
+.modal .close-btn:hover {
+    background-color: var(--color-danger-soft);
     color: var(--color-danger);
+    border-color: rgba(192, 57, 43, 0.3);
+}
+
+.auth-alt-link {
+    display: inline-block;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    margin-left: 4px;
+}
+
+.auth-alt-link:hover {
+    color: var(--color-primary-dark);
+}
+
+/* Loading toàn trang (PTIT Loading Overlay) */
+.ptit-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: rgba(6, 40, 31, 0.88);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.ptit-loading.show {
+    display: flex !important;
+    animation: ptit-fade 0.2s both;
+}
+
+.ptit-book {
+    position: relative;
+    display: flex;
+    width: 96px;
+    height: 64px;
+    perspective: 500px;
+}
+
+.ptit-book::before,
+.ptit-book::after {
+    content: "";
+    width: 48px;
+    height: 64px;
+    background: #ffffff;
+    border: 3px solid #e8a923;
+    box-sizing: border-box;
+}
+
+.ptit-book::before { border-radius: 6px 0 0 6px; }
+.ptit-book::after  { border-radius: 0 6px 6px 0; }
+
+.ptit-book i {
+    position: absolute;
+    left: 48px;
+    top: 3px;
+    width: 44px;
+    height: 58px;
+    background: #e3f2ec;
+    border-radius: 0 4px 4px 0;
+    transform-origin: left center;
+    animation: ptit-flip 1.6s ease-in-out infinite;
+    animation-delay: calc(var(--n) * 0.22s);
+}
+
+@keyframes ptit-flip {
+    0% { transform: rotateY(0deg); }
+    55%, 100% { transform: rotateY(-172deg); }
+}
+
+@keyframes ptit-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.is-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.is-loading::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 18px;
+    height: 18px;
+    border: 3px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #ffffff;
+    border-radius: var(--radius-circle);
+    animation: ptit-spin 0.7s linear infinite;
+}
+
+@keyframes ptit-spin {
+    to { transform: rotate(360deg); }
 }
 
 /* ====================================================================

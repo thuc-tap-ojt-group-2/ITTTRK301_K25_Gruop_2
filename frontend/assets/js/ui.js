@@ -12,6 +12,8 @@ PTIT.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matche
 /* ====================================================================
  * 1. LOADING TOÀN TRÀNG (FULL-SCREEN LOADING OVERLAY)
  * ==================================================================== */
+let ptitLoadingTimer = null;
+
 PTIT.showLoading = function (text) {
     let box = document.getElementById("ptitLoading");
 
@@ -35,12 +37,21 @@ PTIT.showLoading = function (text) {
         textEl.textContent = text || "Đang xử lý...";
     }
     box.classList.add("show");
+    box.style.display = "flex";
+
+    // Safety timeout: Tự động giải phóng sau 6s để tránh treo giao diện người dùng
+    clearTimeout(ptitLoadingTimer);
+    ptitLoadingTimer = setTimeout(function () {
+        PTIT.hideLoading();
+    }, 6000);
 };
 
 PTIT.hideLoading = function () {
+    clearTimeout(ptitLoadingTimer);
     const box = document.getElementById("ptitLoading");
     if (box !== null) {
         box.classList.remove("show");
+        box.style.display = "none";
     }
 };
 
@@ -338,6 +349,7 @@ document.addEventListener("keydown", function (e) {
         document.querySelectorAll("dialog[open]").forEach(dialog => {
             dialog.close();
         });
+        document.body.style.overflow = "";
         const sidebar = document.querySelector(".sidebar.open, aside.open");
         if (sidebar) {
             sidebar.classList.remove("open");
