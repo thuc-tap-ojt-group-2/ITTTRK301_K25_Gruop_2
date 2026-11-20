@@ -459,3 +459,18 @@
         padding: var(--space-2) var(--space-4);
     }
 }
+
+/* --- PHÂN TRANG RESPONSIVE TRÊN MÀN HÌNH NHỎ --- */
+@media (max-width: 680px) {
+    .pagination {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: var(--space-3);
+    }
+
+    .pagination-controls {
+        justify-content: center;
+    }
+}

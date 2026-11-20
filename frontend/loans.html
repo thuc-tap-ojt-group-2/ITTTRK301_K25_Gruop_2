@@ -45,7 +45,7 @@
                     <span aria-hidden="true">📚</span> Quản lý sách / thể loại
                 </a>
                 <a href="loans.html" class="active">
-                    <span aria-hidden="true">📝</span> Phiếu mượn
+                    <span aria-hidden="true">📝</span> Phiếu mượn / trả
                 </a>
                 <a href="readers.html">
                     <span aria-hidden="true">👥</span> Độc giả
@@ -55,9 +55,6 @@
                 </a>
                 <a href="admin.html" data-roles="ADMIN">
                     <span aria-hidden="true">⚙️</span> Tài khoản và nhật ký
-                </a>
-                <a href="loan-return.html">
-                    <span aria-hidden="true">🔄</span> Quản lý mượn / trả
                 </a>
             </nav>
 
@@ -213,8 +210,8 @@
                     </table>
                 </div>
 
-                <!-- Phân trang -->
-                <div class="pagination">
+                <!-- Phân trang chuẩn 10 phiếu / trang -->
+                <div class="pagination" id="loansPagination">
                     <button
                         type="button"
                         class="btn btn--secondary btn--sm"

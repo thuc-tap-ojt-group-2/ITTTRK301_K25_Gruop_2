@@ -14,9 +14,9 @@ const BOOKS_CONFIG = {
   pageParam: 'page',  // tên tham số số trang
   sizeParam: 'size',  // tên tham số số phần tử mỗi trang
   firstPage: 1,       // trang đầu tiên đánh số từ 1 hay 0 (Spring: 0)
-  fetchSize: 100,     // số sách lấy về mỗi lần gọi API
+  fetchSize: 10,      // số sách lấy về mỗi lần gọi API
 };
-const PAGE_SIZE = 8; // số sách hiển thị trên mỗi trang
+const PAGE_SIZE = 10; // chuẩn 10 sách hiển thị trên mỗi trang
 
 const USE_MOCK_API = false;
 

@@ -45,7 +45,7 @@
                     <span aria-hidden="true">📚</span> Quản lý sách / thể loại
                 </a>
                 <a href="loans.html">
-                    <span aria-hidden="true">📝</span> Phiếu mượn
+                    <span aria-hidden="true">📝</span> Phiếu mượn / trả
                 </a>
                 <a href="readers.html">
                     <span aria-hidden="true">👥</span> Độc giả
@@ -55,9 +55,6 @@
                 </a>
                 <a class="active" href="admin.html">
                     <span aria-hidden="true">⚙️</span> Tài khoản và nhật ký
-                </a>
-                <a href="loan-return.html">
-                    <span aria-hidden="true">🔄</span> Quản lý mượn / trả
                 </a>
             </nav>
 
@@ -135,7 +132,7 @@
                             <tr>
                                 <th>Tài khoản</th>
                                 <th>Email</th>
-                                <th style="width: 170px;">Vai trò hệ thống</th>
+                                <th style="width: 215px; min-width: 200px;">Vai trò hệ thống</th>
                                 <th style="text-align: center; width: 140px;">Trạng thái</th>
                                 <th style="text-align: right; width: 140px;">Thao tác</th>
                             </tr>
@@ -145,6 +142,9 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Phân trang chuẩn 10 tài khoản / trang -->
+                <div class="pagination" id="usersPagination"></div>
             </section>
 
             <!-- Nhật ký hệ thống (Audit Logs) -->
@@ -152,7 +152,7 @@
                 <div class="panel-head">
                     <div>
                         <h2>Nhật ký hoạt động hệ thống</h2>
-                        <p class="panel-description">100 thao tác gần nhất được ghi lại phục vụ mục đích kiểm toán và bảo mật.</p>
+                        <p class="panel-description">Ghi lại các thao tác phục vụ mục đích kiểm toán và bảo mật.</p>
                     </div>
                 </div>
 
@@ -171,6 +171,9 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Phân trang chuẩn 10 nhật ký / trang -->
+                <div class="pagination" id="logsPagination"></div>
             </section>
         </main>
     </div>

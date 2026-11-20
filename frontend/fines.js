@@ -8,40 +8,31 @@
 
 const fineTable = document.getElementById("fineTable");
 const fineMessage = document.getElementById("pageMessage");
+const FINE_PAGE_SIZE = 10;
+let currentFinePage = 1;
+let allFines = [];
 
 function fineMoney(value) {
     return `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
 }
 
-async function loadFines() {
-    fineMessage.hidden = true;
-    try {
-        const fines = await getFines();
-        const safeFines = Array.isArray(fines) ? fines : [];
+function renderFinePage() {
+    fineTable.replaceChildren();
 
-        document.getElementById("fineCount").textContent = `${safeFines.length} khoản phạt`;
+    const totalItems = allFines.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / FINE_PAGE_SIZE));
+    if (currentFinePage > totalPages) currentFinePage = totalPages;
 
-        // Tính tổng tiền phạt chưa thanh toán
-        const totalUnpaid = safeFines
-            .filter(fine => !fine.paid)
-            .reduce((sum, fine) => sum + Number(fine.amount || 0), 0);
-        
-        const totalFinesEl = document.getElementById("totalFinesSum");
-        if (totalFinesEl) {
-            totalFinesEl.textContent = fineMoney(totalUnpaid);
-        }
+    const startIdx = (currentFinePage - 1) * FINE_PAGE_SIZE;
+    const pageFines = allFines.slice(startIdx, startIdx + FINE_PAGE_SIZE);
 
-        fineTable.replaceChildren();
-
-        if (!safeFines.length) {
-            const cell = fineTable.insertRow().insertCell();
-            cell.colSpan = 7;
-            cell.className = "empty";
-            cell.textContent = "Hiện không có khoản phạt nào trong hệ thống.";
-            return;
-        }
-
-        safeFines.forEach(fine => {
+    if (!pageFines.length) {
+        const cell = fineTable.insertRow().insertCell();
+        cell.colSpan = 7;
+        cell.className = "empty";
+        cell.textContent = "Hiện không có khoản phạt nào trong hệ thống.";
+    } else {
+        pageFines.forEach(fine => {
             const row = fineTable.insertRow();
 
             // Mã phiếu
@@ -124,6 +115,46 @@ async function loadFines() {
                 actionCell.style.color = "var(--color-text-light)";
             }
         });
+    }
+
+    const paginationContainer = document.getElementById("finesPagination");
+    if (typeof PTIT !== "undefined" && PTIT.renderPagination && paginationContainer) {
+        PTIT.renderPagination({
+            container: paginationContainer,
+            currentPage: currentFinePage,
+            totalPages: totalPages,
+            totalItems: totalItems,
+            pageSize: FINE_PAGE_SIZE,
+            itemLabel: "khoản phạt",
+            onPageChange: function(newPage) {
+                currentFinePage = newPage;
+                renderFinePage();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        });
+    }
+}
+
+async function loadFines() {
+    fineMessage.hidden = true;
+    try {
+        const fines = await getFines();
+        allFines = Array.isArray(fines) ? fines : [];
+
+        document.getElementById("fineCount").textContent = `${allFines.length} khoản phạt`;
+
+        // Tính tổng tiền phạt chưa thanh toán
+        const totalUnpaid = allFines
+            .filter(fine => !fine.paid)
+            .reduce((sum, fine) => sum + Number(fine.amount || 0), 0);
+        
+        const totalFinesEl = document.getElementById("totalFinesSum");
+        if (totalFinesEl) {
+            totalFinesEl.textContent = fineMoney(totalUnpaid);
+        }
+
+        currentFinePage = 1;
+        renderFinePage();
     } catch (error) {
         fineTable.replaceChildren();
         fineMessage.textContent = "Không thể tải danh sách khoản phạt: " + error.message;

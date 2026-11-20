@@ -68,42 +68,61 @@ function getCategoryGradient(categoryName, index) {
 
 /**
  * Hiển thị 3 cuốn sách nổi bật ở khu vực Hero (CNTT, ATTT, Viễn thông)
- * Lấy ảnh bìa và thông tin trực tiếp từ API /api/books
+ * Lấy ảnh bìa và thông tin trực tiếp từ Database qua API /api/books
  */
 function renderHeroBooks(books) {
     if (!Array.isArray(books) || books.length === 0) return;
 
-    // Chọn 3 cuốn sách khác nhau, ưu tiên sách có ảnh
-    const withImage = books.filter(b => b.imageUrl || b.image_url);
-    const selected = withImage.slice(0, 3);
+    // Lọc theo 3 chuyên ngành tiêu biểu của PTIT
+    const cnttBook = books.find(b => {
+        const text = `${b.title || ""} ${b.categoryName || ""}`.toLowerCase();
+        return text.includes("thuật") || text.includes("lập trình") || text.includes("clean code") || text.includes("thông tin");
+    }) || books[0];
 
-    const heroIds = ["hero-book-1", "hero-book-2", "hero-book-3"];
-    selected.forEach(function (book, i) {
-        const el = document.getElementById(heroIds[i]);
-        if (!el) return;
+    const atttBook = books.find(b => {
+        const text = `${b.title || ""} ${b.categoryName || ""}`.toLowerCase();
+        return b !== cnttBook && (text.includes("cơ sở dữ liệu") || text.includes("an toàn") || text.includes("mạng") || text.includes("python"));
+    }) || books[1] || books[0];
+
+    const vtBook = books.find(b => {
+        const text = `${b.title || ""} ${b.categoryName || ""}`.toLowerCase();
+        return b !== cnttBook && b !== atttBook && (text.includes("viễn thông") || text.includes("không dây") || text.includes("thiên văn") || text.includes("khám phá"));
+    }) || books[2] || books[0];
+
+    const heroConfig = [
+        { id: "hero-book-1", badge: "CNTT", book: cnttBook },
+        { id: "hero-book-2", badge: "ATTT", book: atttBook },
+        { id: "hero-book-3", badge: "VIỄN THÔNG", book: vtBook }
+    ];
+
+    heroConfig.forEach(function (item) {
+        const el = document.getElementById(item.id);
+        if (!el || !item.book) return;
 
         const titleEl = el.querySelector(".hero-book-title");
         const authorEl = el.querySelector(".hero-book-author");
         const badgeEl = el.querySelector(".hero-book-badge");
         const imgEl = el.querySelector(".hero-book-img");
-        const category = book.categoryName || book.category_name || "Tài liệu";
 
-        if (titleEl) titleEl.textContent = book.title || "Sách học tập PTIT";
-        if (authorEl) authorEl.textContent = book.author || "Học viện PTIT";
-        if (badgeEl) badgeEl.textContent = category;
+        if (titleEl) titleEl.textContent = item.book.title || "Sách học tập PTIT";
+        if (authorEl) authorEl.textContent = item.book.author || "Học viện PTIT";
+        if (badgeEl) badgeEl.textContent = item.badge;
 
-        if (imgEl && (book.imageUrl || book.image_url)) {
-            const rawUrl = book.imageUrl || book.image_url;
+        if (imgEl && (item.book.imageUrl || item.book.image_url)) {
+            const rawUrl = item.book.imageUrl || item.book.image_url;
             let cleanUrl = String(rawUrl).trim();
             if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
                 cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
             }
             imgEl.src = cleanUrl;
             imgEl.style.display = "block";
+            imgEl.onerror = function () {
+                imgEl.style.display = "none";
+            };
         }
 
         // Cập nhật aria-label
-        el.setAttribute("aria-label", [book.title, book.author].filter(Boolean).join(" — "));
+        el.setAttribute("aria-label", [item.book.title, item.book.author].filter(Boolean).join(" — "));
     });
 }
 
@@ -444,7 +463,7 @@ function loadHomepageData() {
         homeStatsStatus.textContent = "Đang đồng bộ số liệu từ máy chủ thư viện…";
     }
 
-    const endpointUrl = homepageApiBaseUrl + "/api/books?page=1&size=100";
+    const endpointUrl = homepageApiBaseUrl + "/api/books?page=1&size=20";
 
     fetch(endpointUrl)
         .then(async function (response) {

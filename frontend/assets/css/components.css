@@ -872,16 +872,83 @@ details p {
 }
 
 /* ====================================================================
- * 10. PHÂN TRANG (PAGINATION)
+ * 10. PHÂN TRANG (PAGINATION) - ĐỒNG BỘ TOÀN DỰ ÁN
  * ==================================================================== */
 .pagination {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
     gap: var(--space-4);
-    margin-top: var(--space-8);
+    margin-top: var(--space-6);
     padding-top: var(--space-4);
     border-top: 1px solid var(--color-border-light);
+    width: 100%;
+}
+
+.pagination-info {
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-main);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    user-select: none;
+    line-height: 1;
+}
+
+.pagination-btn:hover:not([disabled]) {
+    background-color: var(--color-bg-subtle);
+    border-color: var(--color-border-strong);
+    color: var(--color-primary);
+}
+
+.pagination-btn.active {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #ffffff;
+    font-weight: 700;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(15, 92, 66, 0.25);
+}
+
+.pagination-btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.pagination-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 36px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    user-select: none;
 }
 
 .pagination span,

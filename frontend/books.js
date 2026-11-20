@@ -9,7 +9,7 @@ let books = [];
 let categories = [];
 let editingId = null;
 let currentPage = 1;
-const pageSize = 100;
+const pageSize = 10;
 
 const bookTable = document.getElementById("bookTable");
 const bookModal = document.getElementById("bookModal");
@@ -256,7 +256,8 @@ async function loadBooks() {
     `;
 
     try {
-        const response = await getBooks(currentPage, pageSize);
+        const keyword = searchInput ? searchInput.value.trim() : "";
+        const response = await getBooks(currentPage, pageSize, keyword);
 
         books = Array.isArray(response)
             ? response
@@ -265,25 +266,35 @@ async function loadBooks() {
         displayBooks(searchInput.value);
         updateStatistics();
 
-        const pageNumber = response.pageNumber || currentPage;
+        const totalItems = Number(response.totalElements ?? books.length);
         const totalPages = Math.max(
-            Number(response.totalPages || 1),
+            Number(response.totalPages ?? Math.ceil(totalItems / pageSize)),
             1
         );
 
-        const isLastPage =
-            typeof response.last === "boolean"
-                ? response.last
-                : currentPage >= totalPages;
-
-        document.getElementById("pageInfo").textContent =
-            `Trang ${pageNumber} / ${totalPages}`;
-
-        document.getElementById("previousPage").disabled =
-            currentPage <= 1;
-
-        document.getElementById("nextPage").disabled =
-            isLastPage;
+        const paginationContainer = document.getElementById("booksPagination") || document.querySelector(".pagination");
+        if (typeof PTIT !== "undefined" && PTIT.renderPagination && paginationContainer) {
+            PTIT.renderPagination({
+                container: paginationContainer,
+                currentPage: currentPage,
+                totalPages: totalPages,
+                totalItems: totalItems,
+                pageSize: pageSize,
+                itemLabel: "cuốn sách",
+                onPageChange: async function(newPage) {
+                    currentPage = newPage;
+                    await loadBooks();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+            });
+        } else {
+            const pageInfo = document.getElementById("pageInfo");
+            if (pageInfo) pageInfo.textContent = `Trang ${currentPage} / ${totalPages}`;
+            const prev = document.getElementById("previousPage");
+            if (prev) prev.disabled = currentPage <= 1;
+            const next = document.getElementById("nextPage");
+            if (next) next.disabled = currentPage >= totalPages;
+        }
     } catch (error) {
         bookTable.innerHTML = `
             <tr>
@@ -296,10 +307,12 @@ async function loadBooks() {
         books = [];
         updateStatistics();
 
-        document.getElementById("previousPage").disabled = true;
-        document.getElementById("nextPage").disabled = true;
-        document.getElementById("pageInfo").textContent =
-            "Không có dữ liệu";
+        const prev = document.getElementById("previousPage");
+        if (prev) prev.disabled = true;
+        const next = document.getElementById("nextPage");
+        if (next) next.disabled = true;
+        const pageInfo = document.getElementById("pageInfo");
+        if (pageInfo) pageInfo.textContent = "Không có dữ liệu";
 
         showMessage(error.message, "error");
     }
@@ -611,18 +624,25 @@ if (modalCloseIcon) {
     modalCloseIcon.addEventListener("click", closeModal);
 }
 
+let bookSearchDebounce = null;
 searchInput.addEventListener("input", function() {
-    displayBooks(this.value);
+    currentPage = 1;
+    clearTimeout(bookSearchDebounce);
+    bookSearchDebounce = setTimeout(async function() {
+        await loadBooks();
+    }, 280);
 });
 
 if (filterCategorySelect) {
     filterCategorySelect.addEventListener("change", function() {
+        currentPage = 1;
         displayBooks(searchInput.value);
     });
 }
 
 if (filterAvailabilitySelect) {
     filterAvailabilitySelect.addEventListener("change", function() {
+        currentPage = 1;
         displayBooks(searchInput.value);
     });
 }
