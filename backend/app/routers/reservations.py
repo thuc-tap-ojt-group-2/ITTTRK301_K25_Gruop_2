@@ -14,13 +14,16 @@ reader_only = RoleChecker(["READER", "USER"])
 
 
 @router.post("", response_model=ReservationResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ReservationResponse, status_code=status.HTTP_201_CREATED)
 def create_reservation(
     reservation_in: ReservationCreateRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(reader_only),
 ):
     return ReservationService.create(
-        db, user_id=current_user.id, book_id=reservation_in.book_id
+        db=db,
+        user_id=current_user.id,
+        book_id=reservation_in.book_id,
     )
 
 
@@ -29,7 +32,10 @@ def get_my_reservations(
     db: Session = Depends(get_db),
     current_user: User = Depends(reader_only),
 ):
-    return ReservationService.list_for_reader(db, user_id=current_user.id)
+    return ReservationService.list_for_reader(
+        db=db,
+        user_id=current_user.id,
+    )
 
 
 @router.delete("/{reservation_id}", response_model=ReservationResponse)
@@ -39,5 +45,7 @@ def cancel_reservation(
     current_user: User = Depends(reader_only),
 ):
     return ReservationService.cancel(
-        db, reservation_id=reservation_id, user_id=current_user.id
+        db=db,
+        reservation_id=reservation_id,
+        user_id=current_user.id,
     )

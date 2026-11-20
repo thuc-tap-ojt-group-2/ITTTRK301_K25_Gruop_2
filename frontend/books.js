@@ -5,7 +5,6 @@
  *           tìm kiếm và lọc theo thể loại / tình trạng Còn/Hết sách.
  * ====================================================================
  */
-
 let books = [];
 let categories = [];
 let editingId = null;
@@ -18,6 +17,7 @@ const bookForm = document.getElementById("bookForm");
 const searchInput = document.getElementById("searchInput");
 const categorySelect = document.getElementById("bookCategory");
 const messageBox = document.getElementById("messageBox");
+const modalMessage = document.getElementById("modalMessage");
 const categoryForm = document.getElementById("categoryForm");
 const categoryNameInput = document.getElementById("categoryName");
 const categoryTable = document.getElementById("categoryTable");
@@ -42,6 +42,17 @@ function showMessage(message, type = "success") {
 
 function hideMessage() {
     messageBox.hidden = true;
+}
+
+function showModalMessage(message, type = "error") {
+    modalMessage.textContent = message;
+    modalMessage.className = `message ${type}`;
+    modalMessage.hidden = false;
+}
+
+function hideModalMessage() {
+    modalMessage.hidden = true;
+    modalMessage.textContent = "";
 }
 
 function getBookCode(id) {
@@ -69,9 +80,7 @@ function updateStatistics() {
         )).toLocaleString("vi-VN");
 
     document.getElementById("totalCategories").textContent =
-        new Set(
-            books.map(book => book.categoryName).filter(Boolean)
-        ).size;
+        categories.length;
 }
 
 function updateUserInformation() {
@@ -127,6 +136,7 @@ async function loadCategories() {
     });
 
     displayCategories();
+    updateStatistics();
 }
 
 function showCategoryMessage(message, type = "success") {
@@ -137,6 +147,7 @@ function showCategoryMessage(message, type = "success") {
 
 function displayCategories() {
     categoryTable.replaceChildren();
+
     if (!categories.length) {
         const row = categoryTable.insertRow();
         const cell = row.insertCell();
@@ -159,6 +170,7 @@ function displayCategories() {
         edit.type = "button";
         edit.className = "btn btn--secondary btn--sm";
         edit.textContent = "Sửa";
+
         edit.addEventListener("click", () => {
             categoryEditingId = category.id;
             categoryNameInput.value = category.name;
@@ -174,7 +186,9 @@ function displayCategories() {
         remove.style.marginLeft = "8px";
         remove.addEventListener("click", async () => {
             if (!confirm(`Bạn có chắc chắn muốn xóa thể loại "${category.name}"?`)) return;
+
             remove.disabled = true;
+
             try {
                 await deleteCategory(category.id);
                 showCategoryMessage("Xóa thể loại thành công.");
@@ -200,10 +214,14 @@ function resetCategoryForm() {
 
 categoryForm.addEventListener("submit", async event => {
     event.preventDefault();
+
     const name = categoryNameInput.value.trim();
+
     if (!name) return;
+
     const saveButton = document.getElementById("saveCategoryButton");
     saveButton.disabled = true;
+
     try {
         if (categoryEditingId === null) {
             await createCategory({ name });
@@ -212,10 +230,12 @@ categoryForm.addEventListener("submit", async event => {
             await updateCategory(categoryEditingId, { name });
             showCategoryMessage("Cập nhật thể loại thành công.");
         }
+
         categoryEditingId = null;
         categoryForm.reset();
         document.getElementById("saveCategoryButton").textContent = "Thêm thể loại";
         document.getElementById("cancelCategoryEdit").hidden = true;
+
         await loadCategories();
     } catch (error) {
         showCategoryMessage(error.message, "error");
@@ -382,6 +402,7 @@ function openAddModal() {
         "Lưu sách";
 
     hideMessage();
+    hideModalMessage();
     bookModal.classList.add("show");
 }
 
@@ -390,6 +411,7 @@ function closeModal() {
     bookForm.reset();
     editingId = null;
     hideMessage();
+    hideModalMessage();
 }
 
 function editBook(id) {
@@ -424,6 +446,7 @@ function editBook(id) {
     categorySelect.value = category ? category.id : "";
 
     hideMessage();
+    hideModalMessage();
     bookModal.classList.add("show");
 }
 
@@ -435,15 +458,15 @@ function validateBook() {
     const imageUrl = bookImage.value.trim();
 
     if (!title || !author || !categoryId) {
-        showMessage(
-            "Vui lòng nhập đầy đủ tên sách, tác giả và chọn thể loại.",
+        showModalMessage(
+            "Vui lòng nhập đầy đủ tên sách, tác giả và thể loại.",
             "error"
         );
         return null;
     }
 
     if (!Number.isInteger(total) || total < 1) {
-        showMessage(
+        showModalMessage(
             "Tổng số bản phải là số nguyên lớn hơn hoặc bằng 1.",
             "error"
         );
@@ -462,7 +485,7 @@ function validateBook() {
                 - Number(currentBook.reservedCopies || 0);
 
             if (total < borrowedCopies) {
-                showMessage(
+                showModalMessage(
                     `Tổng số bản không được nhỏ hơn ${borrowedCopies} bản đang được mượn.`,
                     "error"
                 );
@@ -472,8 +495,8 @@ function validateBook() {
     }
 
     if (imageUrl && !bookImage.checkValidity()) {
-        showMessage(
-            "Đường dẫn ảnh bìa không đúng định dạng URL.",
+        showModalMessage(
+            "Đường dẫn ảnh bìa không hợp lệ.",
             "error"
         );
         return null;
@@ -532,7 +555,7 @@ async function removeBook(id, button = null) {
 
 bookForm.addEventListener("submit", async function(event) {
     event.preventDefault();
-    hideMessage();
+    hideModalMessage();
 
     const bookData = validateBook();
 
@@ -556,7 +579,7 @@ bookForm.addEventListener("submit", async function(event) {
 
         await loadBooks();
     } catch (error) {
-        showMessage(error.message, "error");
+        showModalMessage(error.message, "error");
     } finally {
         saveButton.disabled = false;
     }

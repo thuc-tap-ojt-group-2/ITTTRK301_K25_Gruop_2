@@ -5,7 +5,6 @@
  *           phân loại theo tab trạng thái và tìm kiếm độc giả/sách.
  * ====================================================================
  */
-
 const LOAN_PAGE_SIZE = 10;
 
 let allLoans = [];

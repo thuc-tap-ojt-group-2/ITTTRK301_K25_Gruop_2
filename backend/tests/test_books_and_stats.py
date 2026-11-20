@@ -1,0 +1,131 @@
+import unittest
+from datetime import date, timedelta
+
+from fastapi import HTTPException
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import sessionmaker
+
+from app import auth_service, crud, schemas
+from app.database import Base
+from app.loan_service import LoanService
+from app.models import Book, Category, User
+
+
+class BooksAndStatsTests(unittest.TestCase):
+    def setUp(self):
+        self.engine = create_engine("sqlite://")
+
+        @event.listens_for(self.engine, "connect")
+        def _register_mysql_functions(dbapi_connection, _connection_record):
+            dbapi_connection.create_function(
+                "date_format", 2, lambda d, _fmt: str(d)[:7] if d else None
+            )
+            
+        Base.metadata.create_all(bind=self.engine)
+        self.Session = sessionmaker(bind=self.engine)
+        self.db = self.Session()
+
+        self.db.add(Category(id=1, name="Công nghệ thông tin"))
+        self.db.add(
+            User(
+                id=1,
+                username="reader_1",
+                email="reader1@ptit.edu.vn",
+                password_hash=auth_service.hash_password("123456"),
+                full_name="Độc Giả Một",
+                role="READER",
+            )
+        )
+        self.db.add(
+            User(
+                id=2,
+                username="librarian_1",
+                email="lib1@ptit.edu.vn",
+                password_hash=auth_service.hash_password("123456"),
+                full_name="Thủ Thư Một",
+                role="LIBRARIAN",
+            )
+        )
+        self.db.add(
+            Book(
+                id=1,
+                title="Lập trình Python nâng cao",
+                author="Nguyễn Hoàng Thành",
+                category_id=1,
+                total_copies=2,
+                available_copies=2,
+            )
+        )
+        self.db.commit()
+
+    def tearDown(self):
+        self.db.close()
+        self.engine.dispose()
+
+    def test_categories_and_books_crud(self):
+        cat = crud.create_category(
+            self.db, schemas.CategoryCreateRequest(name="Toán ứng dụng"), actor_id=2
+        )
+        self.assertEqual(cat.name, "Toán ứng dụng")
+
+        updated_cat = crud.update_category(
+            self.db, cat.id, schemas.CategoryUpdateRequest(name="Toán rời rạc"), actor_id=2
+        )
+        self.assertEqual(updated_cat.name, "Toán rời rạc")
+
+        created_book = crud.create_book(
+            self.db,
+            schemas.BookCreateRequest(
+                title="Cấu trúc dữ liệu và Giải thuật",
+                author="Tác giả A",
+                categoryId=cat.id,
+                total=5,
+            ),
+            actor_id=2,
+        )
+        self.assertEqual(created_book.totalCopies, 5)
+        self.assertEqual(created_book.availableCopies, 5)
+
+        # Chặn xóa thể loại đang có sách liên kết
+        with self.assertRaises(HTTPException) as cat_err:
+            crud.delete_category(self.db, cat.id, actor_id=2)
+        self.assertEqual(cat_err.exception.status_code, 409)
+
+        # Cập nhật thông tin & số bản sách
+        updated_book = crud.update_book(
+            self.db,
+            created_book.id,
+            schemas.BookUpdateRequest(title="CTDL & Giải thuật (Tái bản)", total=3),
+            actor_id=2,
+        )
+        self.assertEqual(updated_book.totalCopies, 3)
+        self.assertEqual(updated_book.availableCopies, 3)
+
+        # Xóa sách và xóa thể loại rỗng
+        res = crud.delete_book(self.db, created_book.id, actor_id=2)
+        self.assertIn("thành công", res["message"])
+        crud.delete_category(self.db, cat.id, actor_id=2)
+
+    def test_statistics_overview_top_books_and_monthly(self):
+        loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=7)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+        loan.due_date = date.today() - timedelta(days=2)
+        self.db.commit()
+        LoanService.return_book(self.db, loan.id, librarian_id=2)
+
+        overview = crud.get_stats_overview(self.db)
+        self.assertEqual(overview.totalBooks, 2)
+        self.assertEqual(overview.totalFines, 10000.0)
+
+        top_books = crud.get_top_borrowed_books(self.db, limit=5)
+        self.assertEqual(len(top_books), 1)
+        self.assertEqual(top_books[0].bookId, 1)
+        self.assertEqual(top_books[0].borrowCount, 1)
+
+        monthly = crud.get_monthly_loan_stats(self.db, months=6)
+        self.assertEqual(len(monthly), 6)
+        self.assertEqual(sum(item.loanCount for item in monthly), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
