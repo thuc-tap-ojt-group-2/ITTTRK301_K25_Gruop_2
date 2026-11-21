@@ -2,7 +2,14 @@
  * ====================================================================
  * THƯ VIỆN PTIT - PAGES STYLES
  * pages.css: Định kiểu chuyên biệt cho từng trang
- * (index/landing, login, register, dashboard, books, loans, readers, fines, admin)
+ * 1. Landing Page (index.html)
+ * 2. Auth Pages (login.html, register.html)
+ * 3. Dashboard (dashboard.html)
+ * 4. Quản lý sách & thể loại (books.html)
+ * 5. Duyệt & Quản lý mượn trả (loans.html)
+ * 6. Quản lý độc giả (readers.html)
+ * 7. Quản lý tiền phạt (fines.html)
+ * 8. Quản trị hệ thống (admin.html)
  * ====================================================================
  */
 
@@ -10,7 +17,7 @@
  * 1. TRANG CHỦ / LANDING PAGE (index.html)
  * ==================================================================== */
 
-/* Hero section 2 cột cân đối: tỷ lệ 1.1fr 0.9fr, gap 64px, min-height 560px (LỖI 1 & LỖI 4) */
+/* Hero section 2 cột cân đối: tỷ lệ 1.1fr 0.9fr, gap 64px, min-height 560px */
 .landing-hero {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
@@ -18,7 +25,7 @@
     align-items: center;
     padding: 48px 0 64px 0;
     width: 100%;
-    min-height: 560px; /* Khóa min-height cố định khoảng 560px chống nhảy bố cục (LỖI 1) */
+    min-height: 560px;
     box-sizing: border-box;
 }
 
@@ -32,12 +39,12 @@
 
 @media (min-width: 1200px) {
     .hero-copy {
-        min-width: 520px; /* Cột trái không hẹp hơn 520px ở màn hình >= 1200px */
+        min-width: 520px;
     }
 }
 
 .hero-copy h1 {
-    font-size: clamp(38px, 4.4vw, 56px); /* H1 56px tối đa 3 dòng (LỖI 4) */
+    font-size: clamp(38px, 4.4vw, 56px);
     line-height: 1.2;
     margin-bottom: var(--space-4);
     color: var(--color-text-main);
@@ -52,17 +59,17 @@
 }
 
 .hero-description {
-    font-size: 18px; /* Mô tả 18px rõ ràng, cân đối (LỖI 4) */
+    font-size: 18px;
     line-height: 1.65;
     color: var(--color-text-muted);
     margin-bottom: 28px;
     max-width: 560px;
 }
 
-/* Thanh tìm kiếm Hero: cao 60px, nút "Tìm kiếm" cao bằng thanh (LỖI 4) */
+/* Thanh tìm kiếm Hero: cao 60px */
 .hero-search-box {
     width: 100%;
-    height: 60px; /* Thanh tìm kiếm cao 60px (LỖI 4) */
+    height: 60px;
     min-height: 60px;
     background-color: var(--color-bg-surface);
     border: 2px solid var(--color-border);
@@ -85,7 +92,6 @@
     box-shadow: 0 12px 36px rgba(15, 92, 66, 0.15);
 }
 
-/* Select lọc cố định 140px, cao khớp thanh tìm kiếm */
 .hero-search-select {
     flex: 0 0 140px;
     width: 140px;
@@ -102,7 +108,6 @@
     box-sizing: border-box;
 }
 
-/* Input co giãn linh hoạt */
 .hero-search-input {
     flex: 1 1 auto;
     min-width: 0;
@@ -120,7 +125,6 @@
     box-shadow: none;
 }
 
-/* Nút tìm kiếm cố định, cao bằng thanh (48px trong khung 60px) */
 .hero-search-btn {
     flex: 0 0 auto;
     white-space: nowrap;
@@ -133,7 +137,6 @@
     box-sizing: border-box;
 }
 
-/* Nhóm 2 nút Hero: cao 48px (LỖI 4) */
 .hero-actions {
     display: flex;
     align-items: center;
@@ -143,7 +146,7 @@
 }
 
 .hero-actions .btn {
-    height: 48px; /* Nhóm 2 nút cao 48px chuẩn (LỖI 4) */
+    height: 48px;
     min-height: 48px;
     padding: 0 24px;
     font-size: 16px;
@@ -185,7 +188,7 @@
     margin: 0;
 }
 
-/* Cột phải Hero: Khối 3 bìa sách cao khoảng 400px trên vầng tròn xanh nhạt lớn (LỖI 4) */
+/* Cột phải Hero: Khối 3 bìa sách 3D */
 .hero-art {
     position: relative;
     display: flex;
@@ -197,7 +200,6 @@
     overflow: visible;
 }
 
-/* Vầng tròn xanh nhạt lớn, bóng đổ mềm (LỖI 4) */
 .hero-art::before {
     content: "";
     position: absolute;
@@ -209,14 +211,15 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 24px 60px rgba(15, 92, 66, 0.10); /* Bóng đổ mềm */
+    box-shadow: 0 24px 60px rgba(15, 92, 66, 0.10);
 }
 
-/* Khối 3 bìa sách cao khoảng 400px (LỖI 4) */
 .hero-stacked-books {
+    perspective: 1300px;
+    transform-style: preserve-3d;
     position: relative;
     width: 380px;
-    height: 420px; /* Khung hiển thị sách cao ~400px */
+    height: 420px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -236,8 +239,10 @@
     transition: transform var(--duration-hover) var(--ease-standard),
                 box-shadow var(--duration-hover) var(--ease-standard);
     cursor: pointer;
-    overflow: visible;
+    overflow: hidden;
     box-sizing: border-box;
+    transform-style: preserve-3d;
+    will-change: transform;
 }
 
 .hero-book-card::before {
@@ -250,12 +255,27 @@
     background: linear-gradient(90deg, rgba(255,255,255,0.25), rgba(0,0,0,0.15));
     border-top-left-radius: 16px;
     border-bottom-left-radius: 16px;
+    z-index: 3;
 }
 
-/* 2 cuốn hai bên ~320-350px lệch góc và độ sâu, cuốn giữa cao ~400px */
+.hero-book-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.3) 50%, transparent 65%);
+    transform: translateX(-100%);
+    transition: transform 0.6s var(--ease-standard);
+    pointer-events: none;
+    z-index: 4;
+}
+
+.hero-book-card:hover::after {
+    transform: translateX(100%);
+}
+
 .hero-book-card--1 {
     width: 230px;
-    height: 335px; /* Cuốn bên trái cao ~335px */
+    height: 335px;
     background: linear-gradient(135deg, #137547 0%, #0A4331 100%);
     transform: rotate(-10deg) translate(-55px, 20px);
     z-index: 1;
@@ -263,7 +283,7 @@
 
 .hero-book-card--2 {
     width: 260px;
-    height: 395px; /* Cuốn giữa cao ~400px */
+    height: 395px;
     background: linear-gradient(135deg, #1F4E79 0%, #102A43 100%);
     transform: rotate(2deg) translate(5px, -10px);
     z-index: 2;
@@ -271,7 +291,7 @@
 
 .hero-book-card--3 {
     width: 230px;
-    height: 335px; /* Cuốn bên phải cao ~335px */
+    height: 335px;
     background: linear-gradient(135deg, #C88A2E 0%, #7D5110 100%);
     transform: rotate(12deg) translate(65px, 35px);
     z-index: 3;
@@ -288,9 +308,11 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 3px 8px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.22);
     border-radius: var(--radius-pill);
     align-self: flex-start;
+    position: relative;
+    z-index: 2;
 }
 
 .hero-book-title {
@@ -302,21 +324,24 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    position: relative;
+    z-index: 2;
 }
 
 .hero-book-author {
     font-size: 13px;
-    opacity: 0.85;
+    opacity: 0.9;
     margin-top: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    position: relative;
+    z-index: 2;
 }
 
-/* Thẻ nổi "Sách từ thư viện PTIT" ở góc dưới trái (LỖI 4) */
 .hero-badge-floating {
     position: absolute;
-    bottom: 12px; /* Góc dưới trái chuẩn mực (LỖI 4) */
+    bottom: 12px;
     left: -16px;
     background: var(--color-bg-surface);
     color: var(--color-primary-dark);
@@ -332,9 +357,7 @@
     gap: 6px;
 }
 
-/* ====================================================================
- * THỐNG KÊ 3 Ô SỐ LỚN ĐỀU (A5) - SỐ 44PX MÀU PRIMARY, NHÃN 15PX
- * ==================================================================== */
+/* Thống kê 3 ô số lớn */
 .landing-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -356,7 +379,7 @@
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
-    border-right: 1px solid var(--color-border-light); /* Vạch ngăn mảnh */
+    border-right: 1px solid var(--color-border-light);
 }
 
 .landing-stat:last-child {
@@ -364,7 +387,7 @@
 }
 
 .landing-stat strong {
-    font-size: 44px; /* Chuẩn A5: Số 44px màu primary */
+    font-size: 44px;
     font-weight: 800;
     color: var(--color-primary);
     line-height: 1.1;
@@ -372,7 +395,7 @@
 }
 
 .landing-stat span {
-    font-size: 15px; /* Chuẩn A5: Nhãn 15px */
+    font-size: 15px;
     font-weight: 600;
     color: var(--color-text-muted);
 }
@@ -380,13 +403,13 @@
 .landing-stats-note {
     grid-column: 1 / -1;
     text-align: center;
-    font-size: 13px; /* Chuẩn A5: Ghi chú 13px tương phản >= 4.5:1 */
+    font-size: 13px;
     color: var(--color-text-muted);
     margin-top: var(--space-2);
 }
 
 /* ====================================================================
- * SECTION "SÁCH & GIÁO TRÌNH NỔI BẬT" (A4) - LƯỚI 6 CỘT ĐỀU, CARD CAO BẰNG NHAU
+ * SECTION "SÁCH & GIÁO TRÌNH NỔI BẬT" - LƯỚI 3x2 CÂN ĐỐI, BÌA TỶ LỆ 3/4
  * ==================================================================== */
 .featured-books-section {
     padding: var(--space-8) 0 var(--space-16);
@@ -399,76 +422,94 @@
     box-sizing: border-box;
 }
 
-/* Lưới 6 cột đều nhau trên desktop, Gap 24px (A4) */
 .featured-books-grid,
 .book-track {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
     width: 100%;
     box-sizing: border-box;
 }
 
-/* Card dọc: các card cùng hàng cao bằng nhau */
 .featured-book-card {
     display: flex;
     flex-direction: column;
-    width: 100%;
+    background-color: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard),
+                border-color var(--duration-hover) var(--ease-standard);
+    will-change: transform;
     height: 100%;
-    transition: transform var(--duration-hover) var(--ease-standard);
-    cursor: pointer;
+    min-height: 0;
     text-decoration: none;
     color: inherit;
     position: relative;
 }
 
-/* Ảnh bìa: aspect-ratio 2/3, bo 12px, hover nâng 6px (LỖI 3) */
-.featured-book-card {
-    transition: transform var(--duration-hover) var(--ease-standard),
-                box-shadow var(--duration-hover) var(--ease-standard);
+.featured-book-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px rgba(10, 67, 49, 0.16);
+    border-color: var(--color-primary);
 }
 
-.featured-book-card:hover {
-    transform: translateY(-6px); /* Hover nâng 6px theo yêu cầu LỖI 3 */
-    box-shadow: 0 16px 32px rgba(10, 67, 49, 0.16);
+.featured-book-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    transform: translateY(-4px);
 }
 
 .featured-book-cover {
-    width: 100%;
-    aspect-ratio: 2 / 3; /* Tỉ lệ bìa sách 2:3 chuẩn (LỖI 3) */
-    border-radius: 12px;
-    overflow: hidden;
     position: relative;
-    background-color: var(--color-primary-dark);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    transition: transform var(--duration-hover) var(--ease-standard),
-                box-shadow var(--duration-hover) var(--ease-standard);
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background-color: var(--color-bg-subtle);
+    border-bottom: 1px solid var(--color-border-light);
 }
 
-.featured-book-cover img {
+.featured-book-cover img.featured-book-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     display: block;
     transition: transform var(--duration-hover) var(--ease-standard);
 }
 
-/* Bìa dự phòng đa dạng màu sắc theo thể loại + họa tiết gáy sách + tên sách căn giữa (LỖI 3) */
+.featured-book-card:hover .featured-book-img {
+    transform: scale(1.04) rotate(-1deg);
+}
+
+.featured-book-cover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.65s var(--ease-standard);
+    pointer-events: none;
+}
+
+.featured-book-card:hover .featured-book-cover::after {
+    transform: translateX(100%);
+}
+
 .featured-book-fallback {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 18px 16px;
+    padding: 20px 18px;
     box-sizing: border-box;
-    color: #FFFFFF;
+    color: #ffffff;
     position: relative;
-    background: transparent; /* Màu gradient riêng biệt được gán theo từng thể loại trong JS */
-    border-radius: 12px;
 }
 
-/* Họa tiết gáy sách trên bìa dự phòng (LỖI 3) */
 .featured-book-fallback::before {
     content: "";
     position: absolute;
@@ -476,22 +517,20 @@
     left: 0;
     bottom: 0;
     width: 14px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.25) 0%, rgba(0, 0, 0, 0.08) 70%, rgba(0, 0, 0, 0.3) 100%);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0%, rgba(0, 0, 0, 0.08) 70%, rgba(0, 0, 0, 0.32) 100%);
     border-right: 1px dashed rgba(255, 255, 255, 0.35);
     box-shadow: inset 2px 0 4px rgba(0, 0, 0, 0.2);
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
 }
 
 .featured-book-fallback-tag {
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.95);
-    background: rgba(0, 0, 0, 0.25);
-    padding: 3px 8px;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.28);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
     align-self: center;
     max-width: 90%;
     white-space: nowrap;
@@ -500,20 +539,19 @@
 }
 
 .featured-book-fallback-icon {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     color: var(--color-accent-gold);
-    opacity: 0.85;
+    opacity: 0.9;
     margin: 8px 0;
     align-self: center;
 }
 
-/* Tên sách chữ trắng căn giữa tối đa 3 dòng (LỖI 3) */
 .featured-book-fallback-title {
     font-size: 15px;
     font-weight: 700;
     line-height: 1.35;
-    color: #FFFFFF;
+    color: #ffffff;
     text-align: center;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     display: -webkit-box;
@@ -524,11 +562,10 @@
     padding: 0 6px;
 }
 
-/* Tên tác giả nhỏ bên dưới, không chồng chữ lên chữ (LỖI 3) */
 .featured-book-fallback-author {
     font-size: 12px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.88);
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -548,29 +585,25 @@
     gap: 4px;
     margin-top: 4px;
 }
-    gap: 4px;
-}
 
-/* Thông tin đặt DƯỚI ảnh (không đè lên ảnh theo A4) */
 .featured-book-info {
-    padding-top: 12px;
+    padding: var(--space-4) var(--space-5) var(--space-5);
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    gap: var(--space-2);
 }
 
 .featured-book-cat {
-    font-size: 12px; /* Thể loại 12px */
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     color: var(--color-primary);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: 3px;
+    letter-spacing: 0.05em;
 }
 
-/* Tên sách: tối đa 2 dòng (A4) */
 .featured-book-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     line-height: 1.35;
     color: var(--color-text-main);
@@ -578,13 +611,12 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    height: 40px;
-    margin-bottom: 4px;
+    height: 42px;
+    margin: 0;
 }
 
-/* Tác giả: 14px, màu phụ (A4) */
 .featured-book-author {
-    font-size: 14px;
+    font-size: 13.5px;
     color: var(--color-text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -592,16 +624,39 @@
     margin: 0;
 }
 
-.book-ticker-status {
-    text-align: center;
-    font-size: 14px;
-    color: var(--color-text-muted);
-    margin-top: var(--space-4);
+.featured-book-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 16px;
+    margin-top: auto;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-primary-dark);
+    background-color: var(--color-primary-soft);
+    border: 1px solid var(--color-primary-soft-hover);
+    border-radius: var(--radius-btn);
+    transition: background-color var(--duration-fast) var(--ease-standard),
+                color var(--duration-fast) var(--ease-standard);
+    cursor: pointer;
 }
 
-/* ====================================================================
- * TRẠNG THÁI LỖI MÁY CHỦ TRANG CHỦ (HOMEPAGE ERROR STATE & RETRY)
- * ==================================================================== */
+.featured-book-card:hover .featured-book-action {
+    background-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.featured-books-grid .featured-book-card:nth-child(1) { transition-delay: 0.00s; }
+.featured-books-grid .featured-book-card:nth-child(2) { transition-delay: 0.06s; }
+.featured-books-grid .featured-book-card:nth-child(3) { transition-delay: 0.12s; }
+.featured-books-grid .featured-book-card:nth-child(4) { transition-delay: 0.18s; }
+.featured-books-grid .featured-book-card:nth-child(5) { transition-delay: 0.24s; }
+.featured-books-grid .featured-book-card:nth-child(6) { transition-delay: 0.30s; }
+
+/* Trạng thái lỗi máy chủ trang chủ */
 .homepage-error-state {
     grid-column: 1 / -1;
     display: flex;
@@ -653,9 +708,7 @@
     cursor: pointer;
 }
 
-/* ====================================================================
- * 3 LỢI ÍCH ĐÁNH SỐ (HIGHLIGHTS)
- * ==================================================================== */
+/* 3 Lợi ích đánh số (Highlights) */
 .landing-highlights {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -701,9 +754,7 @@
     margin-bottom: var(--space-2);
 }
 
-/* ====================================================================
- * VỀ THƯ VIỆN (A6) - 2 CỘT, ĐOẠN VĂN TỐI ĐA ~60 KÝ TỰ/DÒNG
- * ==================================================================== */
+/* Về thư viện PTIT - 2 cột */
 .about-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -714,14 +765,14 @@
 }
 
 .about-grid p {
-    max-width: 65ch; /* Chuẩn A6: đoạn văn tối đa khoảng 60-65 ký tự/dòng */
+    max-width: 65ch;
     line-height: 1.75;
     font-size: 16px;
 }
 
 .about-note {
     background: linear-gradient(135deg, var(--color-primary-soft) 0%, #f0f7f3 100%);
-    border-left: 4px solid var(--color-accent-gold); /* Viền vàng phải theo A6 */
+    border-left: 4px solid var(--color-accent-gold);
     border-radius: 0 var(--radius-card) var(--radius-card) 0;
     padding: var(--space-8) var(--space-10);
     display: flex;
@@ -743,9 +794,7 @@
     line-height: 1.6;
 }
 
-/* ====================================================================
- * DỊCH VỤ THƯ VIỆN
- * ==================================================================== */
+/* Dịch vụ thư viện */
 .service-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -811,9 +860,7 @@
     color: var(--color-primary-dark);
 }
 
-/* ====================================================================
- * 3 BƯỚC MƯỢN SÁCH (A6, A7) - SỐ 01/02/03 32PX MÀU VÀNG
- * ==================================================================== */
+/* 3 Bước mượn sách - số 01/02/03 vàng */
 .rules-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -834,19 +881,17 @@
 }
 
 .rules-list article span {
-    font-size: 32px; /* Chuẩn A7: Số 01/02/03 32px */
+    font-size: 32px;
     font-weight: 800;
-    color: var(--color-accent-gold); /* Màu vàng */
+    color: var(--color-accent-gold);
     line-height: 1;
 }
 
-/* ====================================================================
- * KHỐI CTA XANH ĐẬM (A7, C9) - H2 34PX, NÚT TRẮNG CAO 48PX
- * ==================================================================== */
+/* Khối CTA xanh đậm */
 .landing-contact {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 50%, #063124 100%);
     background-size: 200% 200%;
-    animation: cta-gradient-shift 20s ease infinite; /* C9: Chuyển động chậm 20s */
+    animation: cta-gradient-shift 20s ease infinite;
     border-radius: var(--radius-lg);
     padding: var(--space-16) var(--space-12);
     color: #ffffff;
@@ -868,7 +913,7 @@
 
 .landing-contact h2 {
     color: #ffffff;
-    font-size: 34px; /* Chuẩn A7: H2 34px */
+    font-size: 34px;
     margin-top: var(--space-2);
 }
 
@@ -876,7 +921,6 @@
     color: var(--color-accent-gold-soft);
 }
 
-/* Nút trắng nhịp sáng nhẹ (pulse 3s một lần, dừng khi hover theo C9) */
 .landing-contact .btn--light {
     animation: btn-pulse 3s infinite;
 }
@@ -886,12 +930,8 @@
 }
 
 @keyframes btn-pulse {
-    0%, 100% {
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-    }
-    50% {
-        box-shadow: 0 0 24px rgba(255, 255, 255, 0.6);
-    }
+    0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15); }
+    50% { box-shadow: 0 0 24px rgba(255, 255, 255, 0.6); }
 }
 
 /* ====================================================================
@@ -1028,6 +1068,29 @@ section.statistics {
     margin-bottom: var(--space-8);
 }
 
+/* Hài hòa chỉ số thẻ thống kê mọi trang */
+.card--stat strong,
+.stat strong,
+.stat-card b {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--color-primary-dark);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    display: block;
+}
+
+.card--stat p,
+.stat p,
+.stat-card span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0;
+}
+
 .panel {
     background-color: var(--color-bg-surface);
     border: 1px solid var(--color-border);
@@ -1101,490 +1164,194 @@ section.statistics {
 }
 
 /* ====================================================================
- * 4. QUẢN LÝ SÁCH (books.html)
+ * 4. QUẢN LÝ SÁCH & THỂ LOẠI (books.html)
  * ==================================================================== */
+
+/* Thanh công cụ lọc và tìm kiếm sách */
 .tools {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    flex-wrap: wrap;
 }
 
-.tools .search {
-    width: 280px;
+.tools .search,
+.tools input[type="search"],
+.tools input[type="text"],
+.tools select {
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-btn);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-main);
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color var(--duration-fast) var(--ease-standard),
+                box-shadow var(--duration-fast) var(--ease-standard);
 }
 
+.tools .search:focus,
+.tools input:focus,
+.tools select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+    outline: none;
+}
+
+.tools input.search {
+    min-width: 260px;
+    flex-grow: 1;
+}
+
+/* Danh sách sách trong bảng */
 .book-name {
     font-weight: 600;
     color: var(--color-primary-dark);
+    line-height: 1.4;
 }
 
 .actions {
     display: inline-flex;
-    gap: var(--space-2);
-}
-
-/* ====================================================================
- * 4. HIỆU ỨNG HERO 3D & SÁCH LẮT MỢT (NÂNG CẤP UI/UX)
- * ==================================================================== */
-
-/* Khối chứa 3 bìa sách hero: perspective 1300px, preserve-3d */
-.hero-stacked-books {
-    perspective: 1300px;
-    transform-style: preserve-3d;
-    position: relative;
-}
-
-/* Mỗi bài sách hero: preserve-3d, chỉ animate transform/opacity (60fps) */
-.hero-book-card {
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform var(--duration-hover) var(--ease-standard),
-                box-shadow var(--duration-hover) var(--ease-standard);
-    will-change: transform;
-}
-
-/* Hover: nghiêng nhẹ 3D + nâng lên + bóng gáy sách */
-.hero-book-card:hover,
-.hero-book-card:focus-visible {
-    transform: perspective(1300px) rotateX(-4deg) rotateY(6deg) translateY(-6px);
-    z-index: 2;
-}
-
-.hero-book-card--1:hover { transform: perspective(1300px) rotateX(-4deg) rotateY(8deg) translate(-6px, -8px); }
-.hero-book-card--2:hover { transform: perspective(1300px) rotateX(-4deg) rotateY(0deg) translateY(-8px); }
-.hero-book-card--3:hover { transform: perspective(1300px) rotateX(-4deg) rotateY(-8deg) translate(6px, -8px); }
-
-/* Ánh sáng lướt nhẹ (sheen/glow) dọc mặt bìa khi hover */
-.hero-book-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.45) 45%,
-        rgba(255, 255, 255, 0.15) 55%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: translateX(-110%) translateZ(1px);
-    opacity: 0;
-    transition: opacity var(--duration-hover) var(--ease-standard),
-                transform var(--duration-hover) var(--ease-standard);
-    pointer-events: none;
-    z-index: 1;
-}
-
-.hero-book-card:hover::after,
-.hero-book-card:focus-visible::after {
-    transform: translateX(110%) translateZ(1px);
-    opacity: 1;
-}
-
-/* Badge thể loại trên bìa hero */
-.hero-book-badge {
-    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-height: 24px;
-    padding: 2px 10px;
-    border-radius: var(--radius-pill);
-    background-color: var(--color-primary-soft);
-    color: var(--color-primary-dark);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    box-shadow: var(--shadow-xs);
+    gap: var(--space-2);
+    justify-content: flex-end;
 }
 
-/* Logo PTIT trong header: chuyển động đàn hồi nhẹ khi hover */
-.brand-logo {
-    display: inline-block;
-    transform-origin: center;
-    transition: transform var(--duration-hover) var(--ease-spring);
-}
-
-.brand-logo:hover {
-    transform: scale(1.08) rotate(-2deg);
-}
-
-/* ====================================================================
- * Hero Book Cover: ảnh thật + lớp phủ gradient tối để chữ trắng nổi bật
- * ==================================================================== */
-.hero-book-cover-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    border-radius: 12px;
-    margin-top: var(--space-3);
-}
-
-.hero-book-cover-wrapper img.hero-book-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-    transition: transform var(--duration-hover) var(--ease-standard);
-}
-
-.hero-book-card:hover .hero-book-img {
-    transform: scale(1.05);
-}
-
-/* Lớp phủ gradient tối phía dưới ảnh để chữ trắng nổi bật */
-.hero-book-gradient {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to bottom,
-        rgba(15, 92, 66, 0.35) 0%,
-        rgba(10, 67, 49, 0.75) 60%,
-        rgba(10, 67, 49, 0.95) 100%
-    );
-    border-radius: 12px;
-    transition: opacity var(--duration-hover) var(--ease-standard);
-    pointer-events: none;
-}
-
-.hero-book-card:hover .hero-book-gradient {
-    opacity: 0.85;
-}
-
-/* Đảm bảo tiêu đề và tác giả nằm trên lớp phủ, màu trắng */
-.hero-book-card > div {
-    position: relative;
-    z-index: 2;
-}
-
-.hero-book-card .hero-book-title {
-    color: #ffffff;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.hero-book-card .hero-book-author {
-    color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-    font-size: 13px;
-    margin: var(--space-1) 0 0 0;
-}
-
-/* ====================================================================
- * 5. SÁCH & GIÁO TRÌNH NỔI BẬT - LƯỚI MỚI (thay thế lưới 6 cột bị nhíp)
- * ==================================================================== */
-
-.featured-books-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-6);
-    width: 100%;
-}
-
-.featured-book-card {
-    display: flex;
-    flex-direction: column;
-    background-color: #ffffff;
-    border: 1px solid #e6ece9;
-    border-radius: 16px;
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
-    transition: transform var(--duration-hover) var(--ease-standard),
-                box-shadow var(--duration-hover) var(--ease-standard),
-                border-color var(--duration-hover) var(--ease-standard);
-    will-change: transform;
-    height: 100%;
-    min-height: 0;
-}
-
-/* Khung bìa sách: tỷ lệ 3/4, object-fit cover, bo góc trên gọn gàng */
-.featured-book-cover {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
+/* Form chỉnh sửa thể loại */
+#categoryForm {
     background-color: var(--color-bg-subtle);
-    border-bottom: 1px solid #e6ece9;
-}
-
-.featured-book-cover img.featured-book-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-    transition: transform var(--duration-hover) var(--ease-standard);
-}
-
-.featured-book-card:hover .featured-book-img {
-    transform: scale(1.03) rotate(-1.5deg);
-}
-
-/* Bóng gáy sách dưới bìa khi card nổi */
-.featured-book-cover::after {
-    content: "";
-    position: absolute;
-    left: 6%;
-    right: 6%;
-    bottom: -14px;
-    height: 14px;
-    background: rgba(18, 38, 30, 0.10);
-    border-radius: 50%;
-    filter: blur(6px);
-    opacity: 0;
-    transition: opacity var(--duration-hover) var(--ease-standard);
-    pointer-events: none;
-}
-
-.featured-book-card:hover .featured-book-cover::after {
-    opacity: 0.55;
-}
-
-/* Thông tin sách dưới bìa - flex:1 để đẩy nút hành động về đáy */
-.featured-book-info {
-    padding: var(--space-4) var(--space-4) var(--space-5);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
-/* Khối nội dung trung tâm co giãn để các card bằng cao */
-.featured-book-info > *:not(.featured-book-action) {
-    flex-shrink: 0;
-}
-
-/* Dòng 1: Pill badge thể loại - nền #e7f3ee, chữ #0b6e4f */
-.featured-book-cat {
-    display: inline-flex;
-    align-items: center;
-    min-height: 22px;
-    padding: 1px 10px;
-    border-radius: var(--radius-pill);
-    background-color: #e7f3ee;
-    color: #0b6e4f;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    align-self: flex-start;
-}
-
-/* Nút hành động ở chân card - đồng đều chiều cao tất cả card */
-.featured-book-action {
-    margin-top: auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 40px;
-    padding: 0 var(--space-4);
-    border: none;
-    background-color: #0b6e4f;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    border-radius: 0 0 14px 14px;
-    cursor: pointer;
-    transition: background-color var(--duration-hover) var(--ease-standard),
-                transform var(--duration-hover) var(--ease-standard);
-    text-decoration: none;
-}
-
-.featured-book-action:hover {
-    background-color: #085a41;
-    transform: translateY(-1px);
-}
-
-.featured-book-action:focus-visible {
-    outline: var(--focus-ring);
-    outline-offset: 2px;
-}
-
-/* Dòng 2: Tên sách in đậm, tối đa 2 dòng, không dính chữ */
-.featured-book-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--color-text-main);
-    line-height: 1.45;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    letter-spacing: -0.005em;
-}
-
-/* Dòng 3: Tác giả màu xám dịu, dòng riêng, kèm icon nhỏ */
-.featured-book-author {
-    font-size: 13px;
-    color: var(--color-text-muted);
-    margin: 0;
-    line-height: 1.4;
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-border-light);
     display: flex;
     align-items: center;
-    gap: var(--space-1);
-}
-
-.featured-book-author::before {
-    content: "";
-    display: inline-block;
-    width: 4px;
-    height: 4px;
-    border-radius: var(--radius-circle);
-    background-color: var(--color-text-light);
-    flex-shrink: 0;
-}
-
-/* Hover card: nâng lên, bóng đậm hơn, viền sáng */
-.featured-book-card:hover,
-.featured-book-card:focus-visible {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-hover);
-    border-color: var(--color-primary-light);
-    z-index: 3;
-}
-
-.featured-book-card:focus-visible {
-    outline: var(--focus-ring);
-    outline-offset: 2px;
-}
-
-/* ====================================================================
- * 6. THẺ TIỆN ÍCH (HIGHLIGHTS) - STAGGERED FADE-UP
- * ==================================================================== */
-
-.landing-highlights {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-6);
-    margin-top: var(--space-8);
-}
-
-.highlight-item {
-    display: flex;
-    flex-direction: column;
     gap: var(--space-3);
-    padding: var(--space-6);
-    background-color: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    transition: transform var(--duration-hover) var(--ease-standard),
-                box-shadow var(--duration-hover) var(--ease-standard),
-                border-color var(--duration-hover) var(--ease-standard);
+    flex-wrap: wrap;
 }
 
-.highlight-item:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-hover);
-    border-color: var(--color-primary-light);
+#categoryForm input {
+    background-color: #ffffff;
 }
 
-.highlight-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-circle);
-    background-color: var(--color-primary-soft);
-    color: var(--color-primary-dark);
-    font-size: 18px;
-    font-weight: 800;
-    box-shadow: var(--shadow-xs);
+/* Bảng thể loại rút gọn */
+#categoryTable td {
+    padding: var(--space-3) var(--space-4);
+    font-size: 14px;
 }
 
-.highlight-item h2 {
-    font-size: var(--text-h3);
+#categoryTable td:first-child {
+    font-weight: 600;
     color: var(--color-text-main);
-    margin: 0;
 }
 
-.highlight-item p {
-    font-size: var(--text-desc);
-    color: var(--color-text-muted);
-    margin: 0;
-    line-height: var(--line-desc);
+/* Modal form thêm / sửa sách */
+#bookModal .modal {
+    max-width: 580px;
+    width: 92%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#bookModal .field {
+    margin-bottom: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#bookModal .field label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-text-main);
+}
+
+#bookModal .field input,
+#bookModal .field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-btn);
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-main);
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color var(--duration-fast) var(--ease-standard),
+                box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+#bookModal .field input:focus,
+#bookModal .field select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+    outline: none;
+}
+
+#bookModal .modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-light);
 }
 
 /* ====================================================================
- * 7. THẺ THỐNG KÊ (STATS) - COUNT-UP & STAGGER
+ * 5. DUYỆT ĐĂNG KÝ VÀ QUẢN LÝ MƯỢN TRẢ (loans.html)
  * ==================================================================== */
 
-.landing-stats {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-top: var(--space-8);
-}
-
-.landing-stat {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-6);
-    background-color: var(--color-bg-card);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    min-width: 0;
-    transition: transform var(--duration-hover) var(--ease-standard),
-                box-shadow var(--duration-hover) var(--ease-standard);
-}
-
-.landing-stat strong {
-    font-size: 32px;
-    font-weight: 800;
-    color: var(--color-primary-dark);
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    transition: color var(--duration-normal) var(--ease-standard);
-}
-
-.landing-stat span {
-    font-size: var(--text-small);
-    color: var(--color-text-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.landing-stat:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-hover);
-}
-
-.landing-stats-note {
-    margin-top: var(--space-4);
-    font-size: var(--text-small);
-    color: var(--color-text-subtle);
-    text-align: center;
-}
-
+/* Khung bộ lọc phiếu mượn */
 .filter-panel {
     background-color: var(--color-bg-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-card);
     padding: var(--space-6);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: var(--space-8);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--space-6);
+}
+
+.filter-heading {
+    margin-bottom: var(--space-4);
 }
 
 .filter-heading h2 {
     font-size: 18px;
-    margin-bottom: var(--space-1);
+    color: var(--color-primary-dark);
+    margin-bottom: 4px;
 }
 
 .filter-heading p {
-    font-size: var(--text-small);
-    margin-bottom: var(--space-4);
+    font-size: 13.5px;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* Tabs trạng thái phiếu mượn */
+.tabs#statusTabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.tabs#statusTabs .tab-btn {
+    border-radius: var(--radius-pill);
+    padding: 7px 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: all var(--duration-fast) var(--ease-standard);
+    cursor: pointer;
+}
+
+.tabs#statusTabs .tab-btn.active {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(15, 92, 66, 0.25);
 }
 
 .filters {
@@ -1606,10 +1373,34 @@ section.statistics {
     color: var(--color-text-main);
 }
 
+.filter-field select,
+.filter-field input {
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-btn);
+    background-color: var(--color-bg-surface);
+    font-size: 14px;
+    box-sizing: border-box;
+    min-width: 180px;
+}
+
+.filter-field select:focus,
+.filter-field input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+    outline: none;
+}
+
 .search-field {
     flex-grow: 1;
 }
 
+.search-field input {
+    width: 100%;
+}
+
+/* Thao tác phiếu mượn */
 .loan-actions {
     display: flex;
     align-items: center;
@@ -1649,7 +1440,48 @@ section.statistics {
 }
 
 /* ====================================================================
- * 6. QUẢN LÝ TIỀN PHẠT (fines.html)
+ * 6. QUẢN LÝ ĐỘC GIẢ (readers.html)
+ * ==================================================================== */
+#readerTable td {
+    vertical-align: middle;
+}
+
+#readerTable .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-circle);
+    color: #ffffff;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Modal lịch sử mượn độc giả */
+#historyDialog {
+    border: none;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-modal);
+    padding: var(--space-8);
+    background: var(--color-bg-surface);
+    width: 92%;
+    max-width: 760px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+#historyDialog::backdrop {
+    background: rgba(10, 33, 26, 0.45);
+    backdrop-filter: blur(4px);
+}
+
+#historyDialog h2 {
+    font-size: 20px;
+    color: var(--color-primary-dark);
+    margin-bottom: var(--space-4);
+}
+
+/* ====================================================================
+ * 7. QUẢN LÝ TIỀN PHẠT (fines.html)
  * ==================================================================== */
 .fines-hero-card {
     background: linear-gradient(135deg, var(--color-primary-soft) 0%, #ffffff 100%);
@@ -1660,6 +1492,7 @@ section.statistics {
     align-items: center;
     justify-content: space-between;
     margin-bottom: var(--space-8);
+    box-shadow: var(--shadow-sm);
 }
 
 .fines-hero-card h3 {
@@ -1673,134 +1506,56 @@ section.statistics {
     font-weight: 800;
     color: var(--color-danger);
     letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+#fineTable td {
+    vertical-align: middle;
 }
 
 /* ====================================================================
- * 7. QUẢN TRỊ HỆ THỐNG (admin.html)
+ * 8. QUẢN TRỊ HỆ THỐNG VÀ NHẬT KÝ (admin.html)
  * ==================================================================== */
-#userTable select {
+#userTable select,
+select.select-role {
     min-height: 36px;
-    padding: 4px 8px;
+    min-width: 195px;
+    width: 100%;
+    padding: 6px 10px;
     font-size: 13px;
     font-weight: 600;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-sm, 8px);
     border: 1px solid var(--color-border);
-}
-
-#logTable td {
-    font-size: 13px;
-}
-
-/* ====================================================================
- * 8. GIỚI THIỆU (ABOUT) - STAGGERED FADE-UP
- * ==================================================================== */
-
-.about-section .about-grid {
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: var(--space-10);
-    align-items: flex-start;
-}
-
-.about-section h2 {
-    font-size: clamp(28px, 3.5vw, 40px);
-    line-height: 1.3;
-    margin-bottom: var(--space-4);
+    background-color: var(--color-bg-surface);
     color: var(--color-text-main);
+    cursor: pointer;
+    transition: border-color var(--duration-fast) var(--ease-standard),
+                box-shadow var(--duration-fast) var(--ease-standard);
 }
 
-.about-section p {
-    font-size: var(--text-desc);
+#userTable select:focus,
+select.select-role:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+    outline: none;
+}
+
+#userTable select:disabled,
+select.select-role:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    background-color: var(--color-bg-subtle);
+}
+
+#userTable td,
+#logTable td {
+    vertical-align: middle;
+    font-size: 13.5px;
+}
+
+#logTable td:first-child {
+    font-family: var(--font-mono);
     color: var(--color-text-muted);
-    line-height: var(--line-desc);
-    margin-bottom: var(--space-4);
-}
-
-.about-note {
-    position: relative;
-    padding-left: var(--space-6);
-    color: var(--color-text-muted);
-}
-
-.about-note p {
-    margin: 0;
-    font-size: var(--text-desc);
-    line-height: var(--line-desc);
-}
-
-.about-quote-icon {
-    position: absolute;
-    left: 0;
-    top: -4px;
-    font-size: 48px;
-    color: var(--color-primary-soft);
-    line-height: 1;
-}
-
-/* Staggered fade-up cho featured books (xuất hiện lệch nhịp khi cuộn tới) */
-.featured-books-grid .featured-book-card:nth-child(1) { transition-delay: 0.00s; }
-.featured-books-grid .featured-book-card:nth-child(2) { transition-delay: 0.08s; }
-.featured-books-grid .featured-book-card:nth-child(3) { transition-delay: 0.16s; }
-.featured-books-grid .featured-book-card:nth-child(4) { transition-delay: 0.24s; }
-.featured-books-grid .featured-book-card:nth-child(5) { transition-delay: 0.32s; }
-.featured-books-grid .featured-book-card:nth-child(6) { transition-delay: 0.40s; }
-
-/* Bìa dự phòng khi không có ảnh thật từ API */
-.featured-book-fallback {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    padding: var(--space-4);
-    gap: var(--space-3);
-    text-align: center;
-    color: var(--color-text-inverse);
-    box-sizing: border-box;
-}
-
-.featured-book-fallback-tag {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.9;
-}
-
-.featured-book-fallback-icon {
-    width: 30px;
-    height: 30px;
-    color: var(--color-text-inverse);
-    opacity: 0.9;
-}
-
-.featured-book-fallback-title {
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.4;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.featured-book-fallback-author {
-    font-size: 12px;
-    color: var(--color-text-inverse);
-    opacity: 0.85;
-    margin: 0;
-    line-height: 1.4;
-}
-
-.featured-book-fallback-mark {
-    margin-top: auto;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--color-text-inverse);
-    opacity: 0.7;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    font-size: 12.5px;
+    white-space: nowrap;
 }

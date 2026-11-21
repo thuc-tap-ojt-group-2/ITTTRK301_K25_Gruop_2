@@ -837,7 +837,7 @@ details p {
 
 .skeleton-cover {
     width: 100%;
-    aspect-ratio: 2 / 3;
+    aspect-ratio: 3 / 4;
     border-radius: 12px;
     background: linear-gradient(90deg, #EBF1ED 25%, #F7FAF8 50%, #EBF1ED 75%);
     background-size: 200% 100%;
