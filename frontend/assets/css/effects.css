@@ -34,9 +34,17 @@
     will-change: opacity, transform;
 }
 
-.reveal.is-revealed {
+.reveal.is-revealed,
+.reveal.is-visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Đảm bảo Hero section luôn hiển thị ngay, không bao giờ bị ẩn bởi reveal */
+section.landing-hero,
+.landing-hero.reveal {
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 /* Hiệu ứng trễ so le (Stagger 80ms) cho các phần tử cùng nhóm */
@@ -102,6 +110,33 @@
 .hero-book-card--3 {
     animation: hero-float-3 6s ease-in-out infinite alternate;
     animation-delay: 1.4s;
+}
+
+@media (max-width: 768px) {
+    .hero-book-card--1,
+    .hero-book-card--2,
+    .hero-book-card--3 {
+        animation: none;
+    }
+}
+
+.btn-ripple {
+    position: absolute;
+    z-index: 0;
+    display: block;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.18;
+    pointer-events: none;
+    transform: scale(0);
+    animation: button-ripple 600ms ease-out forwards;
+}
+
+@keyframes button-ripple {
+    to {
+        opacity: 0;
+        transform: scale(1);
+    }
 }
 
 /* ====================================================================

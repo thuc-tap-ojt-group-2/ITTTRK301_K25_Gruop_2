@@ -62,7 +62,11 @@ async function showReaderHistory(reader) {
                 returnCell.textContent = loan.returnDate ? new Date(loan.returnDate).toLocaleDateString("vi-VN") : "—";
             });
         }
-        document.getElementById("historyDialog").showModal();
+        if (window.PTIT?.openModal) {
+            PTIT.openModal("historyDialog");
+        } else {
+            document.getElementById("historyDialog").showModal();
+        }
     } catch (error) {
         showReaderError("Không thể tải lịch sử mượn: " + error.message);
     }
@@ -204,15 +208,9 @@ readerSearch.addEventListener("input", () => {
 });
 
 document.getElementById("refreshButton").addEventListener("click", loadReaders);
-document.getElementById("closeHistory").addEventListener("click", () => document.getElementById("historyDialog").close());
-
-const closeHistoryIcon = document.getElementById("closeHistoryIcon");
-if (closeHistoryIcon) {
-    closeHistoryIcon.addEventListener("click", () => document.getElementById("historyDialog").close());
-}
 
 document.getElementById("logoutButton").addEventListener("click", async () => {
-    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+    const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
     if (!confirmed) return;
 
     try {

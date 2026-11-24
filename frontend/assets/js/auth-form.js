@@ -37,6 +37,7 @@ function failed(error) {
         PTIT.hideLoading();
     }
     setBusy(false);
+    document.dispatchEvent(new CustomEvent("ptit:login-error"));
 
     if (!(error instanceof TypeError)) {
         showMessage(error.message, "error");
@@ -132,13 +133,25 @@ if (loginForm) {
                 localStorage.setItem("user", JSON.stringify(user));
                 localStorage.setItem("ptit_user", JSON.stringify(user));
 
+                document.dispatchEvent(new CustomEvent("ptit:login-success", {
+                    detail: { name: user.full_name || user.fullName || user.username || "" }
+                }));
+
+
                 if (typeof PTIT !== "undefined" && PTIT.showLoading) {
                     PTIT.showLoading("Đăng nhập thành công, đang chuyển trang...");
                 }
 
                 setTimeout(function () {
-                    window.location.href = HOME_BY_ROLE[role] || DEFAULT_HOME;
-                }, 600);
+                    const params = new URLSearchParams(window.location.search);
+                    const returnPage = params.get('return');
+                    const bookId = params.get('book');
+                    if (returnPage === 'index.html' && bookId) {
+                        window.location.href = 'index.html?openBook=' + encodeURIComponent(bookId);
+                    } else {
+                        window.location.href = HOME_BY_ROLE[role] || DEFAULT_HOME;
+                    }
+                }, 180);
             })
             .catch(failed);
     });
@@ -184,7 +197,7 @@ if (registerForm) {
 
                     setTimeout(function () {
                         window.location.href = "login.html?registered=1";
-                    }, 800);
+                    }, 250);
                 })
                 .catch(failed);
         }

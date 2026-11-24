@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dff4e9"/>
+      <stop offset="1" stop-color="#83bea2"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="900" rx="28" fill="url(#background)"/>
+  <rect x="42" y="42" width="516" height="816" rx="20" fill="#ffffff" opacity="0.86"/>
+  <rect x="84" y="84" width="22" height="732" rx="11" fill="#0f5c42" opacity="0.18"/>
+  <g transform="translate(300 390)" fill="none" stroke="#0f5c42" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-112 88A112 112 0 0 1 0-24a112 112 0 0 1 112 112"/>
+    <path d="M-112 88h224"/>
+    <path d="M-72 88V-8a72 72 0 0 1 144 0v96"/>
+  </g>
+  <text x="300" y="590" text-anchor="middle" font-family="Be Vietnam Pro,Arial,sans-serif" font-size="34" font-weight="800" fill="#0f5c42">THƯ VIỆN PTIT</text>
+  <text x="300" y="640" text-anchor="middle" font-family="Be Vietnam Pro,Arial,sans-serif" font-size="24" fill="#527064">Bìa sách chưa có dữ liệu</text>
+</svg>

@@ -21,7 +21,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const preloaderEl = document.getElementById("ptitPreloader");
     if (!preloaderEl) return;
 
+
+
     // Kiểm tra xem đã xem phần mở đầu trong phiên duyệt web này chưa
+    const forceIntro = new URLSearchParams(window.location.search).get("intro") === "1";
     let alreadySeen = false;
     try {
         alreadySeen = Boolean(sessionStorage.getItem("ptit_intro_seen"));
@@ -29,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
         alreadySeen = false;
     }
 
-    if (alreadySeen) {
+    if (alreadySeen && !forceIntro) {
         // Đã xem: gỡ ngay lập tức khỏi DOM, trả lại cuộn trang
         preloaderEl.remove();
         document.documentElement.classList.remove("js-preloader-active", "preloader-locked");
@@ -96,19 +99,23 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }, { once: true });
 
-    // Trường hợp prefers-reduced-motion: Bỏ lật sách và cửa trượt, chỉ fade logo 0.4s rồi vào trang (B6)
+    // Trường hợp prefers-reduced-motion: chỉ fade logo và rồng 0.5s
     if (prefersReducedMotion) {
-        addTimeout(finishPreloader, 450);
+        addTimeout(finishPreloader, 500);
         return;
     }
 
     // ================= CHUỖI HIỆU ỨNG CHUẨN 2,6S - 3,0S =================
     // B1: 0,0 - 0,5s: Logo hiện bằng fade + scale (CSS tự chạy)
 
-    // B2: 0,5 - 1,6s: Cuốn sách xuất hiện, mở ra, lật 3 trang, ánh sáng tỏa ra, chữ và thanh tiến trình
+    // B2: 0,5 - 1,7s: Cuốn sách xuất hiện, rồng bay vào và đáp tại trung tâm
     addTimeout(function () {
         if (bookContainer) {
             bookContainer.classList.add("is-visible", "is-opened", "is-flipping");
+        }
+        const dragon = preloaderEl.querySelector(".preloader-dragon");
+        if (dragon) {
+            dragon.classList.add("is-visible", "is-flying");
         }
 
         // Chạy thanh tiến trình từ 0% -> 100%
@@ -129,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // B3: 1,6 - 2,0s: Logo, sách, chữ mờ dần và nhỏ đi nhẹ
     addTimeout(function () {
         preloaderEl.classList.add("is-fading-stage");
-    }, 1600);
+    }, 2200);
 
     // B4: 2,0 - 2,8s: Hai cánh cửa trượt sang 2 bên
     addTimeout(function () {
@@ -137,11 +144,11 @@ document.addEventListener("DOMContentLoaded", function () {
         document.documentElement.classList.remove("preloader-locked");
         document.body.classList.remove("preloader-locked");
         document.body.classList.add("hero-entrance-active");
-    }, 2000);
+    }, 2500);
 
-    // B5: Hoàn tất sau 2,8s
-    addTimeout(finishPreloader, 2800);
+    // B5: Hoàn tất sau 3,3s
+    addTimeout(finishPreloader, 3300);
 
-    // Timeout cứng tối đa 3,0s kể cả khi mạng chậm hoặc thiết bị lag (B6)
-    addTimeout(finishPreloader, 3000);
+    // Timeout cứng tối đa 3,5s
+    addTimeout(finishPreloader, 3500);
 });

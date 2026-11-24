@@ -1,8 +1,9 @@
 /**
  * ====================================================================
- * THƯ VIỆN PTIT - UI UTILITIES
- * ui.js: Navbar mobile, Toast thông báo, Modal helper, Loading toàn trang,
- *        Đăng xuất, Hiển thị số liệu tự nhảy, Toggle ẩn/hiện mật khẩu
+ * THƯ VIỆN PTIT - UI UTILITIES & LOADING SYSTEM
+ * ui.js: Hệ thống loading L1-L8 (thanh tiến trình top, skeleton shimmer,
+ *        nút loading, spinner vùng, toast, error state, empty state),
+ *        Navbar mobile, Modal helper, Đăng xuất, Phân trang, Password toggle
  * ====================================================================
  */
 
@@ -10,7 +11,181 @@ const PTIT = window.PTIT || {};
 PTIT.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ====================================================================
- * 1. LOADING TOÀN TRÀNG (FULL-SCREEN LOADING OVERLAY)
+ * L1. THANH TIẾN TRÌNH TRÊN CÙNG (TOP PROGRESS BAR)
+ * ==================================================================== */
+PTIT.progress = (function () {
+    let progressBar = null;
+    let progressTimer = null;
+    let currentProgress = 0;
+
+    function getBar() {
+        if (!progressBar) {
+            progressBar = document.getElementById("ptitTopProgress");
+            if (!progressBar) {
+                progressBar = document.createElement("div");
+                progressBar.id = "ptitTopProgress";
+                progressBar.className = "top-progress-bar";
+                progressBar.setAttribute("role", "progressbar");
+                progressBar.setAttribute("aria-hidden", "true");
+                progressBar.setAttribute("aria-valuemin", "0");
+                progressBar.setAttribute("aria-valuemax", "100");
+                progressBar.setAttribute("aria-valuenow", "0");
+                document.body.prepend(progressBar);
+            }
+        }
+        return progressBar;
+    }
+
+    return {
+        start: function () {
+            const bar = getBar();
+            clearInterval(progressTimer);
+            currentProgress = 15;
+            bar.style.opacity = "1";
+            bar.style.width = currentProgress + "%";
+            bar.setAttribute("aria-valuenow", currentProgress);
+
+            progressTimer = setInterval(function () {
+                if (currentProgress < 85) {
+                    currentProgress += Math.floor(Math.random() * 8) + 2;
+                    bar.style.width = currentProgress + "%";
+                    bar.setAttribute("aria-valuenow", currentProgress);
+                }
+            }, 250);
+        },
+
+        set: function (percent) {
+            const bar = getBar();
+            currentProgress = Math.min(Math.max(percent, 0), 100);
+            bar.style.opacity = "1";
+            bar.style.width = currentProgress + "%";
+            bar.setAttribute("aria-valuenow", currentProgress);
+        },
+
+        done: function () {
+            const bar = getBar();
+            clearInterval(progressTimer);
+            currentProgress = 100;
+            bar.style.width = "100%";
+            bar.setAttribute("aria-valuenow", "100");
+
+            setTimeout(function () {
+                bar.style.opacity = "0";
+                setTimeout(function () {
+                    bar.style.width = "0%";
+                    bar.setAttribute("aria-valuenow", "0");
+                }, 300);
+            }, 200);
+        }
+    };
+})();
+
+/* ====================================================================
+ * L2. KHUNG XƯƠNG TẢI DỮ LIỆU (SKELETON SHIMMER)
+ * ==================================================================== */
+PTIT.showSkeleton = function (container, type = "card", count = 3) {
+    if (!container) return;
+    container.setAttribute("data-skeleton-loading", "true");
+    container.replaceChildren();
+
+    for (let i = 0; i < count; i++) {
+        const item = document.createElement("div");
+        item.setAttribute("aria-hidden", "true");
+
+        if (type === "stat") {
+            item.className = "skeleton-stat skeleton-shimmer";
+            item.innerHTML = `
+                <div class="skeleton-shimmer" style="width: 45%; height: 14px; border-radius: 4px;"></div>
+                <div class="skeleton-shimmer" style="width: 70%; height: 32px; border-radius: 6px; margin-top: 8px;"></div>
+            `;
+        } else if (type === "card") {
+            item.className = "skeleton-card";
+            item.innerHTML = `
+                <div class="skeleton-cover skeleton-shimmer"></div>
+                <div class="skeleton-shimmer" style="width: 40%; height: 12px; border-radius: 4px; margin-top: 10px;"></div>
+                <div class="skeleton-shimmer" style="width: 85%; height: 16px; border-radius: 4px; margin-top: 6px;"></div>
+                <div class="skeleton-shimmer" style="width: 60%; height: 13px; border-radius: 4px; margin-top: 4px;"></div>
+            `;
+        } else if (type === "table-row") {
+            item.className = "skeleton-row skeleton-shimmer";
+        } else {
+            item.className = "skeleton-list-item skeleton-shimmer";
+        }
+
+        container.appendChild(item);
+    }
+};
+
+PTIT.hideSkeleton = function (container) {
+    if (!container) return;
+    container.removeAttribute("data-skeleton-loading");
+    container.replaceChildren();
+};
+
+/* ====================================================================
+ * L3. NÚT BẤM LOADING (BUTTON LOADING STATE)
+ * ==================================================================== */
+PTIT.setButtonLoading = function (button, isLoading, loadingText) {
+    if (!button) return;
+
+    if (isLoading) {
+        if (!button.dataset.originalHtml) {
+            button.dataset.originalHtml = button.innerHTML;
+        }
+        button.disabled = true;
+        button.classList.add("is-loading");
+        button.setAttribute("aria-busy", "true");
+
+        const text = loadingText || "Đang xử lý...";
+        button.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span> <span>${text}</span>`;
+    } else {
+        button.classList.remove("is-loading");
+        button.removeAttribute("aria-busy");
+        button.disabled = false;
+        if (button.dataset.originalHtml) {
+            button.innerHTML = button.dataset.originalHtml;
+            delete button.dataset.originalHtml;
+        }
+    }
+};
+
+/* ====================================================================
+ * L4. SPINNER TOÀN KHU VỰC (AREA SPINNER OVERLAY)
+ * ==================================================================== */
+PTIT.showSpinner = function (container, text = "Đang tải dữ liệu...") {
+    if (!container) return;
+    PTIT.hideSpinner(container);
+
+    const prevPos = window.getComputedStyle(container).position;
+    if (prevPos === "static") {
+        container.style.position = "relative";
+        container.dataset.resetPosition = "true";
+    }
+
+    const overlay = document.createElement("div");
+    overlay.className = "area-spinner-overlay";
+    overlay.setAttribute("role", "status");
+    overlay.setAttribute("aria-live", "polite");
+    overlay.innerHTML = `
+        <div class="area-spinner" aria-hidden="true"></div>
+        <span class="area-spinner-text">${text}</span>
+    `;
+
+    container.appendChild(overlay);
+};
+
+PTIT.hideSpinner = function (container) {
+    if (!container) return;
+    const overlay = container.querySelector(".area-spinner-overlay");
+    if (overlay) overlay.remove();
+    if (container.dataset.resetPosition === "true") {
+        container.style.position = "";
+        delete container.dataset.resetPosition;
+    }
+};
+
+/* ====================================================================
+ * L5. LOADING TOÀN TRANG (FULL-SCREEN LOADING OVERLAY)
  * ==================================================================== */
 let ptitLoadingTimer = null;
 
@@ -39,7 +214,6 @@ PTIT.showLoading = function (text) {
     box.classList.add("show");
     box.style.display = "flex";
 
-    // Safety timeout: Tự động giải phóng sau 6s để tránh treo giao diện người dùng
     clearTimeout(ptitLoadingTimer);
     ptitLoadingTimer = setTimeout(function () {
         PTIT.hideLoading();
@@ -56,64 +230,326 @@ PTIT.hideLoading = function () {
 };
 
 /* ====================================================================
- * 2. HỆ THỐNG TOAST THÔNG BÁO (TOAST NOTIFICATIONS)
+ * L6. HỆ THỐNG TOAST THÔNG BÁO (TOAST NOTIFICATIONS)
  * ==================================================================== */
-PTIT.showToast = function (message, type = "info", duration = 3500) {
+PTIT.showToast = function (message, type = "info", duration = 4000) {
     let container = document.getElementById("ptitToastContainer");
     if (!container) {
         container = document.createElement("div");
         container.id = "ptitToastContainer";
         container.className = "ptit-toast-container";
+        container.setAttribute("role", "status");
+        container.setAttribute("aria-live", "polite");
         document.body.appendChild(container);
     }
 
     const toast = document.createElement("div");
     toast.className = `ptit-toast ptit-toast--${type}`;
-    
-    // Biểu tượng SVG cho từng loại
+
     let icon = "ℹ";
     if (type === "success") icon = "✓";
     if (type === "error") icon = "✕";
     if (type === "warning") icon = "⚠";
 
-    toast.innerHTML = `<span style="font-weight:800;font-size:16px;">${icon}</span> <span>${message}</span>`;
+    toast.innerHTML = `
+        <div class="ptit-toast-content">
+            <span style="font-weight:800;font-size:16px;" aria-hidden="true">${icon}</span>
+            <span>${message}</span>
+        </div>
+        <button type="button" class="ptit-toast-close" aria-label="Đóng thông báo">&times;</button>
+    `;
+
     container.appendChild(toast);
 
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        toast.style.transform = "translateY(20px)";
-        toast.style.transition = "all 0.3s ease";
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
+    requestAnimationFrame(function () {
+        toast.classList.add("is-visible");
+    });
+
+    let dismissTimer = setTimeout(dismissToast, duration);
+
+    function dismissToast() {
+        clearTimeout(dismissTimer);
+        toast.classList.remove("is-visible");
+        setTimeout(function () {
+            toast.remove();
+        }, 300);
+    }
+
+    const closeBtn = toast.querySelector(".ptit-toast-close");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", dismissToast);
+    }
 };
 
 /* ====================================================================
- * 3. HỘP THOẠI & MODAL HELPERS
+ * L7. TRẠNG THÁI LỖI TẢI DỮ LIỆU API (API ERROR STATE)
+ * ==================================================================== */
+PTIT.renderErrorState = function (container, { message = "Không tải được dữ liệu từ máy chủ", onRetry } = {}) {
+    if (!container) return;
+    container.replaceChildren();
+
+    const box = document.createElement("div");
+    box.className = "api-error-state";
+    box.setAttribute("role", "alert");
+    box.innerHTML = `
+        <div class="api-error-icon" aria-hidden="true">⚠️</div>
+        <h3 class="api-error-title">Đã xảy ra lỗi tải dữ liệu</h3>
+        <p class="api-error-desc">${message}</p>
+        <button type="button" class="btn btn--secondary btn--sm btn-retry">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>Tải lại</span>
+        </button>
+    `;
+
+    const retryBtn = box.querySelector(".btn-retry");
+    if (retryBtn && typeof onRetry === "function") {
+        retryBtn.addEventListener("click", onRetry);
+    }
+
+    container.appendChild(box);
+};
+
+/* ====================================================================
+ * L8. TRẠNG THÁI TRỐNG (EMPTY STATE)
+ * ==================================================================== */
+PTIT.renderEmptyState = function (container, {
+    title = "Không có dữ liệu",
+    message = "Chưa tìm thấy mục nào phù hợp trong hệ thống.",
+    actionText,
+    onAction
+} = {}) {
+    if (!container) return;
+    container.replaceChildren();
+
+    const box = document.createElement("div");
+    box.className = "empty-state";
+    box.setAttribute("role", "status");
+
+    let actionBtnHtml = "";
+    if (actionText && typeof onAction === "function") {
+        actionBtnHtml = `<button type="button" class="btn btn--primary btn--sm empty-state-action" style="margin-top: 12px;">${actionText}</button>`;
+    }
+
+    box.innerHTML = `
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+            <path d="M6 6h10M6 10h10M6 14h6"></path>
+        </svg>
+        <h3 class="empty-state-title">${title}</h3>
+        <p class="empty-state-desc">${message}</p>
+        ${actionBtnHtml}
+    `;
+
+    if (actionText && typeof onAction === "function") {
+        const btn = box.querySelector(".empty-state-action");
+        if (btn) btn.addEventListener("click", onAction);
+    }
+
+    container.appendChild(box);
+};
+
+/* ====================================================================
+ * HỘP THOẠI & MODAL HELPERS
  * ==================================================================== */
 PTIT.openModal = function (modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
+    modal.dataset.ptitOriginalFocus = document.activeElement?.id || "";
+    modal.dataset.ptitInitialSnapshot = modal.querySelector("form")
+        ? Array.from(modal.querySelectorAll("form")).map(form =>
+            Array.from(form.elements).filter(element => element.name || element.id)
+                .map(element => `${element.name || element.id}:${element.value}`).join("|")
+        ).join("||")
+        : "";
+    modal.classList.remove("is-closing");
+    modal.removeAttribute("aria-hidden");
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+
+    const labelledBy = modal.getAttribute("aria-labelledby") ||
+        modal.querySelector("[id][data-modal-title], h1[id], h2[id]")?.id;
+    if (labelledBy) modal.setAttribute("aria-labelledby", labelledBy);
+
+    modal.querySelectorAll("form").forEach(form => {
+        form.dataset.ptitDirty = "false";
+        if (!form.dataset.ptitDirtyBound) {
+            form.dataset.ptitDirtyBound = "true";
+            form.addEventListener("input", function () { form.dataset.ptitDirty = "true"; });
+            form.addEventListener("change", function () { form.dataset.ptitDirty = "true"; });
+        }
+    });
+
+    const activeDialogs = Array.from(document.querySelectorAll("dialog.modal[open], .overlay.show, .overlay:not([hidden])"))
+        .filter(element => element !== modal);
+    if (!activeDialogs.length) {
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + "px";
+        document.body.classList.add("ptit-modal-open");
+    }
+
     if (typeof modal.showModal === "function") {
-        modal.showModal();
+        if (!modal.open) modal.showModal();
     } else {
         modal.classList.add("show");
         modal.hidden = false;
     }
+    modal.hidden = false;
+
+    const focusTarget = modal.querySelector("[autofocus], input:not([disabled]):not([type='hidden']), select:not([disabled]), textarea:not([disabled]), button:not([disabled])");
+    if (focusTarget) requestAnimationFrame(() => focusTarget.focus());
 };
 
 PTIT.closeModal = function (modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    if (typeof modal.close === "function") {
-        modal.close();
-    } else {
-        modal.classList.remove("show");
-        modal.hidden = true;
+
+    function finish() {
+        if (typeof modal.close === "function" && modal.open) {
+            modal.close();
+        } else {
+            modal.classList.remove("show");
+            modal.hidden = true;
+        }
+
+        modal.classList.remove("is-closing");
+        modal.querySelectorAll("[role='alert'], .message").forEach(element => {
+            element.hidden = true;
+            element.textContent = "";
+        });
+        modal.querySelectorAll("form").forEach(form => {
+            form.reset();
+            form.dataset.ptitDirty = "false";
+        });
+
+        const anyModalOpen = document.querySelector("dialog.modal[open], .overlay.show");
+        if (!anyModalOpen) {
+            document.body.classList.remove("ptit-modal-open");
+            document.body.style.paddingRight = "";
+        }
+
+        const previousId = modal.dataset.ptitOriginalFocus;
+        const previous = previousId ? document.getElementById(previousId) : null;
+        if (previous?.isConnected) previous.focus();
     }
+
+    const formDirty = Array.from(modal.querySelectorAll("form"))
+        .some(form => form.dataset.ptitDirty === "true");
+    if (formDirty &&
+        typeof PTIT.confirm === "function") {
+        PTIT.confirm("Bạn đã thay đổi nội dung. Đóng hộp thoại mà không lưu?", {
+            danger: true,
+            confirmText: "Đóng"
+        }).then(function (confirmed) {
+            if (confirmed) finish();
+        });
+        return;
+    }
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    modal.classList.add("is-closing");
+    window.setTimeout(finish, reduceMotion ? 0 : 350);
+};
+
+document.addEventListener("click", function (event) {
+    const closeControl = event.target.closest("[data-modal-close]");
+    if (closeControl) {
+        const modal = closeControl.closest("dialog.modal, .overlay");
+        if (modal?.id) {
+            event.preventDefault();
+            PTIT.closeModal(modal.id);
+        }
+        return;
+    }
+
+    const overlay = event.target.closest(".overlay");
+    if (overlay && event.target === overlay && overlay.id) {
+        PTIT.closeModal(overlay.id);
+    }
+});
+
+document.addEventListener("click", function (event) {
+    document.querySelectorAll("dialog.modal[open]").forEach(function (dialog) {
+        if (event.target === dialog && dialog.id) {
+            PTIT.closeModal(dialog.id);
+        }
+    });
+});
+
+document.addEventListener("keydown", function (event) {
+    if (event.key !== "Tab") return;
+    const openModalElement = Array.from(document.querySelectorAll("dialog.modal[open], .overlay.show"))
+        .filter(element => !element.hidden)
+        .pop();
+    if (!openModalElement) return;
+
+    const focusable = Array.from(openModalElement.querySelectorAll(
+        "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])"
+    ));
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+});
+
+PTIT.confirm = function (message, options = {}) {
+    return new Promise(function (resolve) {
+        const testDialog = document.createElement("dialog");
+        if (typeof testDialog.showModal !== "function") {
+            resolve(false);
+            return;
+        }
+
+        const dialog = document.createElement("dialog");
+        dialog.className = "modal ptit-confirm-dialog";
+        dialog.id = "ptitConfirmDialog";
+        dialog.setAttribute("aria-label", "Xác nhận thao tác");
+        dialog.innerHTML = `
+            <button type="button" class="close-btn" data-modal-close aria-label="Đóng">&times;</button>
+            <div class="ptit-confirm-icon" aria-hidden="true">?</div>
+            <h2>${options.title || "Xác nhận thao tác"}</h2>
+            <p class="text-muted ptit-confirm-message"></p>
+            <div class="form-actions">
+                <button type="button" class="btn btn--secondary ptit-confirm-cancel">Hủy</button>
+                <button type="button" class="btn ${options.danger ? "btn--danger" : "btn--primary"} ptit-confirm-ok">${options.confirmText || "Xác nhận"}</button>
+            </div>
+        `;
+
+        dialog.querySelector(".ptit-confirm-message").textContent = message;
+        document.body.appendChild(dialog);
+
+        function finish(value) {
+            if (dialog.open && typeof dialog.close === "function") dialog.close();
+            dialog.remove();
+            resolve(value);
+        }
+
+        dialog.querySelector(".ptit-confirm-cancel").addEventListener("click", function () { finish(false); });
+        dialog.querySelector(".ptit-confirm-ok").addEventListener("click", function () { finish(true); });
+        dialog.querySelector(".close-btn").addEventListener("click", function () { finish(false); });
+        dialog.addEventListener("click", function (event) {
+            if (event.target === dialog) finish(false);
+        });
+        dialog.addEventListener("cancel", function (event) {
+            event.preventDefault();
+            finish(false);
+        });
+
+        PTIT.openModal(dialog.id);
+        dialog.querySelector(".ptit-confirm-cancel").focus();
+    });
 };
 
 /* ====================================================================
- * 4. ĐĂNG NHẬP, ĐĂNG XUẤT TIỆN LỢI
+ * XÁC THỰC & ĐĂNG XUẤT
  * ==================================================================== */
 PTIT.isLoggedIn = function () {
     return Boolean(localStorage.getItem("access_token") || localStorage.getItem("token"));
@@ -144,7 +580,7 @@ PTIT.logout = function () {
 };
 
 /* ====================================================================
- * 5. HIỆU ỨNG SỐ TỰ NHẢY (COUNT-UP)
+ * HIỆU ỨNG SỐ TỰ NHẢY (COUNT-UP)
  * ==================================================================== */
 PTIT.countUp = function (element, target) {
     if (!element) return;
@@ -172,31 +608,20 @@ PTIT.countUp = function (element, target) {
 
 /* Lấy số liệu thật từ Backend (GET /api/books) */
 PTIT.loadStats = function (done) {
-    if (typeof getBooks !== "function") {
-        if (typeof done === "function") done(null);
-        return;
-    }
+    const baseUrl = window.PTIT_API_BASE_URL ||
+        `${window.location.protocol === "https:" ? "https:" : "http:"}//${window.location.hostname || "127.0.0.1"}:8000`;
 
-    getBooks(1, 10)
+    fetch(`${baseUrl.replace(/\/+$/, "")}/api/stats/public`)
         .then(function (response) {
-            let list = response.content || response.items || response;
-            if (!Array.isArray(list)) list = [];
-
-            let copies = 0;
-            const categories = {};
-
-            for (let i = 0; i < list.length; i++) {
-                copies += Number(list[i].totalCopies || list[i].total_copies || 0);
-                const name = list[i].categoryName || list[i].category_name;
-                if (name) categories[name] = true;
-            }
-
+            if (!response.ok) throw new Error("Không thể tải số liệu công khai.");
+            return response.json();
+        })
+        .then(function (stats) {
             if (typeof done === "function") {
                 done({
-                    titles: response.totalElements || response.total || list.length,
-                    copies: copies,
-                    categories: Object.keys(categories).length,
-                    books: list
+                    titles: Number(stats.total_titles || 0),
+                    copies: Number(stats.total_copies || 0),
+                    categories: Number(stats.total_categories || 0)
                 });
             }
         })
@@ -205,7 +630,6 @@ PTIT.loadStats = function (done) {
         });
 };
 
-/* Điền số vào các phần tử có data-stat */
 PTIT.fillStats = function (stats) {
     const items = document.querySelectorAll("[data-stat]");
     for (let i = 0; i < items.length; i++) {
@@ -214,49 +638,32 @@ PTIT.fillStats = function (stats) {
     }
 };
 
-/* Cảnh nền sách nổi và dòng chảy cho trang auth */
-PTIT.addScene = function (parent) {
-    if (!parent) return;
-    const colors = ["#C8913A", "#1F528D", "#0F5C42", "#C8913A", "#1E8E5A", "#1F528D"];
-    const spots = [[5, 58], [14, 20], [30, 74], [48, 8], [62, 80], [78, 12], [90, 46], [3, 86]];
-    let html = `
-        <svg class="stream" viewBox="0 0 1200 800" preserveAspectRatio="none">
-            <path d="M-50 600 C200 480 400 720 650 600 S1050 480 1250 580" fill="none" stroke="rgba(15,92,66,0.06)" stroke-width="2"/>
-            <path d="M-50 660 C250 560 450 780 700 660 S1100 560 1250 640" fill="none" stroke="rgba(200,145,58,0.08)" stroke-width="2"/>
-        </svg>
-    `;
+/* ====================================================================
+ * THANH TIẾN TRÌNH CUỘN TRANG (SCROLL PROGRESS CHO LANDING)
+ * ==================================================================== */
+PTIT.initScrollProgress = function () {
+    const progressBar = document.getElementById("ptitTopProgress");
+    if (!progressBar) return;
 
-    for (let i = 0; i < spots.length; i++) {
-        html += `<i class="book" style="--x:${spots[i][0]}%;--y:${spots[i][1]}%;--w:${38 + (i % 3) * 7}px;--h:${56 + (i % 4) * 5}px;--c:${colors[i % colors.length]};--r:${i % 2 ? 8 : -8}deg;--d:-${1 + i * 0.7}s"></i>`;
-    }
-
-    const scene = document.createElement("div");
-    scene.className = "scene";
-    scene.setAttribute("aria-hidden", "true");
-    scene.innerHTML = html;
-    parent.insertBefore(scene, parent.firstChild);
-};
-
-/* Chuyển trang mượt mà */
-PTIT.bindLinks = function () {
-    const links = document.querySelectorAll("a[data-go]");
-    for (let i = 0; i < links.length; i++) {
-        links[i].addEventListener("click", function (event) {
-            if (PTIT.reduceMotion) return;
-            event.preventDefault();
-            const direction = this.dataset.go;
-            const target = this.href;
-            document.body.classList.add("leave-" + direction);
-            sessionStorage.setItem("slide", direction);
-            setTimeout(function () {
-                window.location.href = target;
-            }, 300);
-        });
-    }
+    let ticking = false;
+    window.addEventListener("scroll", function () {
+        if (!ticking) {
+            window.requestAnimationFrame(function () {
+                const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+                if (totalHeight > 0) {
+                    const scrollPct = (window.scrollY / totalHeight) * 100;
+                    progressBar.style.opacity = window.scrollY > 40 ? "1" : "0";
+                    progressBar.style.width = Math.min(scrollPct, 100) + "%";
+                }
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
 };
 
 /* ====================================================================
- * 6. TỰ ĐỘNG KHỞI TẠO MENU MOBILE, SIDEBAR MOBILE & TOGGLE MẬT KHẨU
+ * MENU MOBILE & SIDEBAR MOBILE
  * ==================================================================== */
 PTIT.initMobileNav = function () {
     const menuToggle = document.querySelector(".hamburger") || document.querySelector(".menu-toggle");
@@ -268,7 +675,6 @@ PTIT.initMobileNav = function () {
             menuToggle.setAttribute("aria-expanded", isExpanded);
         });
 
-        // Đóng khi click vào link
         navLinks.querySelectorAll("a").forEach(link => {
             link.addEventListener("click", () => {
                 navLinks.classList.remove("show");
@@ -276,6 +682,119 @@ PTIT.initMobileNav = function () {
             });
         });
     }
+};
+
+PTIT.initAccountMenu = function () {
+    const topbar = document.querySelector(".topbar");
+    if (!topbar) return;
+
+    const iconPaths = {
+        dashboard: '<path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"/>',
+        books: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
+        loans: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+        readers: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        fines: '<circle cx="12" cy="12" r="9"/><path d="M15 9.4c-.4-.9-1.3-1.4-3-1.4-1.7 0-3 .8-3 2 0 3 6 1.5 6 4.5 0 1.2-1.3 2-3 2-1.7 0-2.6-.6-3-1.5"/>',
+        admin: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.86 1.86-.06-.06A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1 .6V21h-6v-2a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06-1.86-1.86.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H2v-4h2a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.06 5.2l.06.06A1.7 1.7 0 0 0 8 5.6a1.7 1.7 0 0 0 1-.6V3h6v2a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06 1.86 1.86-.06.06A1.7 1.7 0 0 0 19.4 9c.38.2.72.5.98.86H21v4h-.62c-.26.36-.6.66-.98.86Z"/>'
+    };
+
+    document.querySelectorAll(".nav a, aside nav a").forEach(function (link) {
+        let type = "dashboard";
+        const href = link.getAttribute("href") || "";
+        if (href.includes("books")) type = "books";
+        else if (href.includes("loans")) type = "loans";
+        else if (href.includes("readers")) type = "readers";
+        else if (href.includes("fines")) type = "fines";
+        else if (href.includes("admin")) type = "admin";
+        const emoji = link.querySelector("span[aria-hidden='true']");
+        if (emoji) {
+            emoji.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + iconPaths[type] + "</svg>";
+            emoji.style.display = "inline-flex";
+        }
+    });
+
+    let role = "";
+    let name = "";
+    try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        name = user.full_name || user.fullName || user.name || user.username || user.email || "Người dùng";
+        role = String(user.role || "").toUpperCase();
+    } catch {
+        name = "Người dùng";
+    }
+
+    if (role === "ADMIN") {
+        document.body.classList.add("theme-admin");
+    } else if (role === "LIBRARIAN") {
+        document.body.classList.add("theme-librarian");
+    } else {
+        document.body.classList.add("theme-reader");
+    }
+
+    document.querySelectorAll(".logout-btn, .lo").forEach(function (button) {
+        button.hidden = true;
+    });
+
+    if (topbar.querySelector(".account-menu")) return;
+
+    const menu = document.createElement("div");
+    menu.className = "account-menu";
+    const initials = String(name).trim().split(/\s+/).slice(-2).map(function (word) {
+        return word.charAt(0) || "";
+    }).join("").toUpperCase();
+    const roleLabel = role === "ADMIN" ? "Quản trị viên" : role === "LIBRARIAN" ? "Thủ thư" : "Độc giả";
+
+    menu.innerHTML = `
+        <button type="button" class="account-menu-button" aria-expanded="false" aria-haspopup="menu">
+            <span class="avatar" aria-hidden="true">${initials || "PT"}</span>
+            <span class="account-menu-name">${name}</span>
+            <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="account-menu-dropdown" role="menu" hidden>
+            <button type="button" role="menuitem" data-account-action="profile">Hồ sơ <small>${roleLabel}</small></button>
+            <button type="button" role="menuitem" data-account-action="theme">Đổi giao diện</button>
+            <button type="button" role="menuitem" class="account-logout" data-account-action="logout">Đăng xuất</button>
+        </div>
+    `;
+
+    topbar.appendChild(menu);
+    const button = menu.querySelector(".account-menu-button");
+    const dropdown = menu.querySelector(".account-menu-dropdown");
+    button.addEventListener("click", function () {
+        dropdown.hidden = !dropdown.hidden;
+        button.setAttribute("aria-expanded", String(!dropdown.hidden));
+    });
+
+    menu.addEventListener("click", async function (event) {
+        const actionButton = event.target.closest("[data-account-action]");
+        if (!actionButton) return;
+        const action = actionButton.dataset.accountAction;
+        dropdown.hidden = true;
+        button.setAttribute("aria-expanded", "false");
+        if (action === "theme") {
+            document.body.classList.toggle("reader-compact");
+            PTIT.showToast("Đã thay đổi giao diện.", "success");
+        } else if (action === "profile") {
+            PTIT.showToast("Đang mở thông tin tài khoản.", "info");
+        } else if (action === "logout") {
+            const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+                title: "Đăng xuất",
+                confirmText: "Đăng xuất",
+                danger: true,
+            });
+            if (!confirmed) return;
+            ["access_token", "token", "ptit_token", "user", "ptit_user"].forEach(function (key) {
+                localStorage.removeItem(key);
+            });
+            window.location.replace("index.html");
+        }
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!menu.contains(event.target)) {
+            dropdown.hidden = true;
+            button.setAttribute("aria-expanded", "false");
+        }
+    });
 };
 
 PTIT.initMobileSidebar = function () {
@@ -305,7 +824,7 @@ PTIT.initMobileSidebar = function () {
 };
 
 /* ====================================================================
- * 8. CHUẨN HÓA PHÂN TRANG (PAGINATION) TOÀN HỆ THỐNG
+ * CHUẨN HÓA PHÂN TRANG (PAGINATION) TOÀN HỆ THỐNG
  * ==================================================================== */
 PTIT.renderPagination = function ({
     container,
@@ -328,16 +847,13 @@ PTIT.renderPagination = function ({
     const startItem = (currentPage - 1) * pageSize + 1;
     const endItem = Math.min(currentPage * pageSize, totalItems);
 
-    // 1. Dòng thông tin hiển thị số mục
     const info = document.createElement("div");
     info.className = "pagination-info";
     info.textContent = `Hiển thị ${startItem}–${endItem} trên tổng ${totalItems} ${itemLabel}`;
 
-    // 2. Khối các nút điều khiển phân trang
     const controls = document.createElement("div");
     controls.className = "pagination-controls";
 
-    // Nút Trang trước
     const prevBtn = document.createElement("button");
     prevBtn.type = "button";
     prevBtn.className = "pagination-btn pagination-prev";
@@ -351,7 +867,6 @@ PTIT.renderPagination = function ({
     });
     controls.appendChild(prevBtn);
 
-    // Danh sách số trang rút gọn với dấu '...'
     const pages = [];
     if (totalPages <= 7) {
         for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -390,7 +905,6 @@ PTIT.renderPagination = function ({
         }
     });
 
-    // Nút Trang sau
     const nextBtn = document.createElement("button");
     nextBtn.type = "button";
     nextBtn.className = "pagination-btn pagination-next";
@@ -408,12 +922,13 @@ PTIT.renderPagination = function ({
     container.appendChild(controls);
 };
 
+/* ====================================================================
+ * TOGGLE HIỆN / ẨN MẬT KHẨU
+ * ==================================================================== */
 PTIT.initPasswordToggles = function () {
     document.querySelectorAll("input[type='password']").forEach(input => {
-        // Nếu đã có nút toggle rồi thì bỏ qua
         if (input.parentNode.querySelector(".password-toggle")) return;
 
-        // Bọc vào password-wrap nếu chưa có
         let wrap = input.parentElement;
         if (!wrap.classList.contains("password-wrap")) {
             wrap = document.createElement("div");
@@ -427,7 +942,7 @@ PTIT.initPasswordToggles = function () {
         toggleBtn.className = "password-toggle";
         toggleBtn.setAttribute("aria-label", "Hiện/Ẩn mật khẩu");
         toggleBtn.innerHTML = `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
             </svg>
@@ -443,17 +958,19 @@ PTIT.initPasswordToggles = function () {
     });
 };
 
-// Đóng modal khi bấm phím Escape
+/* ====================================================================
+ * BẮT SỰ KIỆN PHÍM ESCAPE TOÀN TRANG
+ * ==================================================================== */
 document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
-        document.querySelectorAll(".overlay.show, .overlay:not([hidden])").forEach(el => {
-            el.classList.remove("show");
-            el.hidden = true;
-        });
-        document.querySelectorAll("dialog[open]").forEach(dialog => {
-            dialog.close();
-        });
-        document.body.style.overflow = "";
+        const openModalElement =
+            Array.from(document.querySelectorAll("dialog.modal[open], .overlay.show, .overlay:not([hidden])"))
+                .filter(element => !element.hidden)
+                .pop();
+        if (openModalElement) {
+            e.preventDefault();
+            PTIT.closeModal(openModalElement.id);
+        }
         const sidebar = document.querySelector(".sidebar.open, aside.open");
         if (sidebar) {
             sidebar.classList.remove("open");
@@ -463,11 +980,25 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
-// Chạy tự động sau khi DOM tải xong
+document.addEventListener("cancel", function (event) {
+    const dialog = event.target.closest("dialog.modal");
+    if (dialog?.id) {
+        event.preventDefault();
+        PTIT.closeModal(dialog.id);
+    }
+}, true);
+
+/* Khởi tạo tự động khi trang tải xong */
 document.addEventListener("DOMContentLoaded", function () {
-    PTIT.bindLinks();
+    PTIT.progress.start();
+    setTimeout(function () {
+        PTIT.progress.done();
+    }, 400);
+
+    PTIT.initScrollProgress();
     PTIT.initMobileNav();
     PTIT.initMobileSidebar();
+    PTIT.initAccountMenu();
     PTIT.initPasswordToggles();
 });
 

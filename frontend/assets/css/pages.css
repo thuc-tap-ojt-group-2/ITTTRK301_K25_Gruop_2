@@ -188,7 +188,7 @@
     margin: 0;
 }
 
-/* Cột phải Hero: Khối 3 bìa sách 3D */
+/* Cột phải Hero: linh vật mèo và khối 3 bìa sách 3D */
 .hero-art {
     position: relative;
     display: flex;
@@ -465,7 +465,7 @@
 .featured-book-cover {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 2 / 3;
     overflow: hidden;
     background-color: var(--color-bg-subtle);
     border-bottom: 1px solid var(--color-border-light);
@@ -946,12 +946,27 @@
 
 .auth-header {
     height: var(--header-height);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 var(--space-8);
     border-bottom: 1px solid var(--color-border-light);
     background-color: var(--color-bg-surface);
+}
+
+.auth-header .auth-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-5);
+    white-space: nowrap;
+}
+
+.auth-header .brand {
+    flex-shrink: 0;
 }
 
 .auth-main {
@@ -1545,6 +1560,14 @@ select.select-role:disabled {
     opacity: 0.65;
     cursor: not-allowed;
     background-color: var(--color-bg-subtle);
+}
+
+.table-wrapper table {
+    min-width: 760px;
+}
+
+.table-wrapper td {
+    overflow-wrap: anywhere;
 }
 
 #userTable td,

@@ -228,7 +228,7 @@ async function updateAdminUserLock(id, isLocked) {
     });
 }
 
-async function getAdminLogs(limit = 100) {
+async function getAdminLogs(limit = 10) {
     return await apiRequest(`/api/admin/logs?limit=${limit}`);
 }
 

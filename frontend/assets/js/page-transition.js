@@ -70,7 +70,7 @@
 
             setTimeout(function () {
                 window.location.href = link.href;
-            }, 120);
+            }, 90);
 
             // Safety timeout: Tự động gỡ bỏ class sau 1.5s phòng khi chuyển trang bị hủy/chặn
             setTimeout(function () {
