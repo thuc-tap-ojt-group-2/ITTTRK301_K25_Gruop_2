@@ -15,6 +15,13 @@ class BookCreateRequest(BaseModel):
     imageUrl: Optional[str] = Field(
         None, max_length=500, description="Đường dẫn ảnh bìa nếu có"
     )
+    coverUrl: Optional[str] = Field(
+        None, max_length=500, description="Đường dẫn ảnh bìa mới"
+    )
+    isbn: Optional[str] = Field(None, max_length=20)
+    publisher: Optional[str] = Field(None, max_length=150)
+    publicationYear: Optional[int] = Field(None, ge=1000, le=2100)
+    description: Optional[str] = Field(None, max_length=5000)
 
 
 class BookUpdateRequest(BaseModel):
@@ -23,6 +30,11 @@ class BookUpdateRequest(BaseModel):
     categoryId: Optional[int] = Field(None, gt=0)
     total: Optional[int] = Field(None, ge=1)
     imageUrl: Optional[str] = Field(None, max_length=500)
+    coverUrl: Optional[str] = Field(None, max_length=500)
+    isbn: Optional[str] = Field(None, max_length=20)
+    publisher: Optional[str] = Field(None, max_length=150)
+    publicationYear: Optional[int] = Field(None, ge=1000, le=2100)
+    description: Optional[str] = Field(None, max_length=5000)
 
 
 class BookResponse(BaseModel):
@@ -34,6 +46,11 @@ class BookResponse(BaseModel):
     availableCopies: int
     reservedCopies: int = 0
     imageUrl: Optional[str] = None
+    coverUrl: Optional[str] = None
+    isbn: Optional[str] = None
+    publisher: Optional[str] = None
+    publicationYear: Optional[int] = None
+    description: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -228,10 +245,19 @@ class MyFineSummaryResponse(BaseModel):
 
 
 class StatsOverviewResponse(BaseModel):
+    totalTitles: int = 0
+    totalCopies: int = 0
+    totalReaders: int = 0
     totalBooks: int
     borrowingCount: int
     overdueCount: int
     totalFines: float
+
+
+class PublicStatsResponse(BaseModel):
+    total_titles: int
+    total_copies: int
+    total_categories: int
 
 
 class TopBookItem(BaseModel):

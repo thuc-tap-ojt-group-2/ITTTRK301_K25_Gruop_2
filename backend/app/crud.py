@@ -90,7 +90,12 @@ def get_books_paginated(
             totalCopies=b.total_copies,
             availableCopies=max(0, b.available_copies - hold_counts.get(b.id, 0)),
             reservedCopies=hold_counts.get(b.id, 0),
-            imageUrl=b.image_url
+                imageUrl=b.cover_url or b.image_url,
+                coverUrl=b.cover_url or b.image_url,
+                isbn=b.isbn,
+                publisher=b.publisher,
+                publicationYear=b.publication_year,
+                description=b.description
         )
         for b in books
     ]
@@ -121,7 +126,12 @@ def create_book(
         category_id=book_in.categoryId,
         total_copies=book_in.total,
         available_copies=book_in.total,
-        image_url=book_in.imageUrl
+        image_url=book_in.coverUrl or book_in.imageUrl,
+        cover_url=book_in.coverUrl or book_in.imageUrl,
+        isbn=book_in.isbn,
+        publisher=book_in.publisher,
+        publication_year=book_in.publicationYear,
+        description=book_in.description
     )
 
     db.add(new_book)
@@ -145,7 +155,12 @@ def create_book(
         totalCopies=new_book.total_copies,
         availableCopies=new_book.available_copies,
         reservedCopies=0,
-        imageUrl=new_book.image_url
+        imageUrl=new_book.cover_url or new_book.image_url,
+        coverUrl=new_book.cover_url or new_book.image_url,
+        isbn=new_book.isbn,
+        publisher=new_book.publisher,
+        publicationYear=new_book.publication_year,
+        description=new_book.description
     )
 
 
@@ -225,8 +240,20 @@ def update_book(
         book.title = book_in.title.strip()
     if book_in.author is not None:
         book.author = book_in.author.strip()
-    if book_in.imageUrl is not None:
+    if book_in.coverUrl is not None:
+        book.cover_url = book_in.coverUrl
+        book.image_url = book_in.coverUrl
+    elif book_in.imageUrl is not None:
         book.image_url = book_in.imageUrl
+        book.cover_url = book_in.imageUrl
+    if book_in.isbn is not None:
+        book.isbn = book_in.isbn
+    if book_in.publisher is not None:
+        book.publisher = book_in.publisher
+    if book_in.publicationYear is not None:
+        book.publication_year = book_in.publicationYear
+    if book_in.description is not None:
+        book.description = book_in.description
     if book_in.categoryId is not None:
         category = db.query(Category).filter(Category.id == book_in.categoryId).first()
         if not category:
@@ -255,7 +282,12 @@ def update_book(
         totalCopies=book.total_copies,
         availableCopies=max(0, book.available_copies - reserved_copies),
         reservedCopies=reserved_copies,
-        imageUrl=book.image_url,
+        imageUrl=book.cover_url or book.image_url,
+        coverUrl=book.cover_url or book.image_url,
+        isbn=book.isbn,
+        publisher=book.publisher,
+        publicationYear=book.publication_year,
+        description=book.description,
     )
 
 
@@ -572,8 +604,23 @@ def get_user_fines(db: Session, user_id: int):
 
     return schemas.MyFineSummaryResponse(totalUnpaid=total_unpaid, fines=results)
 
+def get_public_stats(db: Session) -> schemas.PublicStatsResponse:
+    total_titles = db.query(func.count(Book.id)).scalar()
+    total_copies = db.query(func.coalesce(func.sum(Book.total_copies), 0)).scalar()
+    total_categories = db.query(func.count(Category.id)).scalar()
+
+    return schemas.PublicStatsResponse(
+        total_titles=int(total_titles or 0),
+        total_copies=int(total_copies or 0),
+        total_categories=int(total_categories or 0),
+    )
+
+
 def get_stats_overview(db: Session) -> schemas.StatsOverviewResponse:
-    total_books = db.query(func.coalesce(func.sum(Book.total_copies), 0)).scalar()
+    total_titles = db.query(func.count(Book.id)).scalar()
+    total_copies = db.query(func.coalesce(func.sum(Book.total_copies), 0)).scalar()
+    total_readers = db.query(func.count(User.id)).filter(User.role == "READER").scalar()
+    total_books = total_copies
 
     borrowing_count = (
         db.query(func.count(Loan.id))
@@ -588,9 +635,12 @@ def get_stats_overview(db: Session) -> schemas.StatsOverviewResponse:
         .scalar()
     )
 
-    total_fines = db.query(func.coalesce(func.sum(Fine.amount), 0)).scalar()
+    total_fines = db.query(func.coalesce(func.sum(Fine.amount), 0)).filter(Fine.paid == False).scalar()
 
     return schemas.StatsOverviewResponse(
+        totalTitles=int(total_titles or 0),
+        totalCopies=int(total_copies or 0),
+        totalReaders=int(total_readers or 0),
         totalBooks=int(total_books or 0),
         borrowingCount=int(borrowing_count or 0),
         overdueCount=int(overdue_count or 0),
@@ -639,7 +689,12 @@ def get_monthly_loan_stats(db: Session, months: int = 6):
 
     start_date_str = f"{target_months[0]}-01"
 
-    month_expr = func.date_format(Loan.borrow_date, "%Y-%m")
+    dialect_name = db.bind.dialect.name if db.bind is not None else ""
+    month_expr = (
+        func.strftime("%Y-%m", Loan.borrow_date)
+        if dialect_name == "sqlite"
+        else func.date_format(Loan.borrow_date, "%Y-%m")
+    )
     rows = (
         db.query(month_expr.label("ym"), func.count(Loan.id).label("cnt"))
         .filter(

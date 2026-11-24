@@ -16,7 +16,7 @@ staff_only = RoleChecker(["LIBRARIAN", "ADMIN"])
 @router.get("", response_model=PageResponse)
 def get_books(
     page: int = Query(1, ge=1, description="Số trang (bắt đầu từ 1)"),
-    size: int = Query(10, ge=1, le=100, description="Số sách mỗi trang"),
+    size: int = Query(10, ge=1, le=10, description="Số sách mỗi trang"),
     keyword: Optional[str] = Query(None, description="Từ khóa tìm kiếm theo tên, tác giả, thể loại"),
     db: Session = Depends(get_db)
 ):
