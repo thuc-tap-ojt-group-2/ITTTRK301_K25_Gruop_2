@@ -124,6 +124,20 @@ class ReservationService:
             status="WAITING",
             created_at=datetime.now(timezone.utc),
         )
+        existing = (
+            db.query(Reservation)
+            .filter(
+                Reservation.user_id == user_id,
+                Reservation.book_id == book_id,
+                Reservation.status.in_(["WAITING", "HOLDING"]),
+            )
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Bạn đã đặt trước cuốn sách này và đang trong hàng chờ",
+            )
         db.add(reservation)
         db.flush()
         cls.sync_book(db, book)
