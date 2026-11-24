@@ -115,6 +115,7 @@
     font-size: 15px;
     font-weight: 600;
     color: var(--color-text-muted);
+    white-space: nowrap;
     padding: var(--space-2) var(--space-1);
     position: relative;
     transition: color var(--duration-fast) var(--ease-standard);
@@ -198,7 +199,8 @@ aside {
     display: flex;
     flex-direction: column;
     padding: var(--space-6);
-    position: sticky;
+    position: fixed;
+    left: 0;
     top: 0;
     height: 100vh;
     overflow-y: auto;
@@ -311,8 +313,38 @@ aside nav a.on,
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 13px;
     flex-shrink: 0;
+    overflow: hidden;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.avatar img,
+.avatar svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info > div,
+.sidebar-user > div {
+    min-width: 0;
+}
+
+.user-info strong,
+.user-info span {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-info strong {
+    max-width: none;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 .user-info strong,
@@ -370,6 +402,9 @@ main {
 .topbar,
 .top {
     display: flex;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
     align-items: center;
     justify-content: space-between;
     margin-bottom: var(--space-8);
@@ -390,6 +425,44 @@ main {
     font-size: var(--text-desc);
     color: var(--color-text-muted);
     margin-top: var(--space-1);
+}
+
+.layout > .main,
+#appView > .main {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+}
+
+@media (max-width: 1200px) {
+    .layout > .main > .topbar,
+    #appView > .main > .topbar {
+        align-items: center;
+    }
+
+    .layout > .main > .topbar > div:first-child,
+    #appView > .main > .topbar > div:first-child {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .layout > .main > .topbar > div:nth-child(2),
+    #appView > .main > .topbar > div:nth-child(2) {
+        flex: 0 1 auto;
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    .layout > .main > .topbar .account-menu,
+    #appView > .main > .topbar .account-menu {
+        margin-left: auto;
+    }
+}
+
+.topbar,
+.top {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.92);
 }
 
 /* ====================================================================

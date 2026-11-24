@@ -25,6 +25,11 @@ class Book(Base):
     total_copies = Column(Integer, nullable=False, default=1)
     available_copies = Column(Integer, nullable=False, default=1)
     image_url = Column(String(500), nullable=True)
+    cover_url = Column(String(500), nullable=True)
+    isbn = Column(String(20), nullable=True)
+    publisher = Column(String(150), nullable=True)
+    publication_year = Column(Integer, nullable=True)
+    description = Column(String(5000), nullable=True)
 
     category = relationship("Category", back_populates="books")
     loans = relationship("Loan", back_populates="book")

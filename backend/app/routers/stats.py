@@ -12,6 +12,11 @@ router = APIRouter(prefix="/api/stats", tags=["Statistics"])
 allow_librarian_or_admin = RoleChecker(["LIBRARIAN", "ADMIN"])
 
 
+@router.get("/public", response_model=schemas.PublicStatsResponse)
+def get_public_stats(db: Session = Depends(get_db)):
+    return crud.get_public_stats(db=db)
+
+
 @router.get("/overview", response_model=schemas.StatsOverviewResponse)
 def get_overview(
     db: Session = Depends(get_db),

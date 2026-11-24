@@ -1,0 +1,61 @@
+/**
+ * THƯ VIỆN PTIT - LOADING CHUNG
+ * loader.css: loading toàn trang dùng linh vật mèo và thanh tiến trình
+ */
+.ptit-page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-preloader);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary-dark);
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.ptit-page-loader.is-visible {
+    display: flex;
+}
+
+.ptit-page-loader__card {
+    width: min(320px, calc(100vw - 32px));
+    padding: var(--space-8);
+    border: 2px solid var(--color-primary-dark);
+    border-radius: var(--radius-card);
+    background: #FFFDF8;
+    box-shadow: 6px 6px 0 var(--color-primary-dark);
+    text-align: center;
+}
+
+.ptit-page-loader__dragon {
+    width: 88px;
+    height: 88px;
+    margin: 0 auto var(--space-3);
+    border-radius: var(--radius-circle);
+    background: #FFFDF8;
+    border: 2px solid var(--color-primary-dark);
+    animation: loader-dragon-bob var(--duration-preloader) ease-in-out infinite;
+}
+
+
+.ptit-page-loader__track {
+    height: 12px;
+    margin-top: var(--space-4);
+    border: 1px solid var(--color-primary-dark);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+}
+
+.ptit-page-loader__bar {
+    width: 18%;
+    height: 100%;
+    background: var(--color-accent-gold);
+}
+
+@keyframes loader-dragon-bob {
+    50% { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+}

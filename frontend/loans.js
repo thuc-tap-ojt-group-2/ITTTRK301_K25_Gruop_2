@@ -396,8 +396,9 @@ async function handleLoanAction(button) {
             ? "từ chối"
             : "nhận trả";
 
-    const confirmed = confirm(
-        `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`
+    const confirmed = await PTIT.confirm(
+        `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`,
+        { danger: action === "reject", confirmText: actionText[0].toUpperCase() + actionText.slice(1) }
     );
 
     if (!confirmed) {
@@ -414,6 +415,11 @@ async function handleLoanAction(button) {
 
     try {
         await apiFunction(loanId);
+
+        document.dispatchEvent(new CustomEvent(
+            action === "return" ? "ptit:return-success" : "ptit:borrow-success",
+            { detail: { loanId: loanId } }
+        ));
 
         showMessage(`Đã ${actionText} phiếu mượn #${loanId} thành công.`);
 
@@ -496,7 +502,7 @@ nextPageButton.addEventListener("click", () => {
 
 document.getElementById("logoutButton")
     .addEventListener("click", async () => {
-        const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+        const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
         if (!confirmed) return;
 
         try {

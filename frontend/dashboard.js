@@ -125,14 +125,20 @@ async function loadDashboard() {
             getMonthlyStats()
         ]);
 
-        document.getElementById("totalBooks").textContent =
-            Number(overview.totalBooks || 0).toLocaleString("vi-VN");
+        document.getElementById("totalTitles").textContent =
+            Number(overview.totalTitles ?? overview.totalBooks ?? 0).toLocaleString("vi-VN");
+
+        document.getElementById("totalCopies").textContent =
+            Number(overview.totalCopies ?? overview.totalBooks ?? 0).toLocaleString("vi-VN");
 
         document.getElementById("borrowingCount").textContent =
             Number(overview.borrowingCount || 0).toLocaleString("vi-VN");
 
         document.getElementById("overdueCount").textContent =
             Number(overview.overdueCount || 0).toLocaleString("vi-VN");
+
+        document.getElementById("totalReaders").textContent =
+            Number(overview.totalReaders || 0).toLocaleString("vi-VN");
 
         document.getElementById("totalFines").textContent =
             dashboardMoney(overview.totalFines);
@@ -203,7 +209,7 @@ document.getElementById("refreshButton").addEventListener(
 document.getElementById("logoutButton").addEventListener(
     "click",
     async () => {
-        const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+        const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
         if (!confirmed) return;
 
         try {

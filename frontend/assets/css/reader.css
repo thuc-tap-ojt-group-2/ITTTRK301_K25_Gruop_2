@@ -1,0 +1,2365 @@
+#appView {
+    --reader-forest: #0b4937;
+    --reader-forest-dark: #073728;
+    --reader-green: #147251;
+    --reader-mint: #e8f4ec;
+    --reader-gold: #e6bb68;
+    --reader-ink: #17352b;
+    --reader-muted: #687970;
+    --reader-line: rgba(31, 74, 56, 0.12);
+    position: relative;
+    display: flex;
+    min-height: 100vh;
+    color: var(--reader-ink);
+    background: #edf4ef;
+}
+
+#appView[hidden],
+#appView .page[hidden],
+#appView #sidebarBackdrop[hidden] {
+    display: none !important;
+}
+
+#appView .sidebar {
+    position: fixed;
+    z-index: 1001;
+    inset: 0 auto 0 0;
+    display: flex;
+    width: 272px;
+    flex-direction: column;
+    overflow: hidden auto;
+    padding: 26px 18px 18px;
+    border: 0;
+    background:
+        radial-gradient(circle at 5% 10%, rgba(86, 159, 119, 0.26), transparent 34%),
+        radial-gradient(circle at 100% 78%, rgba(229, 187, 104, 0.1), transparent 28%),
+        linear-gradient(160deg, #0d523c 0%, #083c2e 54%, #062f25 100%);
+    box-shadow: 14px 0 40px rgba(11, 55, 39, 0.1);
+    color: #fff;
+}
+
+#appView .sidebar-brand {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 5px 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    line-height: 1.35;
+}
+
+#appView .sidebar-brand > img {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border: 2px solid rgba(255, 255, 255, 0.86);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+    object-fit: contain;
+}
+
+#appView .sidebar-brand-copy {
+    min-width: 0;
+}
+
+#appView .sidebar-brand strong {
+    display: block;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+}
+
+#appView .sidebar-brand small {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+}
+
+#appView .sidebar-menu {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 28px;
+}
+
+#appView .sidebar-menu-label {
+    margin: 0 12px 8px;
+    color: rgba(255, 255, 255, 0.46);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+#appView .menu-item {
+    display: flex;
+    width: 100%;
+    min-height: 50px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.77);
+    font: 600 13px/1.4 var(--font-sans);
+    text-align: left;
+    cursor: pointer;
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+#appView .menu-item:hover {
+    transform: translateX(2px);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+#appView .menu-item.active {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: linear-gradient(110deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+    box-shadow: inset 3px 0 var(--reader-gold), 0 8px 22px rgba(0, 0, 0, 0.12);
+    color: #fff;
+}
+
+#appView .menu-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.88);
+}
+
+#appView .menu-icon svg,
+#appView .utility-icon svg,
+#appView .stat-icon svg,
+#appView .reader-eyebrow svg,
+#appView .reader-art svg,
+#appView .sidebar-note-icon svg,
+#appView .summary-icon svg {
+    display: block;
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+}
+
+#appView .menu-item.active .menu-icon {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.16);
+    color: #f3d48f;
+}
+
+#appView .sidebar-note {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    margin-top: auto;
+    padding: 13px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+#appView .sidebar-note-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(230, 187, 104, 0.17);
+    color: #f1ce83;
+}
+
+#appView .sidebar-note strong,
+#appView .sidebar-note small {
+    display: block;
+}
+
+#appView .sidebar-note strong {
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+#appView .sidebar-note small {
+    margin-top: 3px;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+#appView .sidebar-user {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 10px;
+    margin-top: 14px;
+    padding: 14px 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+#appView .user-row {
+    display: contents;
+}
+
+#appView .user-row .avatar {
+    grid-row: span 2;
+    width: 38px;
+    height: 38px;
+    border: 2px solid rgba(255, 255, 255, 0.42);
+    background: #e8f4ec;
+    color: var(--reader-forest);
+}
+
+#appView .user-row strong {
+    min-width: 0;
+    align-self: end;
+    color: #fff;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+#appView .user-role {
+    grid-column: 2;
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 11px;
+}
+
+#appView .sidebar-user .logout-btn {
+    display: none;
+}
+
+#appView > .main {
+    width: calc(100% - 272px);
+    min-width: 0;
+    min-height: 100vh;
+    margin-left: 272px;
+    padding: 0;
+    background: #edf4ef;
+}
+
+#appView .topbar {
+    position: sticky;
+    z-index: 500;
+    top: 0;
+    display: flex;
+    min-height: 78px;
+    height: auto;
+    align-items: center;
+    gap: 14px;
+    margin: 0;
+    padding: 12px clamp(20px, 3vw, 42px);
+    border: 0;
+    border-bottom: 1px solid rgba(31, 74, 56, 0.09);
+    background: rgba(250, 252, 250, 0.9);
+    box-shadow: 0 7px 22px rgba(25, 68, 49, 0.035);
+    backdrop-filter: blur(18px);
+}
+
+#appView .topbar-title {
+    position: static;
+    width: auto;
+    height: auto;
+    flex: 0 0 auto;
+    overflow: visible;
+    margin: 0;
+    clip: auto;
+    border: 0;
+    color: #254637;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#appView .topbar-user {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+#appView .toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+}
+
+#appView .utility-btn {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 3px 10px rgba(23, 53, 43, 0.035);
+    color: #355749;
+    font-size: 12px;
+    font-weight: 650;
+    transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+#appView .utility-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(20, 114, 81, 0.25);
+    background: #fff;
+}
+
+#appView .utility-icon {
+    display: inline-grid;
+    place-items: center;
+    color: var(--reader-green);
+}
+
+#appView .utility-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+#appView .account-menu {
+    flex: 0 0 auto;
+    margin-left: 4px;
+}
+
+#appView .account-menu-button {
+    min-height: 44px;
+    gap: 9px;
+    padding: 4px 11px 4px 5px;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.86);
+    color: var(--reader-ink);
+}
+
+#appView .account-menu-button:hover {
+    border-color: rgba(20, 114, 81, 0.25);
+    background: #fff;
+}
+
+#appView .account-menu-button .avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--reader-forest);
+    color: #fff;
+}
+
+#appView .content {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    max-width: 1480px;
+    min-height: calc(100vh - 78px);
+    margin-inline: auto;
+    padding: clamp(26px, 3vw, 44px) clamp(20px, 3vw, 44px) 56px;
+    background:
+        radial-gradient(ellipse at 92% 3%, rgba(193, 225, 203, 0.58), transparent 28rem),
+        radial-gradient(ellipse at 2% 55%, rgba(241, 225, 186, 0.24), transparent 24rem),
+        linear-gradient(145deg, #f3f8f4 0%, #edf5ef 56%, #f5f8f5 100%);
+}
+
+#appView .content::before,
+#appView .content::after {
+    position: absolute;
+    z-index: -1;
+    border: 1px solid rgba(31, 109, 75, 0.055);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+}
+
+#appView .content::before {
+    top: 40px;
+    right: -120px;
+    width: 320px;
+    height: 320px;
+}
+
+#appView .content::after {
+    top: 92px;
+    right: -68px;
+    width: 215px;
+    height: 215px;
+}
+
+#appView .page {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-width: 0;
+    animation: reader-page-in 360ms ease both;
+}
+
+@keyframes reader-page-in {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#appView .reader-page-heading {
+    display: flex;
+    min-height: 112px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    margin-bottom: 24px;
+}
+
+#appView .reader-page-heading-copy {
+    min-width: 0;
+}
+
+#appView .reader-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+    color: #4a8063;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+#appView .reader-eyebrow svg {
+    width: 15px;
+    height: 15px;
+}
+
+#appView .page h1 {
+    margin: 0;
+    color: #17372b;
+    font-size: clamp(26px, 2.5vw, 36px);
+    font-weight: 750;
+    letter-spacing: -0.045em;
+    line-height: 1.18;
+}
+
+#appView .reader-page-heading .text-muted {
+    max-width: 650px;
+    margin: 8px 0 0;
+    color: var(--reader-muted);
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+#appView .reader-art {
+    position: relative;
+    display: grid;
+    width: 112px;
+    height: 98px;
+    flex: 0 0 112px;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 75% 15%, rgba(255, 255, 255, 0.85), transparent 40%),
+        linear-gradient(145deg, #d6ebdd, #eef5e9);
+    box-shadow: 0 14px 30px rgba(25, 82, 54, 0.09);
+    color: #247650;
+}
+
+#appView .reader-art::before,
+#appView .reader-art::after {
+    position: absolute;
+    width: 84px;
+    height: 84px;
+    border: 1px solid rgba(35, 112, 75, 0.13);
+    border-radius: 50%;
+    content: "";
+}
+
+#appView .reader-art::before {
+    top: -34px;
+    right: -24px;
+}
+
+#appView .reader-art::after {
+    right: -7px;
+    bottom: -61px;
+    width: 110px;
+    height: 110px;
+}
+
+#appView .reader-art svg {
+    z-index: 1;
+    width: 45px;
+    height: 45px;
+    stroke-width: 1.35;
+}
+
+#appView .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0 0 28px;
+}
+
+#appView .card--stat {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 118px;
+    align-items: center;
+    gap: 14px;
+    overflow: hidden;
+    padding: 18px;
+    border: 1px solid rgba(31, 74, 56, 0.09);
+    border-radius: 19px;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 8px 22px rgba(25, 68, 49, 0.055);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+#appView .card--stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(25, 68, 49, 0.1);
+}
+
+#appView .stat-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    place-items: center;
+    border-radius: 15px;
+    background: #e6f3e9;
+    color: #18764f;
+}
+
+#appView .card--stat:nth-child(2) .stat-icon {
+    background: #fff2d9;
+    color: #ad7522;
+}
+
+#appView .card--stat:nth-child(3) .stat-icon {
+    background: #e5effb;
+    color: #3d6c9e;
+}
+
+#appView .card--stat:nth-child(4) .stat-icon {
+    background: #eee9fb;
+    color: #7354a4;
+}
+
+#appView .stat-copy {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+}
+
+#appView .stat-copy strong {
+    color: #163e2e;
+    font-size: 27px;
+    font-weight: 750;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+#appView .stat-copy > span {
+    color: #718078;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+#appView .library-card {
+    position: relative;
+    width: min(520px, 100%);
+    min-height: 228px;
+    overflow: hidden;
+    margin: 24px 0 34px;
+    padding: 25px 28px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 90% 8%, rgba(202, 236, 212, 0.24), transparent 34%),
+        linear-gradient(130deg, #0d523a 0%, #0c6947 58%, #084532 100%);
+    box-shadow: 0 18px 36px rgba(13, 82, 58, 0.2);
+    color: #fff;
+}
+
+#appView .library-card::before,
+#appView .library-card::after {
+    position: absolute;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+}
+
+#appView .library-card::before {
+    top: -102px;
+    right: -32px;
+    width: 255px;
+    height: 255px;
+}
+
+#appView .library-card::after {
+    top: -62px;
+    right: 12px;
+    width: 172px;
+    height: 172px;
+}
+
+#appView .library-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+#appView .library-card__academy {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+#appView .library-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 17px 0 13px;
+}
+
+#appView .library-identity .avatar {
+    width: 38px;
+    height: 38px;
+    background: #fff;
+    color: var(--reader-forest);
+}
+
+#appView .library-identity strong,
+#appView #libraryStudentId {
+    color: #fff;
+    overflow-wrap: anywhere;
+}
+
+#appView .library-card__label {
+    margin: 0 0 2px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+}
+
+#appView #libraryStudentId {
+    font-size: 17px;
+    letter-spacing: 0.08em;
+}
+
+#appView .library-barcode {
+    width: 100%;
+    height: 17px;
+    margin-top: 14px;
+    border-radius: 3px;
+    background: repeating-linear-gradient(90deg, #f4f6e8 0 2px, transparent 2px 4px, #f4f6e8 4px 5px, transparent 5px 8px);
+    opacity: 0.76;
+}
+
+#appView .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 28px 0 15px;
+    color: #214638;
+    font-size: 18px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+}
+
+#appView .section-title::before {
+    display: inline-grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    border-radius: 10px;
+    background: #deeee3;
+    color: #287b52;
+    content: "✦";
+    font-size: 13px;
+}
+
+#appView .popular-books,
+#appView .reader-book-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 18px;
+    max-width: none;
+}
+
+#appView .book-card {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 7px 20px rgba(25, 68, 49, 0.07);
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+#appView .book-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(20, 114, 81, 0.23);
+    box-shadow: 0 18px 34px rgba(25, 68, 49, 0.14);
+}
+
+#appView .book-open {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    padding: 0;
+    border: 0;
+    border-radius: inherit;
+    background: #fff;
+    color: inherit;
+    text-align: left;
+}
+
+#appView .book-cover {
+    position: relative;
+    display: grid;
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 0.74;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+    padding: 14px;
+    color: #fff;
+}
+
+#appView .book-cover-image {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 350ms ease;
+}
+
+#appView .book-card:hover .book-cover-image {
+    transform: scale(1.035);
+}
+
+#appView .book-cover.has-image > :not(.book-cover-image) {
+    visibility: hidden;
+}
+
+#appView .book-cat,
+#appView .book-title,
+#appView .book-author {
+    position: relative;
+    z-index: 2;
+    overflow-wrap: anywhere;
+}
+
+#appView .book-cat {
+    width: fit-content;
+    max-width: 100%;
+    padding: 4px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.18);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+#appView .book-title {
+    align-self: center;
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+#appView .book-author {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+#appView .book-foot {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 10px 12px;
+}
+
+#appView .pill {
+    max-width: 100%;
+    padding: 4px 9px;
+    border: 1px solid rgba(20, 114, 81, 0.13);
+    border-radius: 99px;
+    background: #eaf5ed;
+    color: #216747;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#appView .pill-out,
+#appView .status-rejected,
+#appView .status-cancelled {
+    border-color: rgba(190, 65, 53, 0.14);
+    background: #fff0ed;
+    color: #a53d33;
+}
+
+#appView .status-pending {
+    border-color: rgba(176, 120, 27, 0.14);
+    background: #fff5df;
+    color: #8c631c;
+}
+
+#appView .book-rating {
+    color: #a47725;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+#appView .favorite-button {
+    position: absolute;
+    z-index: 3;
+    top: 10px;
+    right: 10px;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 12px rgba(12, 41, 28, 0.12);
+    color: #b94945;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 180ms ease, background 180ms ease;
+}
+
+#appView .favorite-button:hover {
+    transform: scale(1.08);
+    background: #fff;
+}
+
+#appView .table-wrapper {
+    margin-top: 0;
+}
+
+#appView #myLoanList.table-wrapper,
+#appView #myFineList.table-wrapper {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#appView .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 8px 22px rgba(25, 68, 49, 0.055);
+    -webkit-overflow-scrolling: touch;
+}
+
+#appView .reader-table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+}
+
+#appView .reader-table th {
+    padding: 13px 15px;
+    border-bottom: 1px solid rgba(31, 74, 56, 0.09);
+    background: #edf5ef;
+    color: #63766b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#appView .reader-table th:first-child {
+    min-width: 180px;
+    border-top-left-radius: 16px;
+}
+
+#appView .reader-table th:last-child {
+    border-top-right-radius: 16px;
+}
+
+#appView .reader-table td {
+    padding: 14px 15px;
+    border-top: 1px solid rgba(31, 74, 56, 0.065);
+    color: #3e5549;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+#appView .reader-table tbody tr:first-child td {
+    border-top: 0;
+}
+
+#appView .reader-table tbody tr:hover {
+    background: #f8fbf8;
+}
+
+#appView .reader-table td:not(:first-child) {
+    white-space: nowrap;
+}
+
+#appView .reader-table .btn {
+    min-height: 34px;
+    padding: 6px 11px;
+    border-radius: 10px;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+#appView .table-empty,
+#appView .my-empty-state,
+#appView .empty {
+    position: relative;
+    display: flex;
+    min-height: 104px;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    padding: 22px;
+    border: 1px dashed rgba(31, 109, 75, 0.2);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.68);
+    color: #6d7f74;
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+#appView .table-empty::before,
+#appView .my-empty-state::before {
+    color: #599273;
+    content: "✧";
+    font-size: 22px;
+}
+
+#appView .empty.error {
+    border-color: rgba(192, 57, 43, 0.24);
+    background: #fff7f5;
+    color: #a53d33;
+}
+
+#appView .my-library-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 20px 0 26px;
+}
+
+#appView .my-summary-card {
+    display: grid;
+    min-width: 0;
+    min-height: 104px;
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
+    align-items: center;
+    gap: 3px 12px;
+    padding: 16px;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 7px 20px rgba(25, 68, 49, 0.055);
+}
+
+#appView .summary-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    grid-row: span 2;
+    place-items: center;
+    border-radius: 13px;
+    background: #e6f3e9;
+    color: #18764f;
+}
+
+#appView .my-summary-card:nth-child(2) .summary-icon {
+    background: #fff2d9;
+    color: #ad7522;
+}
+
+#appView .my-summary-card:nth-child(3) .summary-icon {
+    background: #e5effb;
+    color: #3d6c9e;
+}
+
+#appView .my-summary-card:nth-child(4) .summary-icon {
+    background: #eee9fb;
+    color: #7354a4;
+}
+
+#appView .summary-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+#appView .my-summary-card strong {
+    display: block;
+    color: #214f39;
+    font-size: 22px;
+    font-weight: 750;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+#appView .my-summary-card > span:not(.summary-icon),
+#appView .my-summary-card small {
+    display: block;
+    margin: 0;
+    color: #64776c;
+    font-size: 10px;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+#appView .my-summary-card small {
+    grid-column: 2;
+    color: #8a9990;
+    font-size: 9px;
+}
+
+#appView .category-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 16px;
+}
+
+#appView .filter-chip {
+    min-height: 36px;
+    padding: 7px 13px;
+    border: 1px solid rgba(31, 74, 56, 0.12);
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 3px 9px rgba(25, 68, 49, 0.035);
+    color: #4d6659;
+    font-size: 11px;
+    font-weight: 650;
+    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+#appView .filter-chip:hover {
+    transform: translateY(-1px);
+    background: #fff;
+}
+
+#appView .filter-chip.active {
+    border-color: #166c4b;
+    background: linear-gradient(130deg, #176f4e, #0f563b);
+    box-shadow: 0 6px 15px rgba(15, 86, 59, 0.2);
+    color: #fff;
+}
+
+#appView .reader-search-box {
+    display: flex;
+    min-height: 60px;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 15px;
+    padding: 7px 8px 7px 16px;
+    border: 1px solid rgba(31, 74, 56, 0.11);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 9px 24px rgba(25, 68, 49, 0.07);
+}
+
+#appView .reader-search-icon {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #568269;
+}
+
+#appView .reader-search-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+}
+
+#appView .reader-search-box .hero-search-input {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    flex: 1 1 auto;
+    padding: 8px 4px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: #244537;
+    font-size: 12px;
+}
+
+#appView .reader-search-box .hero-search-input:focus {
+    outline: none;
+}
+
+#appView .reader-search-box:focus-within {
+    border-color: rgba(20, 114, 81, 0.35);
+    box-shadow: 0 0 0 4px rgba(20, 114, 81, 0.08), 0 9px 24px rgba(25, 68, 49, 0.07);
+}
+
+#appView .reader-search-box .hero-search-btn {
+    min-height: 43px;
+    padding-inline: 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #18764f, #0f563b);
+    box-shadow: 0 5px 12px rgba(15, 86, 59, 0.18);
+    font-size: 11px;
+}
+
+#appView .result-info {
+    min-height: 22px;
+    margin: 6px 0 12px;
+    color: #6b7b71;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+#appView .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 24px 0 0;
+}
+
+#appView .page-btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 7px 12px;
+    border: 1px solid rgba(31, 74, 56, 0.12);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #496356;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+#appView .page-btn:hover:not(:disabled),
+#appView .page-btn.active {
+    border-color: #176f4e;
+    background: #176f4e;
+    color: #fff;
+}
+
+#appView .page-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#appView .page-gap,
+#appView .pagination-count {
+    color: #74857a;
+    font-size: 11px;
+}
+
+#appView .menu-toggle {
+    display: none;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(31, 74, 56, 0.12);
+    border-radius: 12px;
+    background: #fff;
+    color: #28523e;
+}
+
+#appView .sidebar-backdrop:not([hidden]) {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    background: rgba(10, 35, 25, 0.56);
+    backdrop-filter: blur(4px);
+}
+
+#appView .utility-content {
+    margin-bottom: 16px;
+}
+
+@media (max-width: 1150px) {
+    #appView .stats-grid,
+    #appView .my-library-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #appView .popular-books,
+    #appView .reader-book-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    #appView .sidebar {
+        left: -100%;
+        width: min(290px, calc(100vw - 42px));
+        transition: left 240ms ease;
+    }
+
+    #appView .sidebar.open {
+        left: 0;
+    }
+
+    #appView > .main {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    #appView .topbar {
+        min-height: 68px;
+        padding-inline: 20px;
+    }
+
+    #appView .menu-toggle {
+        display: inline-flex;
+    }
+
+    #appView .content {
+        min-height: calc(100vh - 68px);
+    }
+
+    #appView .popular-books,
+    #appView .reader-book-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    #appView .topbar {
+        min-height: 64px;
+        gap: 8px;
+        padding: 8px 14px;
+    }
+
+    #appView .topbar-title {
+        font-size: 12px;
+    }
+
+    #appView .toolbar-actions {
+        gap: 5px;
+    }
+
+    #appView .utility-btn {
+        width: 38px;
+        min-width: 38px;
+        min-height: 38px;
+        padding: 0;
+        overflow: hidden;
+        font-size: 0;
+    }
+
+    #appView .utility-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    #appView .account-menu {
+        margin-left: 0;
+    }
+
+    #appView .account-menu-button {
+        min-height: 38px;
+        padding-right: 7px;
+    }
+
+    #appView .account-menu-name {
+        display: none;
+    }
+
+    #appView .content {
+        min-height: calc(100vh - 64px);
+        padding: 24px 16px 42px;
+    }
+
+    #appView .reader-page-heading {
+        min-height: 0;
+        margin-bottom: 20px;
+    }
+
+    #appView .reader-art {
+        width: 72px;
+        height: 72px;
+        flex-basis: 72px;
+        border-radius: 19px;
+    }
+
+    #appView .reader-art svg {
+        width: 34px;
+        height: 34px;
+    }
+
+    #appView .reader-eyebrow {
+        font-size: 9px;
+    }
+
+    #appView .page h1 {
+        font-size: 27px;
+    }
+
+    #appView .reader-page-heading .text-muted {
+        font-size: 11px;
+    }
+
+    #appView .stats-grid,
+    #appView .my-library-summary {
+        gap: 10px;
+    }
+
+    #appView .card--stat {
+        min-height: 96px;
+        gap: 10px;
+        padding: 13px;
+        border-radius: 16px;
+    }
+
+    #appView .stat-icon {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+        border-radius: 12px;
+    }
+
+    #appView .stat-icon svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    #appView .stat-copy strong {
+        font-size: 22px;
+    }
+
+    #appView .stat-copy > span {
+        font-size: 10px;
+    }
+
+    #appView .library-card {
+        min-height: 210px;
+        margin-block: 18px 28px;
+        padding: 21px;
+        border-radius: 21px;
+    }
+
+    #appView .section-title {
+        margin-top: 24px;
+        font-size: 16px;
+    }
+
+    #appView .popular-books,
+    #appView .reader-book-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    #appView .book-card {
+        border-radius: 15px;
+    }
+
+    #appView .book-title {
+        font-size: 13px;
+    }
+
+    #appView .book-foot {
+        min-height: 42px;
+        padding: 8px;
+    }
+
+    #appView .reader-search-box {
+        flex-wrap: nowrap;
+        min-height: 54px;
+        gap: 7px;
+        padding: 6px 6px 6px 11px;
+        border-radius: 14px;
+    }
+
+    #appView .reader-search-box .hero-search-input {
+        font-size: 11px;
+    }
+
+    #appView .reader-search-box .hero-search-btn {
+        width: auto;
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding-inline: 11px;
+    }
+
+    #appView .category-filters {
+        gap: 6px;
+    }
+
+    #appView .filter-chip {
+        min-height: 33px;
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+
+    #appView .my-summary-card {
+        min-height: 88px;
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 3px 8px;
+        padding: 11px;
+    }
+
+    #appView .summary-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+    }
+
+    #appView .my-summary-card strong {
+        font-size: 19px;
+    }
+
+    #appView .section-title::before {
+        width: 27px;
+        height: 27px;
+        flex-basis: 27px;
+    }
+}
+
+@media (max-width: 400px) {
+    #appView .topbar {
+        padding-inline: 10px;
+    }
+
+    #appView .topbar-title {
+        max-width: 78px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #appView .toolbar-actions {
+        margin-left: auto;
+    }
+
+    #appView .content {
+        padding-inline: 13px;
+    }
+
+    #appView .reader-art {
+        width: 58px;
+        height: 58px;
+        flex-basis: 58px;
+    }
+
+    #appView .card--stat {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    #appView .stat-icon {
+        width: 33px;
+        height: 33px;
+        flex-basis: 33px;
+    }
+
+    #appView .stat-copy strong {
+        font-size: 19px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #appView *,
+    #appView *::before,
+    #appView *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+dialog.utility-dialog#utilityDialog {
+    position: fixed;
+    inset: 0;
+    width: min(560px, calc(100vw - 40px));
+    max-width: 560px;
+    max-height: min(90dvh, 780px);
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid rgba(31, 74, 56, 0.13);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 28px 90px rgba(8, 39, 27, 0.28);
+    color: #233d30;
+}
+
+dialog.utility-dialog#utilityDialog[open] {
+    display: block;
+}
+
+#utilityTitle {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    margin: 0;
+    padding: 24px 76px 20px 28px;
+    border-bottom: 1px solid rgba(31, 74, 56, 0.09);
+    background: linear-gradient(120deg, #f1f8f3, #fff 80%);
+    color: #173d2c;
+    font-size: 21px;
+    font-weight: 750;
+    letter-spacing: -0.035em;
+}
+
+dialog.utility-dialog#utilityDialog > .close-btn {
+    position: absolute;
+    z-index: 3;
+    top: 16px;
+    right: 18px;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    background: #fff;
+    color: #4a6656;
+    font-size: 22px;
+}
+
+#utilityContent {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 18px 26px 10px;
+}
+
+#utilityContent .profile-row {
+    display: grid;
+    grid-template-columns: minmax(105px, 0.65fr) minmax(0, 1.35fr);
+    align-items: start;
+    gap: 12px;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid rgba(31, 74, 56, 0.075);
+    border-radius: 13px;
+    background: #f7faf7;
+    overflow-wrap: anywhere;
+}
+
+#utilityContent .profile-row .muted {
+    color: #708176;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+#utilityContent .profile-row strong {
+    color: #294b39;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: right;
+}
+
+#utilityContent .password-change-form {
+    display: grid;
+    margin-top: 9px;
+    padding: 19px;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    border-radius: 17px;
+    background: linear-gradient(145deg, #f3f8f4, #fbfdfb);
+}
+
+#utilityContent .password-change-form h3 {
+    margin: 0 0 12px;
+    color: #214a36;
+    font-size: 14px;
+    font-weight: 750;
+}
+
+#utilityContent .password-change-form label {
+    display: block;
+    margin: 9px 0 5px;
+    color: #546b5d;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+#utilityContent .password-change-form input {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid rgba(31, 74, 56, 0.16);
+    border-radius: 11px;
+    background: #fff;
+    color: #233d30;
+    font-size: 12px;
+}
+
+#utilityContent .password-change-form input:focus {
+    border-color: #3a9068;
+    outline: 3px solid rgba(58, 144, 104, 0.12);
+}
+
+#utilityContent .password-change-form .btn {
+    min-height: 42px;
+    justify-self: start;
+    margin-top: 6px;
+    padding: 10px 16px;
+    border-radius: 11px;
+    font-size: 11px;
+}
+
+dialog.utility-dialog#utilityDialog > .form-actions {
+    margin: 0;
+    padding: 10px 26px 22px;
+}
+
+dialog.utility-dialog#utilityDialog > .form-actions .btn {
+    min-width: 100px;
+    min-height: 40px;
+    border-radius: 11px;
+    font-size: 11px;
+}
+
+#utilityContent .notification-item {
+    margin: 0;
+    padding: 13px 15px;
+    border: 1px solid rgba(31, 74, 56, 0.09);
+    border-radius: 13px;
+    background: #f7faf7;
+    color: #3e5948;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+dialog#bookDialog {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    width: min(920px, calc(100vw - 48px));
+    max-width: 920px;
+    max-height: min(90dvh, 860px);
+    grid-template-areas:
+        "title title"
+        "cover availability"
+        "cover meta"
+        "cover actions";
+    grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    gap: 0 24px;
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(31, 74, 56, 0.13);
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 30px 100px rgba(8, 39, 27, 0.32);
+    color: #233d30;
+}
+
+dialog#bookDialog[open] {
+    display: grid;
+}
+
+#bookDetailTitle {
+    grid-area: title;
+    margin: 0;
+    padding: 22px 76px 19px 28px;
+    border-bottom: 1px solid rgba(31, 74, 56, 0.09);
+    background: linear-gradient(110deg, #f1f8f3 0%, #fff 72%);
+    color: #173d2c;
+    font-size: 22px;
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+dialog#bookDialog > .close-btn {
+    position: absolute;
+    z-index: 3;
+    top: 14px;
+    right: 17px;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(31, 74, 56, 0.1);
+    background: #fff;
+    color: #4a6656;
+    font-size: 23px;
+}
+
+#bookDetailCover {
+    display: grid;
+    min-width: 0;
+    grid-area: cover;
+    align-content: start;
+    justify-items: center;
+    padding: 23px;
+    border-right: 1px solid rgba(31, 74, 56, 0.08);
+    background:
+        radial-gradient(circle at 50% 12%, rgba(205, 230, 212, 0.66), transparent 56%),
+        #f0f6f1;
+}
+
+#bookDetailCover .book-cover {
+    width: min(100%, 270px);
+    min-height: 0;
+    max-height: 430px;
+    aspect-ratio: 0.72;
+    overflow: hidden;
+    border: 1px solid rgba(31, 74, 56, 0.12);
+    border-radius: 16px;
+    background-color: #e7efe9;
+    box-shadow: 0 16px 30px rgba(19, 62, 40, 0.16);
+}
+
+#bookDetailCover .book-cover-image {
+    object-fit: contain;
+}
+
+#bookDetailCover .book-cover.has-image > :not(.book-cover-image) {
+    visibility: hidden;
+}
+
+#bookDetailAvailability {
+    grid-area: availability;
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    margin: 19px 24px 0;
+    padding: 9px 12px;
+    border: 1px solid rgba(27, 125, 79, 0.14);
+    border-radius: 11px;
+    background: #edf7f0;
+    color: #286845;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+#bookDetailMeta {
+    grid-area: meta;
+    min-width: 0;
+    margin: 8px 24px 0;
+    color: #64766b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+#bookDetailMeta p {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(31, 74, 56, 0.08);
+}
+
+#bookDetailMeta strong {
+    color: #294b39;
+    font-weight: 700;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+#bookDetailActions {
+    grid-area: actions;
+    min-width: 0;
+    min-height: 0;
+    max-height: calc(90dvh - 190px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 10px 24px 22px 0;
+}
+
+#bookDetailActions[hidden],
+#bookDialog #loanForm[hidden],
+#bookDialog #loanResult[hidden] {
+    display: none !important;
+}
+
+#bookDetailActions .review-heading {
+    margin: 0 0 12px;
+    color: #244b37;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+#bookDetailActions .review-summary {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 12px;
+    padding: 14px;
+    border: 1px solid rgba(31, 74, 56, 0.08);
+    border-radius: 15px;
+    background: #f7faf7;
+}
+
+#bookDetailActions .rating-score {
+    display: flex;
+    min-width: 70px;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+#bookDetailActions .rating-score strong {
+    color: #214d36;
+    font-size: 32px;
+    line-height: 1;
+}
+
+#bookDetailActions .stars {
+    color: #d49831;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+#bookDetailActions .rating-score small {
+    color: #78877e;
+    font-size: 9px;
+}
+
+#bookDetailActions .rating-bars {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#bookDetailActions .rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #718077;
+    font-size: 9px;
+}
+
+#bookDetailActions .rating-bar-row > span:first-child {
+    width: 25px;
+    white-space: nowrap;
+}
+
+#bookDetailActions .rating-bar-row > span:last-child {
+    width: 14px;
+    text-align: right;
+}
+
+#bookDetailActions .rating-track {
+    height: 6px;
+    flex: 1;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #e1e9e3;
+}
+
+#bookDetailActions .rating-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #e6bb68, #ce8d24);
+}
+
+#bookDetailActions .review-list {
+    max-height: 180px;
+    overflow: auto;
+    margin: 10px 0;
+}
+
+#bookDetailActions .reader-review {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(31, 74, 56, 0.08);
+}
+
+#bookDetailActions .reader-review .avatar {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    background: #e6f1e8;
+    color: #286845;
+}
+
+#bookDetailActions .review-content {
+    min-width: 0;
+    flex: 1;
+}
+
+#bookDetailActions .review-author {
+    color: #294b39;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+#bookDetailActions .review-comment {
+    margin-top: 4px;
+    color: #66776c;
+    font-size: 11px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+#writeReviewButton {
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: 11px;
+    font-size: 11px;
+}
+
+#bookDialog .loan-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 0;
+}
+
+#bookDialog .loan-actions .btn {
+    width: auto;
+    min-width: 0;
+    min-height: 40px;
+    flex: 0 1 auto;
+    padding: 9px 12px;
+    border-radius: 11px;
+    font-size: 10px;
+}
+
+#bookDialog #loanForm,
+#bookDialog #loanResult {
+    grid-column: 1 / -1;
+    min-width: 0;
+    max-height: min(72dvh, 620px);
+    overflow: auto;
+    padding: 24px 28px;
+}
+
+#bookDialog #loanDaysFieldset legend {
+    margin-bottom: 8px;
+    color: #244b37;
+    font-size: 16px;
+    font-weight: 750;
+}
+
+#bookDialog #loanHint {
+    color: #6a7c70;
+    font-size: 12px;
+}
+
+#bookDialog .loan-day-option {
+    min-width: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    white-space: normal;
+}
+
+#bookDialog .loan-day-option span {
+    width: 100%;
+    min-height: 92px;
+    padding: 24px 8px 14px;
+    border: 1px solid rgba(31, 74, 56, 0.14);
+    border-radius: 13px;
+    background: #f8fbf8;
+    color: #294b39;
+}
+
+#bookDialog .loan-day-option input:checked + span {
+    border-color: #247650;
+    background: #edf7f0;
+    color: #1d603f;
+}
+
+#bookDialog .loan-loading,
+#bookDialog .loan-success {
+    padding: 14px;
+    border-radius: 13px;
+}
+
+dialog.review-dialog#reviewDialog {
+    position: fixed;
+    inset: 0;
+    width: min(520px, calc(100vw - 32px));
+    max-width: 520px;
+    max-height: min(90dvh, 740px);
+    margin: auto;
+    padding: 26px;
+    overflow: auto;
+    border: 1px solid rgba(31, 74, 56, 0.13);
+    border-radius: 23px;
+    background: #fff;
+    box-shadow: 0 28px 90px rgba(8, 39, 27, 0.28);
+    color: #233d30;
+}
+
+dialog.review-dialog#reviewDialog[open] {
+    display: block;
+}
+
+#reviewTitle {
+    margin: 0 44px 20px 0;
+    color: #173d2c;
+    font-size: 21px;
+    font-weight: 750;
+}
+
+#reviewDialog .field {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+#reviewDialog label {
+    color: #546b5d;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+#reviewDialog select,
+#reviewDialog textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid rgba(31, 74, 56, 0.16);
+    border-radius: 11px;
+    background: #fbfdfb;
+    color: #233d30;
+    font: inherit;
+    font-size: 12px;
+}
+
+#reviewDialog textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+#reviewDialog .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+#reviewDialog .form-actions .btn {
+    width: auto;
+    min-height: 40px;
+    padding: 9px 15px;
+    border-radius: 11px;
+    font-size: 11px;
+}
+
+html[data-theme="dark"] #appView {
+    background: #0e1912;
+    color: #e2eee5;
+}
+
+html[data-theme="dark"] #appView > .main {
+    background: #101b14;
+}
+
+html[data-theme="dark"] #appView .topbar {
+    border-bottom-color: rgba(224, 238, 229, 0.1);
+    background: rgba(19, 32, 24, 0.92);
+}
+
+html[data-theme="dark"] #appView .topbar-title,
+html[data-theme="dark"] #appView .page h1,
+html[data-theme="dark"] #appView .section-title {
+    color: #e3f0e7;
+}
+
+html[data-theme="dark"] #appView .content {
+    background:
+        radial-gradient(ellipse at 92% 3%, rgba(30, 94, 60, 0.25), transparent 28rem),
+        linear-gradient(145deg, #14231a 0%, #101b14 58%, #16251b 100%);
+}
+
+html[data-theme="dark"] #appView .reader-page-heading .text-muted,
+html[data-theme="dark"] #appView .stat-copy > span,
+html[data-theme="dark"] #appView .result-info {
+    color: #a7bcad;
+}
+
+html[data-theme="dark"] #appView .card--stat,
+html[data-theme="dark"] #appView .book-card,
+html[data-theme="dark"] #appView .book-open,
+html[data-theme="dark"] #appView .my-summary-card,
+html[data-theme="dark"] #appView .table-scroll {
+    border-color: rgba(225, 238, 228, 0.1);
+    background: #1a2a20;
+    color: #e2eee5;
+}
+
+html[data-theme="dark"] #appView .stat-copy strong,
+html[data-theme="dark"] #appView .my-summary-card strong,
+html[data-theme="dark"] #appView .reader-table td {
+    color: #deeee3;
+}
+
+html[data-theme="dark"] #appView .reader-table th {
+    border-bottom-color: rgba(225, 238, 228, 0.1);
+    background: #24382a;
+    color: #b2c7b8;
+}
+
+html[data-theme="dark"] #appView .reader-table td {
+    border-top-color: rgba(225, 238, 228, 0.08);
+}
+
+html[data-theme="dark"] #appView .reader-table tbody tr:hover {
+    background: #213328;
+}
+
+html[data-theme="dark"] #appView .reader-search-box,
+html[data-theme="dark"] #appView .filter-chip,
+html[data-theme="dark"] #appView .utility-btn,
+html[data-theme="dark"] #appView .account-menu-button {
+    border-color: rgba(225, 238, 228, 0.12);
+    background: #1a2a20;
+    color: #dcebe1;
+}
+
+html[data-theme="dark"] #appView .reader-search-box .hero-search-input {
+    color: #e2eee5;
+}
+
+html[data-theme="dark"] #appView .table-empty,
+html[data-theme="dark"] #appView .my-empty-state,
+html[data-theme="dark"] #appView .empty {
+    border-color: rgba(168, 205, 180, 0.22);
+    background: rgba(27, 46, 34, 0.88);
+    color: #b6c8bb;
+}
+
+html[data-theme="dark"] #appView .page-btn {
+    border-color: rgba(225, 238, 228, 0.12);
+    background: #1a2a20;
+    color: #dcebe1;
+}
+
+html[data-theme="dark"] dialog.utility-dialog#utilityDialog,
+html[data-theme="dark"] dialog#bookDialog,
+html[data-theme="dark"] dialog.review-dialog#reviewDialog {
+    border-color: rgba(225, 238, 228, 0.12);
+    background: #18271d;
+    color: #e2eee5;
+}
+
+html[data-theme="dark"] #utilityTitle,
+html[data-theme="dark"] #bookDetailTitle,
+html[data-theme="dark"] #reviewTitle {
+    border-bottom-color: rgba(225, 238, 228, 0.1);
+    background: linear-gradient(110deg, #1d3325, #18271d 72%);
+    color: #e3f0e7;
+}
+
+html[data-theme="dark"] #utilityContent .profile-row,
+html[data-theme="dark"] #utilityContent .password-change-form,
+html[data-theme="dark"] #utilityContent .notification-item,
+html[data-theme="dark"] #bookDetailActions .review-summary {
+    border-color: rgba(225, 238, 228, 0.1);
+    background: #203328;
+    color: #dcebe1;
+}
+
+html[data-theme="dark"] #utilityContent .profile-row strong,
+html[data-theme="dark"] #utilityContent .password-change-form h3,
+html[data-theme="dark"] #bookDetailTitle,
+html[data-theme="dark"] #bookDetailMeta strong,
+html[data-theme="dark"] #bookDetailActions .review-heading {
+    color: #e2eee5;
+}
+
+html[data-theme="dark"] #utilityContent .password-change-form input,
+html[data-theme="dark"] #reviewDialog select,
+html[data-theme="dark"] #reviewDialog textarea {
+    border-color: rgba(225, 238, 228, 0.15);
+    background: #132119;
+    color: #e2eee5;
+}
+
+@media (max-width: 640px) {
+    dialog.utility-dialog#utilityDialog {
+        width: calc(100vw - 24px);
+        max-height: calc(100dvh - 24px);
+        border-radius: 20px;
+    }
+
+    #utilityTitle {
+        padding: 19px 64px 17px 19px;
+        font-size: 18px;
+    }
+
+    dialog.utility-dialog#utilityDialog > .close-btn {
+        top: 11px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+    }
+
+    #utilityContent {
+        gap: 7px;
+        padding: 14px 15px 8px;
+    }
+
+    #utilityContent .profile-row {
+        grid-template-columns: minmax(88px, 0.7fr) minmax(0, 1.3fr);
+        gap: 8px;
+        padding: 10px;
+    }
+
+    #utilityContent .password-change-form {
+        padding: 15px;
+    }
+
+    dialog.utility-dialog#utilityDialog > .form-actions {
+        padding: 8px 15px 16px;
+    }
+
+    dialog#bookDialog {
+        width: calc(100vw - 24px);
+        max-height: calc(100dvh - 24px);
+        grid-template-areas:
+            "title title"
+            "cover availability"
+            "cover meta"
+            "actions actions";
+        grid-template-columns: 102px minmax(0, 1fr);
+        grid-template-rows: auto auto auto auto;
+        gap: 0 12px;
+        overflow-y: auto;
+        border-radius: 20px;
+    }
+
+    #bookDetailTitle {
+        padding: 17px 58px 15px 17px;
+        font-size: 17px;
+    }
+
+    dialog#bookDialog > .close-btn {
+        top: 9px;
+        right: 10px;
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
+    }
+
+    #bookDetailCover {
+        align-self: start;
+        padding: 12px 0 12px 12px;
+        border-right: 0;
+        background: transparent;
+    }
+
+    #bookDetailCover .book-cover {
+        width: 100%;
+        max-height: 180px;
+        border-radius: 11px;
+    }
+
+    #bookDetailAvailability {
+        max-width: calc(100% - 12px);
+        margin: 14px 12px 0 0;
+        padding: 7px 9px;
+        font-size: 10px;
+    }
+
+    #bookDetailMeta {
+        margin: 2px 12px 0 0;
+        font-size: 10px;
+    }
+
+    #bookDetailMeta p {
+        display: block;
+        padding: 6px 0;
+        line-height: 1.45;
+    }
+
+    #bookDetailMeta strong {
+        text-align: left;
+    }
+
+    #bookDetailActions {
+        max-height: none;
+        overflow: visible;
+        grid-column: 1 / -1;
+        padding: 13px 15px 17px;
+        border-top: 1px solid rgba(31, 74, 56, 0.08);
+    }
+
+    #bookDetailActions .review-summary {
+        gap: 10px;
+        padding: 10px;
+    }
+
+    #bookDetailActions .rating-score {
+        min-width: 56px;
+    }
+
+    #bookDetailActions .rating-score strong {
+        font-size: 27px;
+    }
+
+    #bookDialog .loan-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #bookDialog .loan-actions .btn {
+        min-height: 38px;
+        padding: 8px;
+        font-size: 9px;
+        white-space: normal;
+    }
+
+    #bookDialog #loanForm,
+    #bookDialog #loanResult {
+        padding: 18px;
+    }
+
+    dialog.review-dialog#reviewDialog {
+        width: calc(100vw - 24px);
+        max-height: calc(100dvh - 24px);
+        padding: 20px 17px;
+        border-radius: 20px;
+    }
+}

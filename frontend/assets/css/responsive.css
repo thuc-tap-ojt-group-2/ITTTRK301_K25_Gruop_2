@@ -89,7 +89,7 @@
         border-radius: 14px;
     }
     .featured-book-cover {
-        aspect-ratio: 2 / 3;
+        aspect-ratio: 3 / 4;
     }
     .featured-book-title {
         font-size: 14px;
@@ -155,6 +155,67 @@
 
     .nav-actions {
         display: none !important;
+    }
+
+    .navbar-container {
+        padding-inline: 12px;
+        gap: 8px;
+    }
+
+    .navbar .brand {
+        min-width: 0;
+    }
+
+    .navbar .brand-text,
+    .navbar .brand span {
+        min-width: 0;
+    }
+
+    .navbar .brand-text small,
+    .navbar .brand small {
+        display: none;
+    }
+
+    .navbar .brand-text strong,
+    .navbar .brand strong {
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .navbar .brand-logo,
+    .navbar .brand img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .auth-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-inline: 12px;
+        gap: 8px;
+    }
+
+    .auth-header .brand {
+        min-width: 0;
+    }
+
+    .auth-header .brand-text,
+    .auth-header .brand span {
+        min-width: 0;
+    }
+
+    .auth-header .brand small {
+        display: none;
+    }
+
+    .auth-header .brand strong {
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .auth-header > .btn {
+        display: none;
     }
 
     /* Menu mobile drawer */
@@ -229,6 +290,14 @@
     .main,
     main {
         padding: var(--space-4);
+        margin-left: 0;
+    }
+
+    .layout > .main,
+    #appView > .main {
+        width: 100%;
+        min-width: 0;
+        margin-left: 0;
     }
 
     /* Sách nổi bật 2 cột trên mobile (A4) */
@@ -376,6 +445,7 @@
         width: 280px;
         height: 280px;
     }
+
 
     .hero-stacked-books {
         width: 260px;

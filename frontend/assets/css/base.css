@@ -166,12 +166,18 @@ table {
 
 /* --- NHỊP SECTION 96PX (A6) VÀ SCROLL-MARGIN-TOP --- */
 .section,
+.landing-section,
+main,
+#mainContent {
+    scroll-margin-top: calc(var(--header-height) + 16px);
+}
+
+.section,
 .landing-section {
     padding-block: 96px; /* Cách nhau đúng 96px */
     position: relative;
     width: 100%;
     box-sizing: border-box;
-    scroll-margin-top: calc(var(--header-height) + 16px);
 }
 
 /* --- KHUNG CUỘN BẢNG AN TOÀN --- */
@@ -232,6 +238,14 @@ table {
 
 [hidden] {
     display: none !important;
+}
+
+html {
+    scrollbar-gutter: stable;
+}
+
+body.ptit-modal-open {
+    overflow: hidden;
 }
 
 .text-center { text-align: center; }

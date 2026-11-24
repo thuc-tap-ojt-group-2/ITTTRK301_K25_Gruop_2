@@ -1,4 +1,4 @@
-﻿import os
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -30,10 +30,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        origin.strip().rstrip("/")
+        origin.strip()
         for origin in os.getenv(
             "FRONTEND_ORIGINS",
-            "http://localhost:5500,http://127.0.0.1:5500",
+            "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000,http://127.0.0.1:3000",
         ).split(",")
         if origin.strip()
     ],

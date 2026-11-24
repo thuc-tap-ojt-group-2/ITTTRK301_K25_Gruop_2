@@ -30,6 +30,24 @@ const bookName = document.getElementById("bookName");
 const bookAuthor = document.getElementById("bookAuthor");
 const bookQuantity = document.getElementById("bookQuantity");
 const bookImage = document.getElementById("bookImage");
+const bookCoverPreviewImage = document.getElementById("bookCoverPreviewImage");
+const bookPlaceholderUrl = "assets/images/book-placeholder.svg";
+
+function updateBookCoverPreview() {
+    if (!bookCoverPreviewImage) return;
+    const coverUrl = bookImage.value.trim();
+    bookCoverPreviewImage.src = coverUrl || bookPlaceholderUrl;
+}
+
+if (bookImage) {
+    bookImage.addEventListener("input", updateBookCoverPreview);
+}
+
+if (bookCoverPreviewImage) {
+    bookCoverPreviewImage.addEventListener("error", () => {
+        bookCoverPreviewImage.src = bookPlaceholderUrl;
+    });
+}
 
 function showMessage(message, type = "success") {
     messageBox.textContent = message;
@@ -185,7 +203,7 @@ function displayCategories() {
         remove.textContent = "Xóa";
         remove.style.marginLeft = "8px";
         remove.addEventListener("click", async () => {
-            if (!confirm(`Bạn có chắc chắn muốn xóa thể loại "${category.name}"?`)) return;
+            if (!await PTIT.confirm(`Bạn có chắc chắn muốn xóa thể loại "${category.name}"?`, { danger: true, confirmText: "Xóa thể loại" })) return;
 
             remove.disabled = true;
 
@@ -416,12 +434,27 @@ function openAddModal() {
 
     hideMessage();
     hideModalMessage();
+    if (window.PTIT?.openModal) {
+        PTIT.openModal("bookModal");
+    } else {
+        bookModal.hidden = false;
+        bookModal.classList.add("show");
+    }
+    bookModal.hidden = false;
     bookModal.classList.add("show");
 }
 
 function closeModal() {
+    if (window.PTIT?.closeModal) {
+        PTIT.closeModal("bookModal");
+        return;
+    }
     bookModal.classList.remove("show");
+    bookModal.hidden = true;
     bookForm.reset();
+    if (bookCoverPreviewImage) {
+        bookCoverPreviewImage.src = bookPlaceholderUrl;
+    }
     editingId = null;
     hideMessage();
     hideModalMessage();
@@ -448,7 +481,8 @@ function editBook(id) {
     bookName.value = book.title || "";
     bookAuthor.value = book.author || "";
     bookQuantity.value = book.totalCopies ?? 1;
-    bookImage.value = book.imageUrl || "";
+    bookImage.value = book.coverUrl || book.imageUrl || "";
+    updateBookCoverPreview();
 
     const category = categories.find(
         item => String(item.id) === String(book.categoryId)
@@ -460,6 +494,13 @@ function editBook(id) {
 
     hideMessage();
     hideModalMessage();
+    if (window.PTIT?.openModal) {
+        PTIT.openModal("bookModal");
+    } else {
+        bookModal.hidden = false;
+        bookModal.classList.add("show");
+    }
+    bookModal.hidden = false;
     bookModal.classList.add("show");
 }
 
@@ -520,7 +561,8 @@ function validateBook() {
         author,
         categoryId,
         total,
-        imageUrl: imageUrl || null
+        imageUrl: imageUrl || null,
+        coverUrl: imageUrl || null
     };
 }
 
@@ -533,8 +575,9 @@ async function removeBook(id, button = null) {
         return;
     }
 
-    const confirmed = confirm(
-        `Bạn có chắc chắn muốn xóa cuốn sách "${book.title}" khỏi hệ thống?`
+    const confirmed = await PTIT.confirm(
+        `Bạn có chắc chắn muốn xóa cuốn sách "${book.title}" khỏi hệ thống?`,
+        { danger: true, confirmText: "Xóa sách" }
     );
 
     if (!confirmed) {
@@ -617,12 +660,6 @@ bookTable.addEventListener("click", async function(event) {
 });
 
 document.getElementById("addBookButton").addEventListener("click", openAddModal);
-document.getElementById("cancelButton").addEventListener("click", closeModal);
-
-const modalCloseIcon = document.getElementById("modalCloseIcon");
-if (modalCloseIcon) {
-    modalCloseIcon.addEventListener("click", closeModal);
-}
 
 let bookSearchDebounce = null;
 searchInput.addEventListener("input", function() {
@@ -666,7 +703,7 @@ document.getElementById("nextPage").addEventListener("click", async function() {
 });
 
 document.getElementById("logoutButton").addEventListener("click", async function() {
-    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+    const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
     if (!confirmed) return;
 
     try {

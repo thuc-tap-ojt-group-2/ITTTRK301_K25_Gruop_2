@@ -91,7 +91,7 @@ function renderFinePage() {
                 button.className = "btn btn--primary btn--sm";
                 button.textContent = "Đã thu tiền";
                 button.addEventListener("click", async () => {
-                    const confirmed = confirm(`Xác nhận đã thu đủ số tiền ${fineMoney(fine.amount)} cho phiếu mượn #${fine.loanId}?`);
+                    const confirmed = await PTIT.confirm(`Xác nhận đã thu đủ số tiền ${fineMoney(fine.amount)} cho phiếu mượn #${fine.loanId}?`, { confirmText: "Đã thu tiền" });
                     if (!confirmed) return;
 
                     button.disabled = true;
@@ -169,7 +169,7 @@ document.getElementById("userName").textContent = fineUserName;
 document.getElementById("userAvatar").textContent = fineUserName.trim().charAt(0).toUpperCase() || "U";
 document.getElementById("refreshButton").addEventListener("click", loadFines);
 document.getElementById("logoutButton").addEventListener("click", async () => {
-    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+    const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
     if (!confirmed) return;
 
     try {

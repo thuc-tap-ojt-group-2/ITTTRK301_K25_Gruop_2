@@ -9,9 +9,8 @@
 (function () {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Danh sách phần tử cần áp dụng hiệu ứng fade-in
+    // Danh sách phần tử cần áp dụng hiệu ứng fade-in khi cuộn (không bao gồm Hero vì Hero luôn hiển thị ngay)
     const animTargets = [
-        ".landing-hero",
         ".landing-stats",
         ".highlight-item",
         ".about-section",
@@ -30,7 +29,7 @@
         if (prefersReducedMotion || !("IntersectionObserver" in window)) {
             // Nếu người dùng bật giảm chuyển động, hiển thị ngay lập tức
             document.querySelectorAll(animTargets.join(", ")).forEach(el => {
-                el.classList.add("is-visible");
+                el.classList.add("is-visible", "is-revealed");
             });
             return;
         }
@@ -38,7 +37,7 @@
         const observer = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add("is-visible");
+                    entry.target.classList.add("is-visible", "is-revealed");
                     obs.unobserve(entry.target);
                 }
             });

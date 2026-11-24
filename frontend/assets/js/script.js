@@ -229,7 +229,7 @@ function authRequest(path, options = {}) {
     return r;
   });
 }
-window.PTIT = { getToken, getUser, authRequest };
+window.PTIT = Object.assign(window.PTIT || {}, { getToken, getUser, authRequest });
 
 /* ---------- Chuyển giữa trang công khai và giao diện Độc giả ---------- */
 function showPublic() {
@@ -267,6 +267,8 @@ function closeSidebar() {
 
 function navigate(page) {
   Object.keys(PAGE_TITLES).forEach(key => { $('page-' + key).hidden = key !== page; });
+  $('appView').classList.toggle('reader-view-search', page === 'search');
+  $('appView').classList.toggle('reader-view-mybooks', page === 'mybooks');
   document.querySelectorAll('.menu-item').forEach(b =>
     b.classList.toggle('active', b.dataset.nav === page));
   $('topbarTitle').textContent = PAGE_TITLES[page];
@@ -279,12 +281,6 @@ function navigate(page) {
 
 document.querySelectorAll('[data-nav]').forEach(btn =>
   btn.addEventListener('click', () => navigate(btn.dataset.nav)));
-
-$('menuToggle').addEventListener('click', () => {
-  $('sidebar').classList.add('open');
-  $('sidebarBackdrop').hidden = false;
-});
-$('sidebarBackdrop').addEventListener('click', closeSidebar);
 
 /* ---------- Modal Đăng nhập / Đăng ký ---------- */
 const overlay = $('overlay');
@@ -314,11 +310,11 @@ function showPanel(name) {
 function openModal(name) {
   lastFocus = document.activeElement;
   showPanel(name || 'login');
-  if (overlay) {
+  if (overlay && window.PTIT?.openModal) PTIT.openModal('overlay');
+  else if (overlay) {
     overlay.hidden = false;
     overlay.classList.add('show');
   }
-  document.body.style.overflow = 'hidden';
   if (panels[name]) {
     const input = panels[name].querySelector('input');
     if (input) setTimeout(() => input.focus(), 60);
@@ -326,6 +322,10 @@ function openModal(name) {
 }
 
 function closeModal() {
+  if (window.PTIT?.closeModal) {
+    PTIT.closeModal('overlay');
+    return;
+  }
   if (overlay) {
     overlay.classList.remove('show');
     overlay.hidden = true;
@@ -346,18 +346,6 @@ document.querySelectorAll('[data-switch]').forEach(btn =>
     showPanel(btn.dataset.switch);
   }));
 
-const closeBtn = $('closeBtn');
-if (closeBtn) {
-  closeBtn.addEventListener('click', closeModal);
-}
-if (overlay) {
-  overlay.addEventListener('mousedown', e => { if (e.target === overlay) closeModal(); });
-}
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && overlay && (!overlay.hidden || overlay.classList.contains('show'))) {
-    closeModal();
-  }
-});
 
 document.querySelectorAll('.chip').forEach(chip =>
   chip.addEventListener('click', () => {
@@ -521,13 +509,19 @@ function pickFirst(obj, keys) {
 function normalizeBook(raw) {
   const category = pickFirst(raw, ['category', 'categoryName', 'genre']);
   const author = pickFirst(raw, ['author', 'authorName', 'authors']);
-  const copies = pickFirst(raw, ['availableCopies', 'availableQuantity', 'available', 'remainingCopies', 'remaining', 'copiesAvailable', 'quantity']);
+  const copies = pickFirst(raw, ['copies', 'availableCopies', 'available_copies', 'availableQuantity', 'available_quantity', 'available', 'remainingCopies', 'remaining', 'copiesAvailable', 'quantity']);
+  const imageUrl = pickFirst(raw, ['coverUrl', 'cover_url', 'imageUrl', 'image_url']);
   const book = {
     id: pickFirst(raw, ['id', '_id', 'bookId']),
     title: String(pickFirst(raw, ['title', 'name', 'bookName']) || 'Chưa có tên'),
     author: Array.isArray(author) ? author.map(a => a.name || a).join(', ') : String((author && author.name) || author || ''),
     category: String((category && category.name) || category || ''),
     copies: copies !== undefined && Number.isFinite(Number(copies)) ? Number(copies) : null,
+    imageUrl: typeof imageUrl === 'string' ? imageUrl.trim() : '',
+    isbn: String(pickFirst(raw, ['isbn', 'ISBN']) || ''),
+    publisher: String(pickFirst(raw, ['publisher', 'publisherName']) || ''),
+    publicationYear: pickFirst(raw, ['publicationYear', 'publication_year', 'year']),
+    description: String(pickFirst(raw, ['description', 'summary']) || ''),
   };
   book.search = normalizeText([book.title, book.author, book.category].join(' '));
   return book;
@@ -587,7 +581,8 @@ async function fetchAllBooks() {
 }
 
 async function loadBooks(force = false) {
-  if (books.loading || (books.all && !force)) return;
+  if (books.loading) return;
+  if (books.all && !force) { renderBooks(); return; }
   const id = ++books.token;
   books.loading = true;
   books.error = '';
@@ -603,6 +598,10 @@ async function loadBooks(force = false) {
   }
   books.loading = false;
   renderBooks();
+}
+
+async function ensureBooksLoaded() {
+  if (!books.all) books.all = await fetchAllBooks();
 }
 
 function resetBooks() {
@@ -752,11 +751,34 @@ $('searchForm').addEventListener('submit', e => {
 });
 
 function bookCover(b) {
+  return getBookCover(b);
+}
+
+function getBookCover(b) {
   const [c1, c2] = COVER_COLORS[(Number(b.id) - 1) % COVER_COLORS.length] || COVER_COLORS[0];
 
   const cover = el('div', 'book-cover');
   cover.style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
   cover.append(el('span', 'book-cat', b.category), el('h3', 'book-title', b.title), el('span', 'book-author', b.author));
+
+  const rawUrl = typeof b.imageUrl === 'string' ? b.imageUrl.trim() : '';
+  if (!rawUrl) return cover;
+
+  let cleanUrl = rawUrl;
+  if (!/^https?:\/\//i.test(cleanUrl) && !cleanUrl.startsWith('//')) {
+    cleanUrl = API_BASE_URL + (cleanUrl.startsWith('/') ? '' : '/') + cleanUrl;
+  }
+
+  const image = el('img', 'book-cover-image');
+  image.alt = b.title || 'Bìa sách';
+  image.loading = 'lazy';
+  image.referrerPolicy = 'no-referrer';
+  image.onload = () => {
+    cover.classList.add('has-image');
+  };
+  image.onerror = () => image.remove();
+  image.src = cleanUrl;
+  cover.appendChild(image);
   return cover;
 }
 
@@ -850,6 +872,7 @@ function setLoanBusy(busy) {
 
 function openBookDetail(book) {
   if (loanState.busy) return;
+  book = normalizeBook(book);
   loanState.book = book;
   loanState.version++;
   loanState.lastFocus = document.activeElement;
@@ -865,7 +888,14 @@ function openBookDetail(book) {
   $('loanError').textContent = '';
   $('loanDaysFieldset').removeAttribute('aria-invalid');
   setLoanBusy(false);
-  $('bookDialog').showModal();
+  const favoriteButton = $('favoriteBookDetail');
+  if (favoriteButton) {
+    const isFavorite = readFavorites().includes(book.id);
+    favoriteButton.textContent = isFavorite ? '♥ Đã yêu thích' : '♡ Yêu thích';
+    favoriteButton.setAttribute('aria-pressed', String(isFavorite));
+  }
+  if (window.PTIT?.openModal) PTIT.openModal('bookDialog');
+  else $('bookDialog').showModal();
   document.body.style.overflow = 'hidden';
   $('bookDetailTitle').focus();
 }
@@ -875,7 +905,10 @@ function closeBookDetail(force = false) {
   loanState.version++;
   loanState.book = null;
   setLoanBusy(false);
-  if ($('bookDialog').open) $('bookDialog').close();
+  if ($('bookDialog').open) {
+    if (window.PTIT?.closeModal) PTIT.closeModal('bookDialog');
+    else $('bookDialog').close();
+  }
   document.body.style.overflow = '';
   if (loanState.lastFocus && loanState.lastFocus.isConnected) loanState.lastFocus.focus();
   loanState.lastFocus = null;
@@ -883,10 +916,12 @@ function closeBookDetail(force = false) {
 
 function requireLoanLogin() {
   if (hasLoanSession()) return true;
+  const bookId = loanState.book ? loanState.book.id : '';
   closeBookDetail(true);
-  logout();
-  openModal('login');
-  $('loginNotice').textContent = 'Vui lòng đăng nhập để đăng ký mượn sách.';
+  const params = new URLSearchParams();
+  params.set('return', 'index.html');
+  if (bookId) params.set('book', String(bookId));
+  window.location.assign('login.html?' + params.toString());
   return false;
 }
 
@@ -898,6 +933,13 @@ function hasLoanSession() {
 
 function showLoanError(message, code = '') {
   $('loanError').textContent = (code ? code + ' — ' : '') + message;
+}
+
+if ($('favoriteBookDetail')) {
+  $('favoriteBookDetail').addEventListener('click', () => {
+    if (!loanState.book) return;
+    toggleFavorite(loanState.book.id, $('favoriteBookDetail'));
+  });
 }
 
 $('registerLoanButton').addEventListener('click', () => {
@@ -953,6 +995,9 @@ $('loanForm').addEventListener('submit', async event => {
     $('loanResult').hidden = false;
     $('loanSuccess').textContent = `Đăng ký mượn thành công! “${loanState.book.title}” · ${days} ngày. Trạng thái: PENDING — Chờ duyệt.`;
     $('loanSuccess').focus();
+    document.dispatchEvent(new CustomEvent("ptit:borrow-success", {
+      detail: { bookTitle: loanState.book.title }
+    }));
     myLoansPage = 1;
     try {
       await loadReaderData();
@@ -968,7 +1013,7 @@ $('loanForm').addEventListener('submit', async event => {
   }
 });
 
-['closeBookDialog', 'cancelBookDetail', 'finishLoan'].forEach(id => {
+['finishLoan'].forEach(id => {
   $(id).addEventListener('click', () => closeBookDetail());
 });
 $('backToBookDetail').addEventListener('click', () => {
@@ -1138,6 +1183,7 @@ async function loadReaderData() {
     bookTitle: loan.book?.title || `Sách #${loan.book_id}`,
     days: loan.days,
     status: loan.status,
+    extensionCount: Number(loan.extension_count) || 0,
     createdAt: loan.created_at || loan.borrow_date,
     dueDate: loan.due_date,
     returnDate: loan.return_date,
@@ -1263,9 +1309,9 @@ function renderOverview() {
   const user = getUser();
   if (!user) return;
   if (!USE_MOCK_API) {
-    loadReaderData().then(renderOverviewContent).catch(error => {
+    Promise.all([loadReaderData(), ensureBooksLoaded()]).then(renderOverviewContent).catch(error => {
       ['statBorrowing', 'statPending', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
-      $('currentLoans').replaceChildren(el('p', 'error', 'Không thể tải dữ liệu sách đang mượn: ' + error.message));
+      $('currentLoans').replaceChildren(el('p', 'error', 'Không thể tải dữ liệu trang tổng quan: ' + error.message));
     });
     return;
   }
@@ -1312,9 +1358,9 @@ function renderMyLoans() {
   list.replaceChildren();
   if (!USE_MOCK_API) {
     list.append(stateBox('Đang tải phiếu mượn...', 'loading'));
-    loadReaderData().then(renderMyLoansContent).catch(error => {
+    Promise.all([loadReaderData(), ensureBooksLoaded()]).then(renderMyLoansContent).catch(error => {
       $('myFines').textContent = 'Tổng tiền phạt: —';
-      list.replaceChildren(stateBox('Không thể tải phiếu mượn: ' + error.message, 'error'));
+      list.replaceChildren(stateBox('Không thể tải dữ liệu Sách của tôi: ' + error.message, 'error'));
     });
     return;
   }
@@ -1329,13 +1375,39 @@ function renderMyLoansContent() {
   try {
     const mine = myLoans();
     $('myFines').textContent = 'Tổng tiền phạt: ' + money(totalFines(mine));
-    if (!mine.length) list.append(el('p', 'table-empty', 'Bạn chưa có phiếu mượn nào.'));
-    else {
-      const ordered = [...mine.filter(loan => loan.status === 'PENDING').reverse(), ...mine.filter(loan => loan.status !== 'PENDING')];
-      const pages = Math.ceil(ordered.length / 8);
-      myLoansPage = Math.min(Math.max(1, myLoansPage), pages);
-      const { wrap, body } = makeTable(['Sách', 'Đăng ký', 'Hạn trả', 'Trạng thái', 'Phạt', ''], 'Danh sách phiếu mượn');
-      ordered.slice((myLoansPage - 1) * 8, myLoansPage * 8).forEach(loan => {
+    const pendingCount = mine.filter(loan => loan.status === 'PENDING').length;
+    const borrowingCount = mine.filter(loan => loan.status === 'BORROWING').length;
+    const activeReservations = readerData.reservations.filter(reservation => ['WAITING', 'HOLDING'].includes(reservation.status));
+
+    const summary = el('div', 'my-library-summary');
+    const summaryIcons = [
+      '<path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22z"/><path d="M5 4.5v15A2.5 2.5 0 0 1 7.5 17H20"/>',
+      '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      '<path d="M4 5h16v16H4z"/><path d="m8 12 2.5 2.5L16 9"/>',
+      '<circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.7-1.6-1-3-1-1.7 0-3 .8-3 2s1.3 2 3 2 3 .8 3 2-1.3 2-3 2c-1.3 0-2.3-.4-3-1.1M12 6v12"/>',
+    ];
+    [
+      ['Đang mượn', borrowingCount, 'Đang đọc'],
+      ['Chờ duyệt', pendingCount, 'Chờ thủ thư'],
+      ['Đặt trước', activeReservations.length, 'Đang chờ giữ'],
+      ['Tiền phạt', money(totalFines(mine)), 'Chưa thanh toán'],
+    ].forEach(([label, value, caption], index) => {
+      const card = el('article', 'my-summary-card');
+      const icon = el('span', 'summary-icon');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.innerHTML = `<svg viewBox="0 0 24 24">${summaryIcons[index]}</svg>`;
+      card.append(icon, el('strong', '', String(value)), el('span', '', label), el('small', '', caption));
+      summary.append(card);
+    });
+    list.append(summary);
+
+    const activeLoans = mine.filter(loan => ['PENDING', 'BORROWING'].includes(loan.status));
+    list.append(el('h2', 'section-title section-title--spaced', 'Đang mượn / Chờ duyệt'));
+    if (!activeLoans.length) {
+      list.append(el('p', 'table-empty my-empty-state', 'Bạn chưa có sách đang mượn hoặc phiếu chờ duyệt.'));
+    } else {
+      const { wrap, body } = makeTable(['Sách', 'Đăng ký', 'Hạn trả', 'Trạng thái', 'Phạt', ''], 'Phiếu đang hoạt động');
+      activeLoans.forEach(loan => {
         const row = el('tr');
         const title = el('td', '', loan.bookTitle);
         if (loan.status === 'PENDING') title.append(el('small', 'loan-duration', loan.days + ' ngày'));
@@ -1347,18 +1419,45 @@ function renderMyLoansContent() {
           cancel.type = 'button';
           cancel.addEventListener('click', () => cancelLoanRequest(loan.id));
           action.append(cancel);
-        } else if (loan.status === 'RETURNED' && findBook(loan.bookId)) {
-          const review = el('button', 'btn btn-outline table-action', 'Đánh giá');
-          review.type = 'button';
-          review.addEventListener('click', () => openReview(findBook(loan.bookId)));
-          action.append(review);
+        } else if (loan.status === 'BORROWING') {
+          const renew = el('button', 'btn btn-outline table-action', 'Gia hạn');
+          renew.type = 'button';
+          renew.disabled = Number(loan.extensionCount) >= 1;
+          if (renew.disabled) renew.title = 'Phiếu này đã được gia hạn';
+          renew.addEventListener('click', () => extendLoanRequest(loan.id));
+          action.append(renew);
         }
         row.append(title, el('td', '', displayDate(loan.createdAt)), el('td', '', displayDate(loan.dueDate)), status, el('td', '', loan.fine ? money(loan.fine) : '–'), action);
         body.append(row);
       });
       list.append(wrap);
+    }
+
+    const history = mine.filter(loan => ['RETURNED', 'CANCELLED', 'REJECTED'].includes(loan.status));
+    list.append(el('h2', 'section-title section-title--spaced', 'Lịch sử mượn'));
+    if (!history.length) {
+      list.append(el('p', 'table-empty my-empty-state', 'Chưa có lịch sử mượn trả.'));
+    } else {
+      const pages = Math.max(1, Math.ceil(history.length / 8));
+      myLoansPage = Math.min(Math.max(1, myLoansPage), pages);
+      const { wrap, body } = makeTable(['Sách', 'Đăng ký', 'Hạn/Trả', 'Trạng thái', ''], 'Lịch sử mượn');
+      history.slice((myLoansPage - 1) * 8, myLoansPage * 8).forEach(loan => {
+        const row = el('tr');
+        const action = el('td');
+        if (loan.status === 'RETURNED' && findBook(loan.bookId)) {
+          const review = el('button', 'btn btn-outline table-action', 'Đánh giá');
+          review.type = 'button';
+          review.addEventListener('click', () => openReview(findBook(loan.bookId)));
+          action.append(review);
+        }
+        const status = el('td');
+        status.append(statusBadge(loan));
+        row.append(el('td', '', loan.bookTitle), el('td', '', displayDate(loan.createdAt)), el('td', '', displayDate(loan.returnDate || loan.dueDate)), status, action);
+        body.append(row);
+      });
+      list.append(wrap);
       const pager = el('nav', 'pagination loan-pagination');
-      pager.setAttribute('aria-label', 'Phân trang phiếu mượn');
+      pager.setAttribute('aria-label', 'Phân trang lịch sử mượn');
       const add = (label, target, disabled = false) => {
         const button = el('button', 'page-btn' + (Number(label) === myLoansPage ? ' active' : ''), label);
         button.type = 'button';
@@ -1370,29 +1469,13 @@ function renderMyLoansContent() {
       add('‹ Trước', myLoansPage - 1, myLoansPage === 1);
       pageNumbers(myLoansPage, pages).forEach(number => number === '…' ? pager.append(el('span', 'page-gap', number)) : add(String(number), number));
       add('Sau ›', myLoansPage + 1, myLoansPage === pages);
-      pager.append(el('span', 'pagination-count', mine.length + ' mục'));
+      pager.append(el('span', 'pagination-count', history.length + ' mục'));
       list.append(pager);
     }
 
-    if (!readerData.fines.length) fineList.append(el('p', 'table-empty', 'Chưa có khoản phạt.'));
-    else {
-      const { wrap, body } = makeTable(['Sách', 'Số ngày trễ', 'Số tiền', 'Trạng thái'], 'Các khoản phạt');
-      readerData.fines.forEach(fine => {
-        const row = el('tr');
-        row.append(
-          el('td', '', fine.bookTitle),
-          el('td', '', String(fine.overdueDays || 0)),
-          el('td', '', money(fine.amount)),
-          el('td', '', fine.paid ? 'Đã thanh toán' : fine.type === 'PROVISIONAL' ? 'Tạm tính' : 'Chưa thanh toán'),
-        );
-        body.append(row);
-      });
-      fineList.append(wrap);
-    }
-
-    list.append(el('h2', 'section-title', 'Đặt trước sách'));
+    list.append(el('h2', 'section-title section-title--spaced', 'Đặt trước sách'));
     const reservations = readerData.reservations;
-    if (!reservations.length) list.append(el('p', 'table-empty', 'Bạn chưa có phiếu đặt trước nào.'));
+    if (!reservations.length) list.append(el('p', 'table-empty my-empty-state', 'Bạn chưa có phiếu đặt trước nào.'));
     else {
       const { wrap, body } = makeTable(['Sách', 'Ngày đặt', 'Trạng thái', 'Giữ đến', ''], 'Danh sách đặt trước');
       const labels = { WAITING: 'Đang chờ', HOLDING: 'Đang giữ sách', FULFILLED: 'Đã mượn', EXPIRED: 'Hết hạn', CANCELLED: 'Đã hủy' };
@@ -1406,7 +1489,7 @@ function renderMyLoansContent() {
         }
         const row = el('tr');
         row.append(
-          el('td', '', reservation.bookTitle),
+          el('td', '', findBook(reservation.bookId)?.title || reservation.bookTitle),
           el('td', '', displayDate(reservation.createdAt)),
           el('td', '', labels[reservation.status] || reservation.status),
           el('td', '', displayDate(reservation.holdExpiresAt)),
@@ -1415,6 +1498,22 @@ function renderMyLoansContent() {
         body.append(row);
       });
       list.append(wrap);
+    }
+
+    if (!readerData.fines.length) fineList.append(el('p', 'table-empty my-empty-state', 'Chưa có khoản phạt.'));
+    else {
+      const { wrap, body } = makeTable(['Sách', 'Số ngày trễ', 'Số tiền', 'Trạng thái'], 'Các khoản phạt');
+      readerData.fines.forEach(fine => {
+        const row = el('tr');
+        row.append(
+          el('td', '', fine.bookTitle),
+          el('td', '', String(fine.overdueDays || 0)),
+          el('td', '', money(fine.amount)),
+          el('td', '', fine.paid ? 'Đã thanh toán' : fine.type === 'PROVISIONAL' ? 'Tạm tính' : 'Chưa thanh toán'),
+        );
+        body.append(row);
+      });
+      fineList.append(wrap);
     }
   } catch {
     $('myFines').textContent = 'Tổng tiền phạt: —';
@@ -1432,6 +1531,14 @@ function renderBookDetails(book) {
     row.append(document.createTextNode(label), el('strong', '', value));
     meta.append(row);
   };
+  line('Tác giả: ', book.author || 'Chưa cập nhật');
+  line('Thể loại: ', book.category || 'Chưa phân loại');
+  line('ISBN: ', book.isbn || 'Chưa cập nhật');
+  line('Nhà xuất bản: ', book.publisher || 'Chưa cập nhật');
+  line('Năm xuất bản: ', book.publicationYear || 'Chưa cập nhật');
+  if (book.description) {
+    line('Mô tả: ', book.description);
+  }
   const demoBook = USE_MOCK_API && MOCK_BOOKS.find(item => item.id === book.id);
   if (demoBook) {
     line('Vị trí kệ: ', 'K' + (Math.floor((book.id - 1) / 8) + 2) + '-B' + ((book.id - 1) % 8 + 1));
@@ -1459,7 +1566,7 @@ function renderBookDetails(book) {
   }
 
   async function cancelLoanRequest(loanId) {
-    if (!confirm('Bạn có chắc muốn hủy phiếu mượn này?')) return;
+    if (!await PTIT.confirm('Bạn có chắc muốn hủy phiếu mượn này?', { danger: true, confirmText: 'Hủy phiếu mượn' })) return;
     try {
       const response = await authRequest(`/loans/${loanId}/cancel`, { method: 'PUT' });
       if (!response.ok) throw new Error(response.message);
@@ -1472,8 +1579,22 @@ function renderBookDetails(book) {
     }
   }
 
+  async function extendLoanRequest(loanId) {
+    if (!await PTIT.confirm('Gia hạn phiếu mượn thêm 7 ngày?', { confirmText: 'Gia hạn' })) return;
+    try {
+      const response = await authRequest(`/loans/${loanId}/extend`, { method: 'POST' });
+      if (!response.ok) throw new Error(response.message);
+      await loadReaderData();
+      renderMyLoans();
+      renderOverview();
+      showToast('Đã gia hạn phiếu mượn thành công.');
+    } catch (error) {
+      showToast('Không thể gia hạn: ' + error.message);
+    }
+  }
+
   async function cancelReservationRequest(reservationId) {
-    if (!confirm('Bạn có chắc muốn hủy phiếu đặt trước này?')) return;
+    if (!await PTIT.confirm('Bạn có chắc muốn hủy phiếu đặt trước này?', { danger: true, confirmText: 'Hủy đặt trước' })) return;
     try {
       const response = await authRequest(`/reservations/${reservationId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error(response.message);
@@ -1529,19 +1650,20 @@ function openReview(book) {
   $('reviewStars').value = previous ? previous.stars : '5';
   $('reviewComment').value = previous ? previous.comment : '';
   $('reviewError').textContent = '';
-  $('reviewDialog').showModal();
+  if (window.PTIT?.openModal) PTIT.openModal('reviewDialog');
+  else $('reviewDialog').showModal();
   document.body.style.overflow = 'hidden';
   $('reviewStars').focus();
 }
 function closeReview() {
   if (!$('reviewDialog').open) return;
-  $('reviewDialog').close();
+  if (window.PTIT?.closeModal) PTIT.closeModal('reviewDialog');
+  else $('reviewDialog').close();
   reviewBook = null;
   document.body.style.overflow = $('bookDialog').open ? 'hidden' : '';
   if (reviewReturnFocus && reviewReturnFocus.isConnected) reviewReturnFocus.focus();
 }
 $('writeReviewButton').addEventListener('click', () => openReview(loanState.book));
-$('cancelReview').addEventListener('click', closeReview);
 $('reviewDialog').addEventListener('cancel', event => { event.preventDefault(); closeReview(); });
 $('reviewForm').addEventListener('submit', event => {
   event.preventDefault();
@@ -1570,10 +1692,11 @@ function openUtility(title, render) {
   $('utilityTitle').textContent = title;
   $('utilityContent').replaceChildren();
   render($('utilityContent'));
-  $('utilityDialog').showModal();
-  document.body.style.overflow = 'hidden';
+  if (window.PTIT?.openModal) PTIT.openModal('utilityDialog');
+  else {
+    $('utilityDialog').showModal();
+  }
 }
-$('closeUtility').addEventListener('click', () => $('utilityDialog').close());
 $('utilityDialog').addEventListener('close', () => { document.body.style.overflow = ''; });
 $('profileButton').addEventListener('click', () => openUtility('Hồ sơ độc giả', content => {
   const user = getUser();

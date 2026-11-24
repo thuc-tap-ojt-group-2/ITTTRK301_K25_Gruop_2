@@ -69,7 +69,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
     /* --- THANG CỠ CHỮ & DÒNG (TYPOGRAPHY SCALE - KHÔNG CÓ CHỮ < 12PX) --- */
-    --text-h1-landing: 54px;
+    --text-h1-landing: clamp(36px, 4.4vw, 56px);
     --line-h1-landing: 1.2;
 
     --text-h1-inner: 32px;
@@ -174,4 +174,29 @@
     --header-height-scrolled: 60px;
     --sidebar-width: 270px;
     --min-touch-target: 44px;
+}
+
+body.theme-admin {
+    --color-primary: #12372f;
+    --color-primary-dark: #0b2923;
+    --color-primary-light: #1b5144;
+    --color-primary-soft: #e8efec;
+    --color-bg-page: #f2f5f3;
+}
+
+body.theme-librarian {
+    --color-primary: #177d78;
+    --color-primary-dark: #115d59;
+    --color-primary-light: #259b94;
+    --color-primary-soft: #e7f4f3;
+    --color-info: #287caa;
+    --color-bg-page: #f4f8f8;
+}
+
+body.theme-reader {
+    --color-primary: #0f5c42;
+    --color-primary-dark: #0a4331;
+    --color-primary-light: #187d5c;
+    --color-primary-soft: #e8f3ec;
+    --color-bg-page: #f7faf8;
 }

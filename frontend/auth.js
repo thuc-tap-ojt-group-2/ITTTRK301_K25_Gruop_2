@@ -106,8 +106,9 @@ function requireRole(allowedRoles) {
     const role = getUserRole();
 
     if (!role || !allowedRoles.includes(role)) {
-        alert("Bạn không có quyền truy cập trang này.");
-
+        if (window.PTIT && typeof window.PTIT.showToast === "function") {
+            window.PTIT.showToast("Bạn không có quyền truy cập trang này.", "error");
+        }
         window.location.replace("index.html");
 
         return false;

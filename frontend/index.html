@@ -1,10 +1,5 @@
 <!DOCTYPE html>
 <html lang="vi">
-<!--
-  THƯ VIỆN PTIT - TRANG CHỦ & CỔNG THÔNG TIN ĐỘC GIẢ
-  Giao diện Landing Page hiện đại, chuẩn BEM, Responsive 1024/768/480px,
-  Bảo toàn toàn bộ ID và chức năng cho landing.js và script.js
--->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,12 +14,15 @@
   <!-- Hệ thống CSS theo đúng thứ tự chuẩn -->
   <link rel="stylesheet" href="assets/css/variables.css">
   <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/components.css?v=20261124-3">
+  <link rel="stylesheet" href="assets/css/layout.css?v=20261124-3">
   <link rel="stylesheet" href="assets/css/pages.css">
-  <link rel="stylesheet" href="assets/css/effects.css">
+  <link rel="stylesheet" href="assets/css/effects.css?v=20261124-5">
   <link rel="stylesheet" href="assets/css/preloader.css">
-  <link rel="stylesheet" href="assets/css/responsive.css">
+  <link rel="stylesheet" href="assets/css/loader.css">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=20261124-3">
+  <link rel="stylesheet" href="assets/css/landing.css?v=20261124-4">
+  <link rel="stylesheet" href="assets/css/reader.css?v=20261124-9">
 
   <!-- Điều khiển Preloader ngay trong <head> không defer để chống nhấp nháy giao diện -->
   <script src="assets/js/preloader.js"></script>
@@ -65,6 +63,10 @@
       </p>
       <div class="preloader-progress-track">
         <div class="preloader-progress-fill"></div>
+      </div>
+      <div class="preloader-dragon" aria-label="Rồng tri thức bay mở cánh cửa thư viện" role="img">
+        <span class="preloader-dragon__trail" aria-hidden="true"></span>
+        <img src="assets/images/dragon.png" alt="" width="460" height="400" loading="eager">
       </div>
     </div>
     <button type="button" id="preloaderSkip" class="preloader-skip" aria-label="Bỏ qua phần giới thiệu">Bỏ qua ✕</button>
@@ -128,7 +130,7 @@
           <p class="hero-description hero-stagger-item">Khám phá tài nguyên học tập, tra cứu giáo trình và chủ động theo dõi hành trình mượn sách của bạn — tất cả trong một thư viện số thân thiện, hiện đại.</p>
           
           <!-- Thanh tìm kiếm lớn ở Hero (Hero Search Bar) -->
-          <form class="hero-search-box hero-stagger-item" id="heroSearchForm" role="search" onsubmit="event.preventDefault(); const q = document.getElementById('heroSearchInput').value; if(q){ window.location.href='books.html?keyword=' + encodeURIComponent(q); }">
+          <form class="hero-search-box hero-stagger-item" id="heroSearchForm" role="search">
             <select class="hero-search-select" id="heroSearchType" aria-label="Lọc theo mục">
               <option value="title">Nhan đề</option>
               <option value="author">Tác giả</option>
@@ -155,7 +157,7 @@
             <article class="hero-book-card hero-book-card--1" tabindex="0" aria-label="Sách Lập trình Web hiện đại" id="hero-book-1">
               <span class="hero-book-badge">CNTT</span>
               <div class="hero-book-cover-wrapper">
-                <img class="hero-book-img" alt="Bìa sách Lập trình Web hiện đại" loading="lazy" style="display:none;">
+                <img class="hero-book-img" alt="Bìa sách Lập trình Web hiện đại" loading="lazy">
                 <div class="hero-book-gradient"></div>
               </div>
               <div>
@@ -167,7 +169,7 @@
             <article class="hero-book-card hero-book-card--2" tabindex="0" aria-label="Sách An toàn thông tin mạng" id="hero-book-2">
               <span class="hero-book-badge">ATTT</span>
               <div class="hero-book-cover-wrapper">
-                <img class="hero-book-img" alt="Bìa sách An toàn thông tin mạng" loading="lazy" style="display:none;">
+                <img class="hero-book-img" alt="Bìa sách An toàn thông tin mạng" loading="lazy">
                 <div class="hero-book-gradient"></div>
               </div>
               <div>
@@ -179,7 +181,7 @@
             <article class="hero-book-card hero-book-card--3" tabindex="0" aria-label="Sách Kỹ thuật Viễn thông số" id="hero-book-3">
               <span class="hero-book-badge">Viễn thông</span>
               <div class="hero-book-cover-wrapper">
-                <img class="hero-book-img" alt="Bìa sách Kỹ thuật Viễn thông số" loading="lazy" style="display:none;">
+                <img class="hero-book-img" alt="Bìa sách Kỹ thuật Viễn thông số" loading="lazy">
                 <div class="hero-book-gradient"></div>
               </div>
               <div>
@@ -378,9 +380,9 @@
         <div>
           <span class="section-kicker">✦ BẮT ĐẦU HÀNH TRÌNH TRI THỨC</span>
           <h2 id="contactTitle">Cuốn sách tiếp theo<br>đang chờ bạn khám phá.</h2>
-          <p style="color: #c9e2d5; margin-top: 8px;">Đăng ký tài khoản độc giả ngay hôm nay để trải nghiệm dịch vụ thư viện số PTIT.</p>
+          <p class="landing-contact__description">Đăng ký tài khoản độc giả ngay hôm nay để trải nghiệm dịch vụ thư viện số PTIT.</p>
         </div>
-        <button type="button" class="btn btn--light" data-open="register" style="min-width: 180px;">Tham gia thư viện <span aria-hidden="true">→</span></button>
+        <button type="button" class="btn btn--light landing-contact__action" data-open="register">Tham gia thư viện <span aria-hidden="true">→</span></button>
       </section>
 
     </div>
@@ -486,14 +488,14 @@
   <!-- MODAL DÙNG CHUNG CHO ĐĂNG NHẬP / ĐĂNG KÝ TRÊN LANDING -->
   <div class="overlay" id="overlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button class="close-btn" id="closeBtn" aria-label="Đóng hộp thoại">&times;</button>
+      <button type="button" class="close-btn" id="closeBtn" data-modal-close aria-label="Đóng hộp thoại">&times;</button>
 
       <!-- Panel Đăng nhập -->
       <section class="panel" id="panel-login">
         <h2 id="modal-title">Chào mừng bạn trở lại</h2>
         <p class="sub">Đăng nhập để tra cứu và quản lý tài liệu của bạn.</p>
 
-        <div class="switch" style="display:flex;gap:8px;margin-bottom:16px;">
+        <div class="switch auth-switch">
           <button type="button" class="btn btn--sm btn--primary tab active" data-switch="login">Đăng nhập</button>
           <button type="button" class="btn btn--sm btn--secondary tab" data-switch="register">Đăng ký</button>
         </div>
@@ -516,15 +518,15 @@
           <div class="form-actions">
             <button type="submit" class="btn btn--primary btn--full">Đăng nhập</button>
           </div>
-          <div style="text-align: center; margin-top: 12px;">
+          <div class="auth-footer-link">
             <a href="login.html" class="auth-alt-link">Mở trang đăng nhập riêng ↗</a>
           </div>
         </form>
 
         <!-- Tài khoản thử nghiệm (Demo) -->
-        <div class="demo" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border-light);">
-          <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);">Tài khoản thử nghiệm nhanh:</span>
-          <div class="demo-list" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+        <div class="demo">
+          <span class="demo__label">Tài khoản thử nghiệm nhanh:</span>
+          <div class="demo-list">
             <button type="button" class="btn btn--sm btn--secondary chip" data-email="admin@ptit.edu.vn" data-pass="123456">Quản trị viên</button>
             <button type="button" class="btn btn--sm btn--secondary chip" data-email="thuthu@ptit.edu.vn" data-pass="123456">Thủ thư</button>
             <button type="button" class="btn btn--sm btn--secondary chip" data-email="docgia@ptit.edu.vn" data-pass="123456">Độc giả</button>
@@ -537,7 +539,7 @@
         <h2>Tạo tài khoản độc giả</h2>
         <p class="sub">Đăng ký bằng mã sinh viên để mượn sách trực tuyến.</p>
 
-        <div class="switch" style="display:flex;gap:8px;margin-bottom:16px;">
+        <div class="switch auth-switch">
           <button type="button" class="btn btn--sm btn--secondary tab" data-switch="login">Đăng nhập</button>
           <button type="button" class="btn btn--sm btn--primary tab active" data-switch="register">Đăng ký</button>
         </div>
@@ -573,7 +575,7 @@
           <div class="form-actions">
             <button type="submit" class="btn btn--primary btn--full">Tạo tài khoản độc giả</button>
           </div>
-          <div style="text-align: center; margin-top: 12px;">
+          <div class="auth-footer-link">
             <a href="register.html" class="auth-alt-link">Mở trang đăng ký riêng ↗</a>
           </div>
         </form>
@@ -586,15 +588,33 @@
 <div class="app" id="appView" hidden>
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-      <strong>Thư viện PTIT</strong>
-      <small>Cổng thông tin độc giả</small>
+      <img src="assets/images/logo.png" alt="Logo PTIT" width="44" height="44">
+      <div class="sidebar-brand-copy">
+        <strong>Thư viện PTIT</strong>
+        <small>Cổng thông tin độc giả</small>
+      </div>
     </div>
 
     <nav class="sidebar-menu" aria-label="Menu chính độc giả">
-      <button type="button" class="menu-item active" data-nav="overview">Tổng quan</button>
-      <button type="button" class="menu-item" data-nav="search">Tra cứu sách</button>
-      <button type="button" class="menu-item" data-nav="mybooks">Sách của tôi</button>
+      <span class="sidebar-menu-label">KHÔNG GIAN ĐỘC GIẢ</span>
+      <button type="button" class="menu-item active" data-nav="overview">
+        <span class="menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></span>
+        <span>Tổng quan</span>
+      </button>
+      <button type="button" class="menu-item" data-nav="search">
+        <span class="menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg></span>
+        <span>Tra cứu sách</span>
+      </button>
+      <button type="button" class="menu-item" data-nav="mybooks">
+        <span class="menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22z"/><path d="M5 4.5v15A2.5 2.5 0 0 1 7.5 17H20"/></svg></span>
+        <span>Sách của tôi</span>
+      </button>
     </nav>
+
+    <div class="sidebar-note">
+      <span class="sidebar-note-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22z"/><path d="M4 5.5v14A2.5 2.5 0 0 1 6.5 17H20"/><path d="M8 7h8M8 10h6"/></svg></span>
+      <span><strong>Mỗi ngày một trang sách</strong><small>Tri thức mở ra thế giới mới</small></span>
+    </div>
 
     <div class="sidebar-user">
       <div class="user-row">
@@ -610,57 +630,70 @@
   <div class="main">
     <header class="topbar">
       <button type="button" class="menu-toggle" id="menuToggle" aria-label="Mở menu">&#9776;</button>
-      <span class="topbar-title" id="topbarTitle" style="font-size: 22px; font-weight: 700;">Tổng quan</span>
+      <span class="topbar-title" id="topbarTitle">Tổng quan</span>
       <span class="topbar-user" id="topbarUser"></span>
-      <div class="toolbar-actions" style="display: flex; gap: 8px;">
-        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="notificationsButton">Thông báo</button>
-        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="profileButton">Hồ sơ</button>
-        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="themeButton" aria-pressed="false">Giao diện</button>
+      <div class="toolbar-actions">
+        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="notificationsButton"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span>Thông báo</span></button>
+        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="profileButton"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span>Hồ sơ</span></button>
+        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="themeButton" aria-pressed="false"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></span><span>Giao diện</span></button>
       </div>
     </header>
 
     <main class="content">
       <!-- Trang 1: Tổng quan độc giả -->
       <section class="page" id="page-overview">
-        <h1 id="greeting">Xin chào bạn đọc</h1>
-        <p class="text-muted" id="greetingRole">Vai trò: Độc giả</p>
+        <div class="reader-page-heading">
+          <div class="reader-page-heading-copy">
+            <span class="reader-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5z"/><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/></svg> KHÔNG GIAN ĐỌC CỦA BẠN</span>
+            <h1 id="greeting">Xin chào bạn đọc</h1>
+            <p class="text-muted" id="greetingRole">Vai trò: Độc giả</p>
+          </div>
+          <div class="reader-art" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 13c-5-4-11-4-17-2v22c6-2 12-2 17 2 5-4 11-4 17-2V11c-6-2-12-2-17 2Z"/><path d="M24 13v22M11 17c3-.5 6-.2 9 1m-9 4c3-.5 6-.2 9 1m17-6c-3-.5-6-.2-9 1m9 4c-3-.5-6-.2-9 1"/></svg></div>
+        </div>
         
-        <div class="stats-grid" style="margin-top: 20px;">
-          <div class="card--stat"><strong id="statBorrowing">0</strong><span>Sách đang mượn</span></div>
-          <div class="card--stat"><strong id="statPending">0</strong><span>Chờ duyệt / Đặt trước</span></div>
-          <div class="card--stat"><strong id="statFines">0đ</strong><span>Tiền phạt của bạn</span></div>
-          <div class="card--stat"><strong id="statRemaining">3</strong><span>Lượt mượn còn lại</span></div>
+        <div class="stats-grid overview-stats-grid">
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22z"/><path d="M5 4.5v15A2.5 2.5 0 0 1 7.5 17H20"/></svg></span><div class="stat-copy"><strong id="statBorrowing">0</strong><span>Sách đang mượn</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="stat-copy"><strong id="statPending">0</strong><span>Chờ duyệt / Đặt trước</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.7-1.6-1-3-1-1.7 0-3 .8-3 2s1.3 2 3 2 3 .8 3 2-1.3 2-3 2c-1.3 0-2.3-.4-3-1.1M12 6v12"/></svg></span><div class="stat-copy"><strong id="statFines">0đ</strong><span>Tiền phạt của bạn</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18m9-9H3"/><circle cx="12" cy="12" r="9"/></svg></span><div class="stat-copy"><strong id="statRemaining">3</strong><span>Lượt mượn còn lại</span></div></div>
         </div>
 
-        <article class="card library-card" style="margin: 24px 0; background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%); color: #fff;" aria-label="Thẻ thư viện số">
-          <p style="font-size: 11px; letter-spacing: 0.05em; opacity: 0.8; color: #fff;">HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG</p>
-          <div class="library-identity" style="display: flex; align-items: center; gap: 12px; margin: 12px 0;">
-            <span class="avatar" id="libraryAvatar" style="background:#fff; color:var(--color-primary-dark);">DG</span>
-            <strong id="libraryName" style="font-size: 20px; color: #fff;">Độc giả</strong>
+        <article class="card library-card" aria-label="Thẻ thư viện số">
+          <p class="library-card__academy">HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG</p>
+          <div class="library-identity">
+            <span class="avatar" id="libraryAvatar">DG</span>
+            <strong id="libraryName">Độc giả</strong>
           </div>
-          <p style="color: #cde2d6; margin: 0;">Thẻ thư viện số</p>
-          <strong id="libraryStudentId" style="color: #fff; font-size: 16px;">—</strong>
-          <div class="library-barcode" aria-hidden="true" style="margin-top: 12px; height: 16px; background: repeating-linear-gradient(90deg, #fff, #fff 2px, transparent 2px, transparent 4px); opacity: 0.7;"><span></span></div>
+          <p class="library-card__label">Thẻ thư viện số</p>
+          <strong id="libraryStudentId" class="library-card__student-id">—</strong>
+          <div class="library-barcode" aria-hidden="true"><span></span></div>
         </article>
 
-        <h2 class="section-title" style="margin-top: 32px; margin-bottom: 16px;">Được mượn nhiều nhất</h2>
-        <div class="book-list popular-books" id="popularBooks" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;"></div>
+        <h2 class="section-title section-title--spaced">Được mượn nhiều nhất</h2>
+        <div class="book-list popular-books" id="popularBooks"></div>
 
-        <h2 class="section-title" style="margin-top: 32px; margin-bottom: 16px;">Sách bạn đang mượn</h2>
+        <h2 class="section-title section-title--spaced">Sách bạn đang mượn</h2>
         <div class="table-wrapper" id="currentLoans"></div>
       </section>
 
       <!-- Trang 2: Tra cứu sách -->
       <section class="page" id="page-search" hidden>
-        <h1>Tra cứu sách</h1>
-        <p class="text-muted">Chọn sách để xem thông tin, gửi yêu cầu mượn hoặc đọc đánh giá.</p>
+        <div class="reader-page-heading">
+          <div class="reader-page-heading-copy">
+            <span class="reader-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg> KHÁM PHÁ KHO TRI THỨC</span>
+            <h1>Tra cứu sách</h1>
+            <p class="text-muted">Chọn sách để xem thông tin, gửi yêu cầu mượn hoặc đọc đánh giá.</p>
+          </div>
+          <div class="reader-art" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="21" cy="21" r="12"/><path d="m30 30 10 10M16 21h10m-5-5v10"/></svg></div>
+        </div>
         
-        <form class="hero-search-box" id="searchForm" role="search" style="margin: 20px 0;">
+        <form class="hero-search-box reader-search-box" id="searchForm" role="search">
+          <span class="reader-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg></span>
           <input type="search" class="hero-search-input" id="searchInput" placeholder="Tìm theo tên sách, tác giả hoặc thể loại..." aria-label="Tìm kiếm sách">
           <button type="submit" class="btn btn--primary hero-search-btn">Tìm kiếm</button>
         </form>
 
-        <div class="category-filters" id="categoryFilters" role="group" aria-label="Lọc theo thể loại" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div class="category-filters" id="categoryFilters" role="group" aria-label="Lọc theo thể loại">
           <button type="button" class="btn btn--sm btn--primary filter-chip active" data-filter="all" aria-pressed="true">Tất cả</button>
           <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="favorites" aria-pressed="false">Yêu thích</button>
           <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Văn học" aria-pressed="false">Văn học</button>
@@ -669,22 +702,28 @@
           <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Lịch sử" aria-pressed="false">Lịch sử</button>
         </div>
 
-        <p class="result-info" id="resultInfo" aria-live="polite" style="font-weight: 600; margin-bottom: 16px;"></p>
-        <div class="book-list" id="bookList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;"></div>
+        <p class="result-info" id="resultInfo" aria-live="polite"></p>
+        <div class="book-list reader-book-list" id="bookList"></div>
         <nav class="pagination" id="pagination" aria-label="Phân trang"></nav>
       </section>
 
       <!-- Trang 3: Sách của tôi -->
       <section class="page" id="page-mybooks" hidden>
-        <h1>Sách của tôi</h1>
+        <div class="reader-page-heading">
+          <div class="reader-page-heading-copy">
+            <span class="reader-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22z"/><path d="M5 4.5v15A2.5 2.5 0 0 1 7.5 17H20"/></svg> THEO DÕI HÀNH TRÌNH ĐỌC</span>
+            <h1>Sách của tôi</h1>
+          </div>
+          <div class="reader-art" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 10h32v29H8z"/><path d="M15 17h18m-18 7h18m-18 7h11"/><path d="m34 5 2 3 4 .5-3 2.5.8 4-3.8-2-3.8 2 .8-4-3-2.5 4-.5z"/></svg></div>
+        </div>
         <p class="text-muted" id="myFines">Tổng tiền phạt: 0đ</p>
         <div class="table-wrapper" id="myLoanList">
-          <p class="empty" style="padding: 24px; text-align: center;">Bạn chưa có sách nào trong danh sách.</p>
+          <p class="empty">Bạn chưa có sách nào trong danh sách.</p>
         </div>
 
-        <h2 class="section-title" style="margin-top: 32px; margin-bottom: 16px;">Tiền phạt của tôi</h2>
+        <h2 class="section-title section-title--spaced">Tiền phạt của tôi</h2>
         <div class="table-wrapper" id="myFineList">
-          <p class="empty" style="padding: 24px; text-align: center;">Chưa có khoản phạt.</p>
+          <p class="empty">Chưa có khoản phạt.</p>
         </div>
       </section>
     </main>
@@ -693,32 +732,33 @@
 
 <!-- Modal Chi tiết sách & Mượn sách -->
 <dialog class="modal book-dialog" id="bookDialog" aria-labelledby="bookDetailTitle">
-  <button type="button" class="close-btn" id="closeBookDialog" aria-label="Đóng chi tiết sách">&times;</button>
+  <button type="button" class="close-btn" id="closeBookDialog" data-modal-close aria-label="Đóng chi tiết sách">&times;</button>
   <h2 id="bookDetailTitle" tabindex="-1">Chi tiết tài liệu</h2>
-  <div id="bookDetailCover" style="text-align: center; margin-bottom: 16px;"></div>
+  <div id="bookDetailCover" class="book-detail-cover"></div>
   <p class="text-muted book-availability" id="bookDetailAvailability"></p>
-  <div class="book-meta" id="bookDetailMeta" style="margin-bottom: 16px;"></div>
+  <div class="book-meta" id="bookDetailMeta"></div>
 
   <section id="bookDetailActions">
-    <h3 class="review-heading" style="margin-bottom: 8px;">Đánh giá của bạn đọc</h3>
+    <h3 class="review-heading">Đánh giá của bạn đọc</h3>
     <div id="reviewSummary" class="review-summary"></div>
     <div id="reviewList" class="review-list"></div>
-    <button type="button" class="btn btn--outline" id="writeReviewButton" style="margin-top: 12px;">Viết đánh giá của bạn</button>
+    <button type="button" class="btn btn--outline" id="writeReviewButton">Viết đánh giá của bạn</button>
     <div class="form-actions loan-actions">
-      <button type="button" class="btn btn--secondary" id="cancelBookDetail">Đóng</button>
+      <button type="button" class="btn btn--secondary" id="cancelBookDetail" data-modal-close>Đóng</button>
+      <button type="button" class="btn btn--outline" id="favoriteBookDetail">♡ Yêu thích</button>
       <button type="button" class="btn btn--primary" id="registerLoanButton">Đăng ký mượn</button>
       <button type="button" class="btn btn--outline" id="reserveBookButton" hidden>Đặt trước</button>
     </div>
   </section>
 
   <form id="loanForm" hidden novalidate>
-    <fieldset id="loanDaysFieldset" aria-describedby="loanHint loanError" style="border: none; padding: 0;">
-      <legend style="font-weight: 700; margin-bottom: 8px;">Chọn thời hạn mượn sách</legend>
+    <fieldset id="loanDaysFieldset" aria-describedby="loanHint loanError" class="loan-days-fieldset">
+      <legend>Chọn thời hạn mượn sách</legend>
       <p class="text-muted" id="loanHint">Vui lòng chọn số ngày mượn phù hợp. Phiếu sẽ được thủ thư phê duyệt.</p>
-      <div class="loan-day-options" style="display: flex; gap: 12px; margin: 16px 0;">
-        <label class="btn btn--secondary" style="flex:1;"><input type="radio" name="loanDays" value="7" required> <span><strong>7</strong> ngày</span></label>
-        <label class="btn btn--secondary" style="flex:1;"><input type="radio" name="loanDays" value="14" required> <span><strong>14</strong> ngày</span></label>
-        <label class="btn btn--secondary" style="flex:1;"><input type="radio" name="loanDays" value="30" required> <span><strong>30</strong> ngày</span></label>
+      <div class="loan-day-options">
+        <label class="btn btn--secondary loan-day-option"><input type="radio" name="loanDays" value="7" required> <span><strong>7</strong> ngày</span></label>
+        <label class="btn btn--secondary loan-day-option"><input type="radio" name="loanDays" value="14" required> <span><strong>14</strong> ngày</span></label>
+        <label class="btn btn--secondary loan-day-option"><input type="radio" name="loanDays" value="30" required> <span><strong>30</strong> ngày</span></label>
       </div>
     </fieldset>
     <p class="error" id="loanError" role="alert" hidden></p>
@@ -758,7 +798,7 @@
     </div>
     <p class="error" id="reviewError" role="alert" hidden></p>
     <div class="form-actions">
-      <button type="button" class="btn btn--secondary" id="cancelReview">Hủy</button>
+      <button type="button" class="btn btn--secondary" id="cancelReview" data-modal-close>Hủy</button>
       <button type="submit" class="btn btn--primary">Gửi đánh giá</button>
     </div>
   </form>
@@ -766,9 +806,10 @@
 
 <!-- Modal Tiện ích thông báo / hồ sơ -->
 <dialog class="modal utility-dialog" id="utilityDialog" aria-labelledby="utilityTitle">
+  <button type="button" class="close-btn" data-modal-close aria-label="Đóng hộp thoại">&times;</button>
   <h2 id="utilityTitle">Thông tin</h2>
-  <div id="utilityContent" style="margin: 16px 0;"></div>
-  <div class="form-actions"><button type="button" class="btn btn--secondary" id="closeUtility">Đóng</button></div>
+  <div id="utilityContent" class="utility-content"></div>
+  <div class="form-actions"><button type="button" class="btn btn--secondary" id="closeUtility" data-modal-close>Đóng</button></div>
 </dialog>
 
 <p class="toast" id="appToast" role="status" hidden></p>
@@ -780,11 +821,12 @@
 <div class="page-transition-overlay" aria-hidden="true"></div>
 
 <!-- Toàn bộ JavaScript: UI, Hiệu ứng chuyển động, Motion Controller, Chuyển trang, Logic ứng dụng & Landing -->
-<script src="assets/js/ui.js"></script>
+<script src="assets/js/ui.js?v=20261123-modal"></script>
+<script src="assets/js/loader.js" defer></script>
 <script src="assets/js/animations.js"></script>
 <script src="assets/js/effects.js"></script>
 <script src="assets/js/page-transition.js"></script>
-<script src="assets/js/script.js"></script>
-<script src="landing.js"></script>
+<script src="assets/js/script.js?v=20261124-4"></script>
+<script src="landing.js?v=20261124-1"></script>
 </body>
 </html>
