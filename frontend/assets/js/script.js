@@ -103,7 +103,6 @@ const MOCK_BOOKS = [
 
 /* =====================================================
    BACKEND GIẢ (chỉ để demo) — lưu trong localStorage
-   Mật khẩu lưu dạng thô nên KHÔNG dùng cho sản phẩm thật.
    ===================================================== */
 const MOCK_USERS_KEY = 'ptit_mock_users';
 
@@ -1025,37 +1024,6 @@ $('viewMyLoans').addEventListener('click', () => {
   navigate('mybooks');
 });
 
-if (USE_MOCK_API) {
-  window.PTIT.demo = {
-    async loadScenario(scenario) {
-      if (!['ready', 'limit', 'duplicate', 'overdue'].includes(scenario)) {
-        throw new Error('Kịch bản hợp lệ: ready, limit, duplicate, overdue.');
-      }
-      if (!hasLoanSession()) throw new Error('Vui lòng đăng nhập trước khi nạp kịch bản.');
-      if (loanState.busy) throw new Error('Vui lòng chờ gửi yêu cầu xong.');
-      const token = getToken();
-      const email = userEmail();
-      await withDemoLoanLock(() => {
-        if (getToken() !== token || !hasLoanSession()) throw new Error('Phiên đăng nhập đã thay đổi.');
-        const others = readDemoLoans().filter(loan => loan.userEmail !== email);
-        const ids = scenario === 'limit' ? [1, 2, 3] : scenario === 'duplicate' ? [1] : scenario === 'overdue' ? [2] : [];
-        const seed = ids.map(id => ({
-          id: 'DEMO-' + crypto.randomUUID(), userEmail: email, bookId: id,
-          bookTitle: MOCK_BOOKS.find(book => book.id === id).title, days: 14,
-          status: scenario === 'overdue' ? 'BORROWING' : 'PENDING',
-          createdAt: new Date().toISOString(), returnDate: null,
-          dueDate: scenario === 'overdue' ? dateInVietnam(new Date(Date.now() - 86400000)) : null,
-        }));
-        localStorage.setItem(DEMO_LOANS_KEY, JSON.stringify([...others, ...seed]));
-      });
-      myLoansPage = 1;
-      renderMyLoans();
-      renderOverview();
-      return 'Đã nạp kịch bản ' + scenario + '. Chọn Dế Mèn phiêu lưu ký để thử mượn.';
-    },
-  };
-}
-
 /* ---------- AUTH-03: Đăng xuất ---------- */
 function logout() {
   const token = getToken();
@@ -1187,6 +1155,7 @@ async function loadReaderData() {
     createdAt: reservation.created_at,
     holdExpiresAt: reservation.hold_expires_at,
   }));
+  updateReaderNotificationBadge();
 }
 
 function myLoans() {
@@ -1299,7 +1268,7 @@ function renderOverview() {
   const user = getUser();
   if (!user) return;
   if (!USE_MOCK_API) {
-    Promise.all([loadReaderData(), ensureBooksLoaded()]).then(renderOverviewContent).catch(error => {
+    Promise.all([ensureBooksLoaded(), loadReaderData()]).then(renderOverviewContent).catch(error => {
       ['statBorrowing', 'statPending', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
       $('currentLoans').replaceChildren(el('p', 'error', 'Không thể tải dữ liệu trang tổng quan: ' + error.message));
     });
@@ -1327,20 +1296,24 @@ function renderOverviewContent() {
     $('statPending').textContent = pending.length + activeReservations.length;
     $('statFines').textContent = money(totalFines(loans));
     $('statRemaining').textContent = Math.max(0, 3 - borrowing.length - pending.length);
-    if (!borrowing.length) { holder.append(el('p', 'table-empty', 'Bạn chưa có sách đang mượn.')); return; }
-    const { wrap, body } = makeTable(['Độc giả', 'Sách', 'Hạn trả', 'Trạng thái'], 'Sách đang mượn');
-    borrowing.forEach(loan => {
-      const row = el('tr');
-      const status = el('td');
-      status.append(statusBadge(loan));
-      row.append(el('td', '', user.fullName || user.email), el('td', '', loan.bookTitle), el('td', '', displayDate(loan.dueDate)), status);
-      body.append(row);
-    });
-    holder.append(wrap);
+    if (!borrowing.length) {
+      holder.append(el('p', 'table-empty', 'Bạn chưa có sách đang mượn.'));
+    } else {
+      const { wrap, body } = makeTable(['Độc giả', 'Sách', 'Hạn trả', 'Trạng thái'], 'Sách đang mượn');
+      borrowing.forEach(loan => {
+        const row = el('tr');
+        const status = el('td');
+        status.append(statusBadge(loan));
+        row.append(el('td', '', user.fullName || user.email), el('td', '', loan.bookTitle), el('td', '', displayDate(loan.dueDate)), status);
+        body.append(row);
+      });
+      holder.append(wrap);
+    }
   } catch {
     ['statBorrowing', 'statPending', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
     holder.append(el('p', 'error', 'Không thể đọc phiếu mượn đã lưu.'));
   }
+  updateReaderNotificationBadge();
 }
 
 function renderMyLoans() {
@@ -1348,7 +1321,7 @@ function renderMyLoans() {
   list.replaceChildren();
   if (!USE_MOCK_API) {
     list.append(stateBox('Đang tải phiếu mượn...', 'loading'));
-    Promise.all([loadReaderData(), ensureBooksLoaded()]).then(renderMyLoansContent).catch(error => {
+    Promise.all([ensureBooksLoaded(), loadReaderData()]).then(renderMyLoansContent).catch(error => {
       $('myFines').textContent = 'Tổng tiền phạt: —';
       list.replaceChildren(stateBox('Không thể tải dữ liệu Sách của tôi: ' + error.message, 'error'));
     });
@@ -1392,7 +1365,9 @@ function renderMyLoansContent() {
     list.append(summary);
 
     const activeLoans = mine.filter(loan => ['PENDING', 'BORROWING'].includes(loan.status));
-    list.append(el('h2', 'section-title section-title--spaced', 'Đang mượn / Chờ duyệt'));
+    const activeHeading = el('h2', 'section-title section-title--spaced', 'Đang mượn / Chờ duyệt');
+    activeHeading.id = 'myActiveLoansHeading';
+    list.append(activeHeading);
     if (!activeLoans.length) {
       list.append(el('p', 'table-empty my-empty-state', 'Bạn chưa có sách đang mượn hoặc phiếu chờ duyệt.'));
     } else {
@@ -1463,7 +1438,9 @@ function renderMyLoansContent() {
       list.append(pager);
     }
 
-    list.append(el('h2', 'section-title section-title--spaced', 'Đặt trước sách'));
+    const rsvHeading = el('h2', 'section-title section-title--spaced', 'Đặt trước sách');
+    rsvHeading.id = 'myReservationsHeading';
+    list.append(rsvHeading);
     const reservations = readerData.reservations;
     if (!reservations.length) list.append(el('p', 'table-empty my-empty-state', 'Bạn chưa có phiếu đặt trước nào.'));
     else {
@@ -1717,6 +1694,105 @@ $('reviewForm').addEventListener('submit', event => {
   } catch { $('reviewError').textContent = 'Không thể lưu đánh giá. Vui lòng kiểm tra quyền lưu trữ rồi thử lại.'; }
 });
 
+/* ---------- Tiện ích Hồ sơ & Thông báo (Chấm đỏ + Chi tiết từng sách + Chuyển hướng) ---------- */
+function getReaderNotifications() {
+  const loans = myLoans();
+  const items = [];
+
+  (readerData.reservations || []).filter(r => r.status === 'HOLDING').forEach(r => {
+    const title = findBook(r.bookId)?.title || r.bookTitle;
+    items.push({
+      key: 'rsv-hold-' + r.id,
+      rowKey: 'rsv-' + r.id,
+      text: `${title} · Sách đặt trước đã có, giữ đến ${displayDate(r.holdExpiresAt)}`,
+      section: 'reservations',
+    });
+  });
+
+  loans.filter(loan => loan.status === 'PENDING').forEach(loan => {
+    items.push({
+      key: 'pending-' + loan.id,
+      rowKey: 'loan-' + loan.id,
+      text: `${loan.bookTitle} · Đang chờ duyệt (${loan.days} ngày)`,
+      section: 'loans',
+    });
+  });
+
+  loans.filter(loan => loan.status === 'BORROWING').forEach(loan => {
+    items.push({
+      key: 'borrowing-' + loan.id + '-' + (isLoanOverdue(loan) ? 'late' : 'ok'),
+      rowKey: 'loan-' + loan.id,
+      text: `${loan.bookTitle} · ${isLoanOverdue(loan) ? 'Đã quá hạn trả: ' : 'Hạn trả: '}${displayDate(loan.dueDate)}`,
+      section: 'loans',
+    });
+  });
+
+  (readerData.fines || []).filter(f => !f.paid && Number(f.amount) > 0).forEach((fine, idx) => {
+    items.push({
+      key: 'fine-' + (fine.loanId || idx) + '-' + fine.amount,
+      rowKey: 'fine-' + (fine.loanId || ''),
+      text: `${fine.bookTitle} · Tiền phạt ${fine.type === 'PROVISIONAL' ? '(tạm tính)' : 'chưa nộp'}: ${money(fine.amount)}`,
+      section: 'fines',
+    });
+  });
+
+  return items;
+}
+
+function goFromNotification(item) {
+  if (window.PTIT?.closeModal) PTIT.closeModal('utilityDialog');
+  else if ($('utilityDialog').open) $('utilityDialog').close();
+
+  navigate('mybooks');
+
+  // Chờ API tải xong bảng Sách của tôi rồi cuộn tới đúng dòng & nháy sáng
+  let attempts = 0;
+  const timer = setInterval(() => {
+    attempts++;
+    const row = document.querySelector(`tr[data-noti-key="${item.rowKey}"]`);
+    if (row) {
+      clearInterval(timer);
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.classList.remove('noti-highlight-row');
+      void row.offsetWidth; // reset animation nếu bấm lại
+      row.classList.add('noti-highlight-row');
+    } else if (attempts >= 20) {
+      clearInterval(timer);
+    }
+  }, 100);
+}
+
+function updateReaderNotificationBadge() {
+  const badge = $('readerNotificationBadge');
+  if (!badge || !hasLoanSession()) return;
+  try {
+    const items = getReaderNotifications();
+    const seenKey = 'ptit_seen_noti_' + userEmail();
+    const seen = JSON.parse(sessionStorage.getItem(seenKey) || '[]');
+    const unread = items.filter(item => !seen.includes(item.key)).length;
+    badge.textContent = unread > 9 ? '9+' : String(unread);
+    badge.hidden = unread === 0;
+  } catch {
+    badge.hidden = true;
+  }
+}
+
+function goFromNotification(section) {
+  if (window.PTIT?.closeModal) PTIT.closeModal('utilityDialog');
+  else if ($('utilityDialog').open) $('utilityDialog').close();
+
+  navigate('mybooks');
+
+  setTimeout(() => {
+    const target = section === 'reservations'
+      ? $('myReservationsHeading')
+      : section === 'fines'
+        ? $('myFineList')
+        : $('myActiveLoansHeading');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 150);
+}
+
 function openUtility(title, render) {
   if (!requireLoanLogin()) return;
   $('utilityTitle').textContent = title;
@@ -1791,15 +1867,38 @@ $('profileButton').addEventListener('click', () => openUtility('Hồ sơ độc 
   });
   content.append(form);
 }));
+
 $('notificationsButton').addEventListener('click', () => openUtility('Thông báo', content => {
   try {
-    const loans = myLoans();
-    const pending = loans.filter(loan => loan.status === 'PENDING').length;
-    content.append(el('p', 'notification-item', pending ? 'Bạn có ' + pending + ' yêu cầu mượn đang chờ duyệt.' : 'Bạn không có yêu cầu mượn đang chờ duyệt.'));
-    loans.filter(loan => loan.status === 'BORROWING').forEach(loan => content.append(el('p', 'notification-item', loan.bookTitle + ' · ' + (isLoanOverdue(loan) ? 'Đã quá hạn trả: ' : 'Hạn trả: ') + displayDate(loan.dueDate))));
-    content.append(el('p', 'muted', 'Dữ liệu demo được lưu trên trình duyệt này.'));
-  } catch { content.append(el('p', 'error', 'Không thể đọc thông báo từ phiếu mượn.')); }
+    const items = getReaderNotifications();
+
+    // Đánh dấu đã đọc để tắt chấm đỏ sau khi mở xem
+    sessionStorage.setItem(
+      'ptit_seen_noti_' + userEmail(),
+      JSON.stringify(items.map(item => item.key))
+    );
+    updateReaderNotificationBadge();
+
+    if (!items.length) {
+      content.append(el('p', 'table-empty', 'Bạn chưa có thông báo nào.'));
+      return;
+    }
+
+    items.forEach(item => {
+      const btn = el('button', 'notification-item');
+      btn.type = 'button';
+      btn.append(
+        el('span', '', item.text),
+        el('span', 'notification-item__action', 'Xem →')
+      );
+      btn.addEventListener('click', () => goFromNotification(item.section));
+      content.append(btn);
+    });
+  } catch {
+    content.append(el('p', 'error', 'Không thể đọc thông báo từ phiếu mượn.'));
+  }
 }));
+
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   $('themeButton').setAttribute('aria-pressed', String(theme === 'dark'));

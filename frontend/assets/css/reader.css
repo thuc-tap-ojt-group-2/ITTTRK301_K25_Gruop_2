@@ -2363,3 +2363,32 @@ html[data-theme="dark"] #reviewDialog textarea {
         border-radius: 20px;
     }
 }
+
+.notification-item {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+@keyframes ptitNotiHighlight {
+  0%   { background-color: #bbf7d0; box-shadow: inset 4px 0 0 #0b6e4f; }
+  70%  { background-color: #dcfce7; box-shadow: inset 4px 0 0 #0b6e4f; }
+  100% { background-color: transparent; box-shadow: none; }
+}
+
+tr.noti-highlight-row td {
+  animation: ptitNotiHighlight 2.8s ease-out forwards;
+}
