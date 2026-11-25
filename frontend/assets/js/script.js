@@ -915,7 +915,18 @@ function hasLoanSession() {
 }
 
 function showLoanError(message, code = '') {
-  $('loanError').textContent = (code ? code + ' — ' : '') + message;
+  const fullMessage = (code ? code + ' — ' : '') + message;
+  $('loanError').textContent = fullMessage;
+
+  if (window.PTIT?.confirm) {
+    closeBookDetail(true);
+    PTIT.confirm(fullMessage, {
+      title: 'Không thể đăng ký mượn',
+      confirmText: 'Đã hiểu',
+      cancelText: 'Đóng',
+      danger: true,
+    });
+  }
 }
 
 if ($('favoriteBookDetail')) {
@@ -1501,8 +1512,13 @@ function renderMyLoansContent() {
 }
 
 function renderBookDetails(book) {
-  $('registerLoanButton').hidden = book.copies === 0;
-  $('reserveBookButton').hidden = book.copies !== 0;
+  const isHoldingForMe = readerData.reservations.some(
+    r => r.bookId === book.id && r.status === 'HOLDING'
+  );
+  const canBorrow = book.copies > 0 || isHoldingForMe;
+
+  $('registerLoanButton').hidden = !canBorrow;
+  $('reserveBookButton').hidden = canBorrow;
   const meta = $('bookDetailMeta');
   meta.replaceChildren();
   const line = (label, value) => {
