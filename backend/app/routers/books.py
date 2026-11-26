@@ -16,17 +16,27 @@ staff_only = RoleChecker(["LIBRARIAN", "ADMIN"])
 @router.get("", response_model=PageResponse)
 def get_books(
     page: int = Query(1, ge=1, description="Số trang (bắt đầu từ 1)"),
-    size: int = Query(10, ge=1, le=10, description="Số sách mỗi trang"),
+    size: int = Query(10, ge=1, le=100, description="Số sách mỗi trang"),
     keyword: Optional[str] = Query(
         None, description="Từ khóa tìm kiếm; phạm vi chọn bằng tham số search_by"
     ),
     search_by: Optional[Literal["title", "author", "isbn"]] = Query(
         None, description="Phạm vi tìm kiếm: nhan đề, tác giả hoặc ISBN"
     ),
+    category_id: Optional[int] = Query(None, gt=0, description="Lọc theo mã thể loại"),
+    availability: Optional[Literal["available", "empty"]] = Query(
+        None, description="Lọc theo tình trạng sách còn/hết bản sao khả dụng"
+    ),
     db: Session = Depends(get_db)
 ):
     return crud.get_books_paginated(
-        db=db, page=page, size=size, keyword=keyword, search_by=search_by
+        db=db,
+        page=page,
+        size=size,
+        keyword=keyword,
+        search_by=search_by,
+        category_id=category_id,
+        availability=availability,
     )
 
 

@@ -1158,6 +1158,63 @@ details p {
     line-height: 1.6;
 }
 
+html[data-theme="dark"] .btn--outline,
+html[data-theme="dark"] .btn.outline,
+html[data-theme="dark"] .btn-outline {
+    color: var(--color-primary-light);
+    border-color: var(--color-primary-light);
+}
+
+html[data-theme="dark"] .btn--outline:hover:not(:disabled),
+html[data-theme="dark"] .btn.outline:hover:not(:disabled),
+html[data-theme="dark"] .btn-outline:hover:not(:disabled) {
+    background-color: var(--color-primary-soft);
+    color: var(--color-text-main);
+    border-color: var(--color-primary-light);
+}
+
+html[data-theme="dark"] .btn--secondary:hover:not(:disabled),
+html[data-theme="dark"] .btn.secondary:hover:not(:disabled),
+html[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-bg-muted);
+    color: var(--color-text-main);
+    border-color: var(--color-border-focus);
+}
+
+html[data-theme="dark"] .btn--ghost:hover:not(:disabled) {
+    color: var(--color-primary-light);
+}
+
+html[data-theme="dark"] .stat-value,
+html[data-theme="dark"] .modal h2,
+html[data-theme="dark"] .auth-alt-link,
+html[data-theme="dark"] .ptit-confirm-icon,
+html[data-theme="dark"] .area-spinner-text {
+    color: var(--color-primary-light);
+}
+
+html[data-theme="dark"] .area-spinner-overlay {
+    background: rgba(15, 23, 21, 0.85);
+}
+
+html[data-theme="dark"] .account-menu-dropdown button:hover,
+html[data-theme="dark"] .account-menu-dropdown a:hover {
+    background: var(--color-primary-soft);
+    color: var(--color-text-main);
+}
+
+html[data-theme="dark"] .pagination-btn {
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-main);
+    border-color: var(--color-border);
+}
+
+html[data-theme="dark"] .pagination-btn.active {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-primary);
+}
+
 .pagination span,
 #pageInfo {
     font-size: var(--text-small);

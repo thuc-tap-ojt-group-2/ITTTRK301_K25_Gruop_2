@@ -375,6 +375,11 @@ async function handleLoanAction(button) {
     await PTIT.confirm(
         `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`,
         {
+            title: action === "approve"
+                ? "Xác nhận duyệt phiếu"
+                : action === "reject"
+                    ? "Xác nhận từ chối phiếu"
+                    : "Xác nhận nhận trả sách",
             danger: action === "reject",
             confirmText: actionText[0].toUpperCase() + actionText.slice(1),
             onConfirm: async () => {
@@ -470,6 +475,7 @@ nextPageButton.addEventListener("click", () => {
 document.getElementById("logoutButton")
     .addEventListener("click", async () => {
         await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+            title: "Đăng xuất",
             confirmText: "Đăng xuất",
             onConfirm: async () => {
                 try {

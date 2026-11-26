@@ -205,6 +205,7 @@ document.getElementById("refreshButton").addEventListener("click", loadReaders);
 
 document.getElementById("logoutButton").addEventListener("click", async () => {
     await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        title: "Đăng xuất",
         confirmText: "Đăng xuất",
         onConfirm: async () => {
             try {

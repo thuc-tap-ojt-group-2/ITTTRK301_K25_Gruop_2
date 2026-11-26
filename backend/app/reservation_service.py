@@ -5,9 +5,10 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.log_service import create_system_log
-from app.models import Book, Reservation, User
+from app.models import Book, Loan, Reservation, User
 
 HOLD_DURATION = timedelta(hours=48)
+ACTIVE_LOAN_STATUSES = ("PENDING", "BORROWING")
 ACTIVE_RESERVATION_STATUSES = ("WAITING", "HOLDING")
 
 
@@ -103,6 +104,21 @@ class ReservationService:
                 detail="Chỉ được đặt trước khi sách hết bản",
             )
 
+        active_loan = (
+            db.query(Loan)
+            .filter(
+                Loan.user_id == user_id,
+                Loan.book_id == book_id,
+                Loan.status.in_(ACTIVE_LOAN_STATUSES),
+            )
+            .first()
+        )
+        if active_loan:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Bạn đang mượn hoặc có phiếu chờ duyệt cho cuốn sách này",
+            )
+
         existing = (
             db.query(Reservation)
             .filter(
@@ -115,7 +131,7 @@ class ReservationService:
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Bạn đã đặt trước cuốn sách này",
+                detail="Bạn đã đặt trước cuốn sách này và đang trong hàng chờ",
             )
 
         reservation = Reservation(
@@ -124,20 +140,6 @@ class ReservationService:
             status="WAITING",
             created_at=datetime.now(timezone.utc),
         )
-        existing = (
-            db.query(Reservation)
-            .filter(
-                Reservation.user_id == user_id,
-                Reservation.book_id == book_id,
-                Reservation.status.in_(["WAITING", "HOLDING"]),
-            )
-            .first()
-        )
-        if existing:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Bạn đã đặt trước cuốn sách này và đang trong hàng chờ",
-            )
         db.add(reservation)
         db.flush()
         cls.sync_book(db, book)

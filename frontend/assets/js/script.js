@@ -311,9 +311,9 @@ function openModal(name) {
   }
 }
 
-function closeModal() {
+function closeModal(force = false) {
   if (window.PTIT?.closeModal) {
-    PTIT.closeModal('overlay');
+    PTIT.closeModal('overlay', { force });
     return;
   }
   if (overlay) {
@@ -443,7 +443,7 @@ $('loginForm').addEventListener('submit', async e => {
 
   const d = res.data.data && typeof res.data.data === 'object' ? res.data.data : res.data;
   const token = d.access_token || d.token || d.accessToken || d.jwt;
-  if (!token) { err.textContent = 'Phản hồi đăng nhập không có token.'; return; }
+  if (!token) { err.textContent = 'Phản hồi đăng nhập không có token.'; err.hidden = false; return; }
 
   const payload = decodeJwt(token) || {};
   const user = d.user || {
@@ -455,14 +455,15 @@ $('loginForm').addEventListener('submit', async e => {
   };
   user.role = normalizeRole(user.role);
 
-  if (isLocked(user)) { err.textContent = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thư viện.'; return; }
+  if (isLocked(user)) { err.textContent = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thư viện.'; err.hidden = false; return; }
 
   localStorage.setItem(STORAGE_TOKEN, token);
   localStorage.setItem(STORAGE_USER, JSON.stringify(user));
   localStorage.setItem('access_token', token);
   localStorage.setItem('user', JSON.stringify(user));
   form.reset();
-  closeModal();
+  form.dataset.ptitDirty = 'false';
+  closeModal(true);
   showApp(user);
 });
 
@@ -759,13 +760,13 @@ function getBookCover(b) {
   const apiImageUrl = typeof b.imageUrl === 'string' ? b.imageUrl.trim() : '';
   const isUnverifiedSampleThumbnail = hasSampleDescription &&
     apiImageUrl.includes('encrypted-tbn0.gstatic.com');
-  const rawUrl = isUnverifiedSampleThumbnail || /^\/covers\//i.test(apiImageUrl) ? '' : apiImageUrl;
+  const rawUrl = isUnverifiedSampleThumbnail ? '' : apiImageUrl;
   if (!rawUrl) return cover;
 
   let cleanUrl = rawUrl;
   if (cleanUrl.startsWith('/covers/')) {
     cleanUrl = '.' + cleanUrl; // Trỏ thẳng tới ./covers/xxx.svg trong thư mục frontend
-  } else if (!/^https?:\/\//i.test(cleanUrl) && !cleanUrl.startsWith('//')) {
+  } else if (!/^https?:\/\//i.test(cleanUrl) && !cleanUrl.startsWith('//') && !cleanUrl.startsWith('data:')) {
     cleanUrl = API_BASE_URL + (cleanUrl.startsWith('/') ? '' : '/') + cleanUrl;
   }
 
@@ -915,7 +916,7 @@ function closeBookDetail(force = false) {
   loanState.book = null;
   setLoanBusy(false);
   if ($('bookDialog').open) {
-    if (window.PTIT?.closeModal) PTIT.closeModal('bookDialog');
+    if (window.PTIT?.closeModal) PTIT.closeModal('bookDialog', { force });
     else $('bookDialog').close();
   }
   document.body.style.overflow = '';
@@ -949,7 +950,7 @@ function showLoanError(message, code = '') {
     PTIT.confirm(fullMessage, {
       title: 'Không thể đăng ký mượn',
       confirmText: 'Đã hiểu',
-      cancelText: 'Đóng',
+      hideCancel: true,
       danger: true,
     });
   }
@@ -1651,6 +1652,8 @@ $('reviewSummary').addEventListener('click', event => {
 
 function deleteReview(review, book) {
   PTIT.confirm('Bạn có chắc chắn muốn xóa đánh giá này?', {
+    title: 'Xác nhận xóa đánh giá',
+    danger: true,
     confirmText: 'Xóa đánh giá',
     onConfirm: async () => {
       try {
@@ -1702,6 +1705,7 @@ function getBookIntroduction(book) {
 
 async function cancelLoanRequest(loanId) {
   await PTIT.confirm('Bạn có chắc muốn hủy phiếu mượn này?', {
+    title: 'Xác nhận hủy phiếu mượn',
     danger: true,
     confirmText: 'Hủy phiếu mượn',
     onConfirm: async () => {
@@ -1727,6 +1731,7 @@ async function cancelLoanRequest(loanId) {
 
 async function extendLoanRequest(loanId) {
   await PTIT.confirm('Gia hạn phiếu mượn thêm 7 ngày?', {
+    title: 'Xác nhận gia hạn phiếu mượn',
     confirmText: 'Gia hạn',
     onConfirm: async () => {
       try {
@@ -1751,6 +1756,7 @@ async function extendLoanRequest(loanId) {
 
 async function cancelReservationRequest(reservationId) {
   await PTIT.confirm('Bạn có chắc muốn hủy phiếu đặt trước này?', {
+    title: 'Xác nhận hủy đặt trước',
     danger: true,
     confirmText: 'Hủy đặt trước',
     onConfirm: async () => {
@@ -1794,7 +1800,7 @@ $('reserveBookButton').addEventListener('click', async () => {
           {
             title: 'Không thể đặt trước',
             confirmText: 'Đã hiểu',
-            cancelText: 'Đóng',
+            hideCancel: true,
           }
         );
       } else {
@@ -1843,9 +1849,9 @@ function openReview(book) {
   document.body.style.overflow = 'hidden';
   $('reviewStars').focus();
 }
-function closeReview() {
+function closeReview(force = false) {
   if (!$('reviewDialog').open) return;
-  if (window.PTIT?.closeModal) PTIT.closeModal('reviewDialog');
+  if (window.PTIT?.closeModal) PTIT.closeModal('reviewDialog', { force });
   else $('reviewDialog').close();
   reviewBook = null;
   document.body.style.overflow = $('bookDialog').open ? 'hidden' : '';
@@ -1883,7 +1889,7 @@ $('reviewForm').addEventListener('submit', event => {
       (String(item.userId || '') === id || (!item.userId && item.userEmail === email))
     ));
     localStorage.setItem(REVIEWS_KEY, JSON.stringify([...remaining, review]));
-    closeReview();
+    closeReview(true);
     selectedReviewStars = 0;
     if (loanState.book && String(loanState.book.id) === String(reviewedBook.id)) {
       renderBookDetails(loanState.book);
@@ -1940,24 +1946,32 @@ function getReaderNotifications() {
 }
 
 function goFromNotification(item) {
-  if (window.PTIT?.closeModal) PTIT.closeModal('utilityDialog');
+  if (window.PTIT?.closeModal) PTIT.closeModal('utilityDialog', { force: true });
   else if ($('utilityDialog').open) $('utilityDialog').close();
 
   navigate('mybooks');
 
-  // Chờ API tải xong bảng Sách của tôi rồi cuộn tới đúng dòng & nháy sáng
+  const rowKey = item && typeof item === 'object' ? item.rowKey : '';
+  const section = item && typeof item === 'object' ? item.section : item;
+
   let attempts = 0;
   const timer = setInterval(() => {
     attempts++;
-    const row = document.querySelector(`tr[data-noti-key="${item.rowKey}"]`);
+    const row = rowKey ? document.querySelector(`tr[data-noti-key="${rowKey}"]`) : null;
     if (row) {
       clearInterval(timer);
       row.scrollIntoView({ behavior: 'smooth', block: 'center' });
       row.classList.remove('noti-highlight-row');
-      void row.offsetWidth; // reset animation nếu bấm lại
+      void row.offsetWidth;
       row.classList.add('noti-highlight-row');
     } else if (attempts >= 20) {
       clearInterval(timer);
+      const target = section === 'reservations'
+        ? $('myReservationsHeading')
+        : section === 'fines'
+          ? $('myFineList')
+          : $('myActiveLoansHeading');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, 100);
 }
@@ -1975,22 +1989,6 @@ function updateReaderNotificationBadge() {
   } catch {
     badge.hidden = true;
   }
-}
-
-function goFromNotification(section) {
-  if (window.PTIT?.closeModal) PTIT.closeModal('utilityDialog');
-  else if ($('utilityDialog').open) $('utilityDialog').close();
-
-  navigate('mybooks');
-
-  setTimeout(() => {
-    const target = section === 'reservations'
-      ? $('myReservationsHeading')
-      : section === 'fines'
-        ? $('myFineList')
-        : $('myActiveLoansHeading');
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 150);
 }
 
 function openUtility(title, render) {
@@ -2091,7 +2089,7 @@ $('notificationsButton').addEventListener('click', () => openUtility('Thông bá
         el('span', '', item.text),
         el('span', 'notification-item__action', 'Xem →')
       );
-      btn.addEventListener('click', () => goFromNotification(item.section));
+      btn.addEventListener('click', () => goFromNotification(item));
       content.append(btn);
     });
   } catch {

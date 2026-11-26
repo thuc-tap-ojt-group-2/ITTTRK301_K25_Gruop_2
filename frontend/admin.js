@@ -140,6 +140,7 @@ function createLockButton(user, statusCell) {
     lockBtn.addEventListener("click", async () => {
         const actionText = user.is_locked ? "mở khóa" : "khóa";
         await PTIT.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản "${user.username}"?`, {
+            title: user.is_locked ? "Xác nhận mở khóa tài khoản" : "Xác nhận khóa tài khoản",
             danger: !user.is_locked,
             confirmText: actionText === "khóa" ? "Khóa tài khoản" : "Mở khóa",
             onConfirm: async () => {
@@ -328,7 +329,7 @@ async function loadAdminUsers() {
 }
 
 async function loadAdminLogs() {
-    const logs = await getAdminLogs(10);
+    const logs = await getAdminLogs(100);
     const safeLogs = Array.isArray(logs) ? logs : [];
     renderAdminLogs(safeLogs);
     return safeLogs;
@@ -370,6 +371,7 @@ document.getElementById("refreshButton").addEventListener("click", loadAdminData
 
 document.getElementById("logoutButton").addEventListener("click", async () => {
     await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        title: "Đăng xuất",
         confirmText: "Đăng xuất",
         onConfirm: async () => {
             try {

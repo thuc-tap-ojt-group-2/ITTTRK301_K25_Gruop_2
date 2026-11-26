@@ -149,6 +149,65 @@ class BooksAndStatsTests(unittest.TestCase):
         self.assertEqual(len(monthly), 6)
         self.assertEqual(sum(item.loanCount for item in monthly), 1)
 
+    def test_latent_bugs_delete_returned_book_duplicate_category_filters_and_hash(self):
+        # Đảm bảo verify_password trả về False thay vì lỗi ValueError khi hash hỏng
+        self.assertFalse(auth_service.verify_password("123456", "not-a-bcrypt-hash"))
+
+        # Chặn cập nhật thể loại trùng tên (400 thay vì IntegrityError 500)
+        cat_extra = crud.create_category(
+            self.db, schemas.CategoryCreateRequest(name="Kinh tế"), actor_id=2
+        )
+        with self.assertRaises(HTTPException) as dup_cat:
+            crud.update_category(
+                self.db,
+                cat_extra.id,
+                schemas.CategoryUpdateRequest(name="Công nghệ thông tin"),
+                actor_id=2,
+            )
+        self.assertEqual(dup_cat.exception.status_code, 400)
+
+        # Tạo và cập nhật/xóa coverUrl rõ ràng, trả về categoryId
+        created = crud.create_book(
+            self.db,
+            schemas.BookCreateRequest(
+                title="Cơ sở dữ liệu",
+                author="Trần Văn B",
+                categoryId=cat_extra.id,
+                total=1,
+                coverUrl="https://example.com/cover.jpg",
+                isbn="9786049999999",
+            ),
+            actor_id=2,
+        )
+        self.assertEqual(created.categoryId, cat_extra.id)
+        self.assertEqual(created.coverUrl, "https://example.com/cover.jpg")
+
+        cleared = crud.update_book(
+            self.db,
+            created.id,
+            schemas.BookUpdateRequest(coverUrl=None),
+            actor_id=2,
+        )
+        self.assertIsNone(cleared.coverUrl)
+        self.assertIsNone(cleared.imageUrl)
+
+        # Lọc theo category_id, availability và tìm kiếm theo ISBN khi search_by=None
+        by_isbn = crud.get_books_paginated(self.db, keyword="9786049999999")
+        self.assertEqual(by_isbn.totalElements, 1)
+        by_cat = crud.get_books_paginated(self.db, category_id=cat_extra.id)
+        self.assertEqual(by_cat.totalElements, 1)
+
+        loan = LoanService.create_request(self.db, user_id=1, book_id=created.id, days=7)
+        loan = LoanService.approve(self.db, loan.id, librarian_id=2)
+        empty_filter = crud.get_books_paginated(self.db, availability="empty")
+        self.assertEqual([b.id for b in empty_filter.content], [created.id])
+        LoanService.return_book(self.db, loan.id, librarian_id=2)
+
+        # Chặn xóa sách đã có lịch sử mượn trả (409 thay vì IntegrityError 500)
+        with self.assertRaises(HTTPException) as del_err:
+            crud.delete_book(self.db, created.id, actor_id=2)
+        self.assertEqual(del_err.exception.status_code, 409)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -171,7 +171,7 @@ async function loadCategories() {
 
         if (filterCategorySelect) {
             const filterOption = document.createElement("option");
-            filterOption.value = category.name;
+            filterOption.value = category.id;
             filterOption.textContent = category.name;
             filterCategorySelect.appendChild(filterOption);
         }
@@ -228,6 +228,7 @@ function displayCategories() {
         remove.style.marginLeft = "8px";
         remove.addEventListener("click", async () => {
             await PTIT.confirm(`Bạn có chắc chắn muốn xóa thể loại "${category.name}"?`, {
+                title: "Xác nhận xóa thể loại",
                 danger: true,
                 confirmText: "Xóa thể loại",
                 onConfirm: async () => {
@@ -312,7 +313,16 @@ async function loadBooks() {
 
     try {
         const keyword = searchInput ? searchInput.value.trim() : "";
-        const response = await getBooks(currentPage, pageSize, keyword);
+        const categoryId = filterCategorySelect && filterCategorySelect.value
+            ? filterCategorySelect.value
+            : "";
+        const availability = filterAvailabilitySelect && filterAvailabilitySelect.value
+            ? filterAvailabilitySelect.value
+            : "";
+        const response = await getBooks(currentPage, pageSize, keyword, {
+            categoryId,
+            availability
+        });
 
         books = Array.isArray(response)
             ? response
@@ -410,7 +420,7 @@ async function loadBooks() {
 
 function displayBooks(keyword = "") {
     const normalizedKeyword = keyword.trim().toLowerCase();
-    const selectedCategory = filterCategorySelect ? filterCategorySelect.value.trim().toLowerCase() : "";
+    const selectedCategoryId = filterCategorySelect ? filterCategorySelect.value.trim() : "";
     const selectedAvail = filterAvailabilitySelect ? filterAvailabilitySelect.value : "";
 
     const result = books.filter(book => {
@@ -427,7 +437,7 @@ function displayBooks(keyword = "") {
             || code.includes(normalizedKeyword);
 
         const matchesCategory =
-            !selectedCategory || category === selectedCategory;
+            !selectedCategoryId || String(book.categoryId ?? "") === selectedCategoryId;
 
         const matchesAvail =
             !selectedAvail
@@ -497,6 +507,8 @@ function displayBooks(keyword = "") {
 function openAddModal() {
     editingId = null;
     bookForm.reset();
+    bookForm.dataset.ptitDirty = "false";
+    updateBookCoverPreview();
 
     document.getElementById("modalTitle").textContent =
         "Thêm sách mới";
@@ -512,18 +524,18 @@ function openAddModal() {
         bookModal.hidden = false;
         bookModal.classList.add("show");
     }
-    bookModal.hidden = false;
-    bookModal.classList.add("show");
 }
 
-function closeModal() {
+function closeModal(force = false) {
     if (window.PTIT?.closeModal) {
-        PTIT.closeModal("bookModal");
+        PTIT.closeModal("bookModal", { force });
+        if (force) editingId = null;
         return;
     }
     bookModal.classList.remove("show");
     bookModal.hidden = true;
     bookForm.reset();
+    bookForm.dataset.ptitDirty = "false";
     if (bookCoverPreviewImage) {
         bookCoverPreviewImage.src = bookPlaceholderUrl;
     }
@@ -572,8 +584,6 @@ function editBook(id) {
         bookModal.hidden = false;
         bookModal.classList.add("show");
     }
-    bookModal.hidden = false;
-    bookModal.classList.add("show");
 }
 
 function validateBook() {
@@ -605,14 +615,13 @@ function validateBook() {
         );
 
         if (currentBook) {
-            const borrowedCopies =
+            const minAllowedTotal =
                 Number(currentBook.totalCopies || 0)
-                - Number(currentBook.availableCopies || 0)
-                - Number(currentBook.reservedCopies || 0);
+                - Number(currentBook.availableCopies || 0);
 
-            if (total < borrowedCopies) {
+            if (total < minAllowedTotal) {
                 showModalMessage(
-                    `Tổng số bản không được nhỏ hơn ${borrowedCopies} bản đang được mượn.`,
+                    `Tổng số bản không được nhỏ hơn ${minAllowedTotal} bản đang được mượn hoặc giữ chỗ.`,
                     "error"
                 );
                 return null;
@@ -650,6 +659,7 @@ async function removeBook(id, button = null) {
     await PTIT.confirm(
         `Bạn có chắc chắn muốn xóa cuốn sách "${book.title}" khỏi hệ thống?`,
         {
+            title: "Xác nhận xóa sách",
             danger: true,
             confirmText: "Xóa sách",
             onConfirm: async () => {
@@ -691,11 +701,11 @@ bookForm.addEventListener("submit", async function(event) {
     try {
         if (editingId === null) {
             await createBook(bookData);
-            closeModal();
+            closeModal(true);
             showMessage("Thêm sách mới thành công.");
         } else {
             await updateBook(editingId, bookData);
-            closeModal();
+            closeModal(true);
             showMessage("Cập nhật thông tin sách thành công.");
         }
 
@@ -737,24 +747,18 @@ searchInput.addEventListener("input", function() {
 });
 
 if (filterCategorySelect) {
-    filterCategorySelect.addEventListener("change", function() {
+    filterCategorySelect.addEventListener("change", async function() {
         currentPage = 1;
-        displayBooks(searchInput.value);
+        await loadBooks();
     });
 }
 
 if (filterAvailabilitySelect) {
-    filterAvailabilitySelect.addEventListener("change", function() {
+    filterAvailabilitySelect.addEventListener("change", async function() {
         currentPage = 1;
-        displayBooks(searchInput.value);
+        await loadBooks();
     });
 }
-
-bookModal.addEventListener("click", function(event) {
-    if (event.target === bookModal) {
-        closeModal();
-    }
-});
 
 document.getElementById("previousPage").addEventListener("click", async function() {
     if (currentPage > 1) {
@@ -770,6 +774,7 @@ document.getElementById("nextPage").addEventListener("click", async function() {
 
 document.getElementById("logoutButton").addEventListener("click", async function() {
     await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        title: "Đăng xuất",
         confirmText: "Đăng xuất",
         onConfirm: async () => {
             try {

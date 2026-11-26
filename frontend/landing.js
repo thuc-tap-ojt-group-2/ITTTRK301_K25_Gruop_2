@@ -72,6 +72,26 @@ function getCategoryGradient(categoryName, index) {
     return GRADIENT_PALETTE[index % GRADIENT_PALETTE.length];
 }
 
+function resolveHomepageCoverUrl(rawUrl, description = "") {
+    const trimmed = typeof rawUrl === "string" ? rawUrl.trim() : "";
+    if (!trimmed) return "";
+
+    const hasSampleDescription = String(description || "").startsWith("Dữ liệu mẫu giới thiệu sách ");
+    if (hasSampleDescription && trimmed.includes("encrypted-tbn0.gstatic.com")) {
+        return "";
+    }
+
+    if (trimmed.startsWith("/covers/")) {
+        return "." + trimmed;
+    }
+
+    if (!/^https?:\/\//i.test(trimmed) && !trimmed.startsWith("//") && !trimmed.startsWith("data:")) {
+        return homepageApiBaseUrl + (trimmed.startsWith("/") ? "" : "/") + trimmed;
+    }
+
+    return trimmed;
+}
+
 /**
  * Hiển thị 3 cuốn sách nổi bật ở khu vực Hero (CNTT, ATTT, Viễn thông)
  * Lấy ảnh bìa và thông tin trực tiếp từ Database qua API /api/books
@@ -101,26 +121,30 @@ function renderHeroBooks(books) {
         { id: "hero-book-3", badge: "VIỄN THÔNG", book: vtBook }
     ];
 
-    heroConfig.forEach(function (item) {
+    heroConfig.forEach(function (item, idx) {
         const el = document.getElementById(item.id);
         if (!el || !item.book) return;
 
         const titleEl = el.querySelector(".hero-book-title");
         const authorEl = el.querySelector(".hero-book-author");
         const badgeEl = el.querySelector(".hero-book-badge");
+        const coverWrap = el.querySelector(".hero-book-cover-wrapper");
         const imgEl = el.querySelector(".hero-book-img");
 
         if (titleEl) titleEl.textContent = item.book.title || "Sách học tập PTIT";
         if (authorEl) authorEl.textContent = item.book.author || "Học viện PTIT";
         if (badgeEl) badgeEl.textContent = item.badge;
+        if (coverWrap) {
+            coverWrap.style.background = getCategoryGradient(item.book.categoryName || item.book.category_name, idx);
+        }
 
-        const rawUrl = item.book.imageUrl || item.book.image_url;
-        if (imgEl) imgEl.hidden = true;
-        if (imgEl && rawUrl && !/^\/covers\//i.test(String(rawUrl).trim())) {
-            let cleanUrl = String(rawUrl).trim();
-            if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
-                cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
-            }
+        const rawUrl = item.book.coverUrl || item.book.imageUrl || item.book.cover_url || item.book.image_url;
+        const cleanUrl = resolveHomepageCoverUrl(rawUrl, item.book.description);
+        if (imgEl) {
+            imgEl.hidden = true;
+            imgEl.alt = "Bìa sách " + (item.book.title || "Thư viện PTIT");
+        }
+        if (imgEl && cleanUrl) {
             imgEl.referrerPolicy = "no-referrer";
             imgEl.loading = "lazy";
             imgEl.onerror = function () {
@@ -222,10 +246,14 @@ function createBookCard(book, index) {
     card.setAttribute("aria-label", [book.title, book.author].filter(Boolean).join(" — "));
     card.tabIndex = 0;
 
-    // Chuyển đến trang tra cứu sách khi click hoặc nhấn Enter
+    // Mở chi tiết sách trên landing khi khả dụng thay vì đẩy khách tới trang quản trị
     card.addEventListener("click", function () {
-        const query = book.title || "";
-        window.location.href = "books.html" + (query ? "?keyword=" + encodeURIComponent(query) : "");
+        if (typeof openBookDetail === "function") {
+            openBookDetail(book);
+        } else {
+            const query = book.title || "";
+            window.location.href = "books.html" + (query ? "?keyword=" + encodeURIComponent(query) : "");
+        }
     });
     card.addEventListener("keydown", function (e) {
         if (e.key === "Enter" || e.key === " ") {
@@ -247,24 +275,11 @@ function createBookCard(book, index) {
     const fallbackCover = createFallbackCover(bookTitle, categoryName, bookAuthor, gradient);
     coverWrapper.appendChild(fallbackCover);
 
-    // Kiểm tra và hiển thị ảnh thật từ API nếu có
-    const description = String(book.description || "");
-    const hasSampleDescription = description.startsWith("Dữ liệu mẫu giới thiệu sách ");
-    const apiImageUrl = typeof book.imageUrl === "string" ? book.imageUrl : book.image_url;
-    const isUnverifiedSampleThumbnail = hasSampleDescription &&
-        typeof apiImageUrl === "string" &&
-        apiImageUrl.includes("encrypted-tbn0.gstatic.com");
-    const rawImageUrl = isUnverifiedSampleThumbnail || /^\/covers\//i.test(String(apiImageUrl || "").trim())
-        ? ""
-        : apiImageUrl;
+    // Kiểm tra và hiển thị ảnh thật từ API nếu có (bao gồm /covers/*.svg nội bộ)
+    const apiImageUrl = book.coverUrl || book.imageUrl || book.cover_url || book.image_url;
+    const cleanUrl = resolveHomepageCoverUrl(apiImageUrl, book.description);
 
-    if (typeof rawImageUrl === "string" && rawImageUrl.trim().length > 0) {
-        let cleanUrl = rawImageUrl.trim();
-        // Bình thường hóa đường dẫn nếu là relative path từ máy chủ
-        if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
-            cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
-        }
-
+    if (cleanUrl) {
         const image = document.createElement("img");
         image.className = "featured-book-img";
         image.alt = bookTitle;

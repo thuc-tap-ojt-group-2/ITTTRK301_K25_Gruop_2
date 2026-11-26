@@ -118,6 +118,11 @@ class FinesAndReservationsTests(unittest.TestCase):
         )
         self.assertEqual(self.db.get(Book, 1).available_copies, 0)
 
+        # Độc giả đang mượn sách đó thì không được đặt trước cùng cuốn (409)
+        with self.assertRaises(HTTPException) as active_loan_res:
+            ReservationService.create(self.db, user_id=1, book_id=1)
+        self.assertEqual(active_loan_res.exception.status_code, 409)
+
         # Tạo thêm 2 độc giả xếp hàng đặt trước
         self.db.add(User(id=4, username="r3", email="r3@ptit.edu.vn", password_hash="x", role="READER"))
         self.db.add(User(id=5, username="r4", email="r4@ptit.edu.vn", password_hash="x", role="READER"))

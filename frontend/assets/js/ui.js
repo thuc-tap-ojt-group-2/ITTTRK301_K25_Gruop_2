@@ -36,15 +36,30 @@ PTIT.setAvatar = function (element, name) {
 };
 
 PTIT.resolveTheme = function () {
-    return "light";
+    try {
+        return localStorage.getItem("ptit_theme") === "dark" ? "dark" : "light";
+    } catch {
+        return "light";
+    }
 };
 
 PTIT.applyTheme = function (theme, persist = false) {
-    const nextTheme = "light";
+    const nextTheme = String(theme || "").toLowerCase() === "dark" ? "dark" : "light";
+    const isDark = nextTheme === "dark";
     document.documentElement.dataset.theme = nextTheme;
     document.querySelectorAll("#themeButton, [data-account-action='theme']").forEach(function (button) {
-        button.setAttribute("aria-pressed", String(nextTheme === "dark"));
+        button.disabled = false;
+        button.setAttribute("aria-pressed", String(isDark));
+        button.title = isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối";
     });
+    const accountThemeLabel = document.getElementById("accountThemeLabel");
+    if (accountThemeLabel) {
+        accountThemeLabel.textContent = isDark ? "Giao diện tối (đang bật)" : "Giao diện tối (đang tắt)";
+    }
+    const readerThemeBtnLabel = document.querySelector("#themeButton span:last-child");
+    if (readerThemeBtnLabel) {
+        readerThemeBtnLabel.textContent = isDark ? "Giao diện sáng" : "Giao diện tối";
+    }
     if (persist) {
         try {
             localStorage.setItem("ptit_theme", nextTheme);
@@ -57,16 +72,20 @@ PTIT.applyTheme = function (theme, persist = false) {
 };
 
 PTIT.toggleTheme = function () {
-    PTIT.showToast("Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản.", "info");
-    return "light";
+    const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+    return PTIT.applyTheme(nextTheme, true);
 };
 
 PTIT.initThemeButton = function (button) {
+    PTIT.applyTheme(PTIT.resolveTheme(), false);
     if (!button || button.dataset.themeBound === "true") return;
     button.dataset.themeBound = "true";
-    button.disabled = true;
-    button.title = "Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản.";
-    button.setAttribute("aria-pressed", "false");
+    button.disabled = false;
+    button.addEventListener("click", function () {
+        const nextTheme = PTIT.toggleTheme();
+        PTIT.showToast("Đã chuyển sang giao diện " + (nextTheme === "dark" ? "tối." : "sáng."), "success");
+    });
 };
 
 PTIT.getLoanStatus = function (loan) {
@@ -512,9 +531,10 @@ PTIT.openModal = function (modalId) {
     if (focusTarget) requestAnimationFrame(() => focusTarget.focus());
 };
 
-PTIT.closeModal = function (modalId) {
+PTIT.closeModal = function (modalId, options = {}) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
+    const force = Boolean(options === true || options?.force);
 
     function finish() {
         if (typeof modal.close === "function" && modal.open) {
@@ -545,13 +565,16 @@ PTIT.closeModal = function (modalId) {
         if (previous?.isConnected) previous.focus();
     }
 
-    const formDirty = Array.from(modal.querySelectorAll("form"))
+    const shouldConfirmUnsaved = !force && modal.dataset.confirmUnsaved === "true";
+    const formDirty = shouldConfirmUnsaved && Array.from(modal.querySelectorAll("form"))
         .some(form => form.dataset.ptitDirty === "true");
     if (formDirty &&
         typeof PTIT.confirm === "function") {
         PTIT.confirm("Bạn đã thay đổi nội dung. Đóng hộp thoại mà không lưu?", {
+            title: "Chưa lưu thay đổi",
             danger: true,
-            confirmText: "Đóng"
+            confirmText: "Đóng",
+            cancelText: "Tiếp tục sửa"
         }).then(function (confirmed) {
             if (confirmed) finish();
         });
@@ -721,10 +744,16 @@ PTIT.confirm = function (message, options = {}) {
     const dialog = getPTITConfirmDialog();
     if (typeof dialog.showModal !== "function") return Promise.resolve(false);
 
+    const cancelButton = dialog.querySelector(".ptit-confirm-cancel");
+    const confirmButton = dialog.querySelector(".ptit-confirm-ok");
+    const icon = dialog.querySelector(".ptit-confirm-icon");
     dialog.querySelector(".ptit-confirm-title").textContent = options.title || "Xác nhận thao tác";
     dialog.querySelector(".ptit-confirm-message").textContent = message;
-    dialog.querySelector(".ptit-confirm-cancel").textContent = options.cancelText || "Hủy";
-    const confirmButton = dialog.querySelector(".ptit-confirm-ok");
+    cancelButton.textContent = options.cancelText || "Hủy";
+    cancelButton.hidden = Boolean(options.hideCancel);
+    if (icon) {
+        icon.textContent = options.danger ? "!" : options.hideCancel ? "i" : "?";
+    }
     confirmButton.textContent = options.confirmText || "Xác nhận";
     confirmButton.className = `btn ${options.danger ? "btn--danger" : "btn--primary"} ptit-confirm-ok`;
     dialog.querySelector(".ptit-confirm-error").hidden = true;
@@ -734,7 +763,7 @@ PTIT.confirm = function (message, options = {}) {
     return new Promise(function (resolve) {
         ptitConfirmResolver = resolve;
         PTIT.openModal(dialog.id);
-        dialog.querySelector(".ptit-confirm-cancel").focus();
+        (options.hideCancel ? confirmButton : cancelButton).focus();
     });
 };
 
@@ -908,7 +937,7 @@ PTIT.initAccountMenu = function () {
     let name = "";
     let accountUser = {};
     try {
-        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const storedUser = JSON.parse(localStorage.getItem("user") || localStorage.getItem("ptit_user") || "{}");
         accountUser = storedUser && typeof storedUser === "object" ? storedUser : {};
         name = accountUser.full_name || accountUser.fullName || accountUser.name || accountUser.username || accountUser.email || "Người dùng";
         role = String(accountUser.role || "").toUpperCase();
@@ -943,7 +972,7 @@ PTIT.initAccountMenu = function () {
         </button>
         <div class="account-menu-dropdown" role="menu" hidden>
             <button type="button" role="menuitem" data-account-action="profile"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span><span>Hồ sơ <small>${roleLabel}</small></span></button>
-            <button type="button" role="menuitem" data-account-action="theme" aria-pressed="false" disabled title="Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản."><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span><span id="accountThemeLabel">Giao diện tối (đang tắt)</span></button>
+            <button type="button" role="menuitem" data-account-action="theme" aria-pressed="false" title="Chuyển đổi giao diện sáng / tối"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span><span id="accountThemeLabel">Giao diện tối (đang tắt)</span></button>
             <button type="button" role="menuitem" class="account-logout" data-account-action="logout"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg></span><span>Đăng xuất</span></button>
         </div>
     `;
@@ -952,11 +981,13 @@ PTIT.initAccountMenu = function () {
     const button = menu.querySelector(".account-menu-button");
     const dropdown = menu.querySelector(".account-menu-dropdown");
     const themeLabel = menu.querySelector("#accountThemeLabel");
+    const themeActionBtn = menu.querySelector("[data-account-action='theme']");
     const updateThemeLabel = function () {
-        if (themeLabel) {
+        if (themeLabel && themeActionBtn) {
             const isDark = document.documentElement.dataset.theme === "dark";
-            themeLabel.textContent = "Giao diện tối (đang tắt)";
-            menu.querySelector("[data-account-action='theme']").setAttribute("aria-pressed", String(isDark));
+            themeLabel.textContent = isDark ? "Giao diện tối (đang bật)" : "Giao diện tối (đang tắt)";
+            themeActionBtn.setAttribute("aria-pressed", String(isDark));
+            themeActionBtn.title = isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối";
         }
     };
     updateThemeLabel();
@@ -1017,10 +1048,7 @@ PTIT.initAccountMenu = function () {
                 title: "Đăng xuất",
                 confirmText: "Đăng xuất",
                 onConfirm: async () => {
-                    ["access_token", "token", "ptit_token", "user", "ptit_user"].forEach(function (key) {
-                        localStorage.removeItem(key);
-                    });
-                    window.location.replace("index.html");
+                    PTIT.logout();
                 }
             });
         }

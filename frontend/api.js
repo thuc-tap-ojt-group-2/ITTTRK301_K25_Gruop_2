@@ -92,11 +92,17 @@ async function apiRequest(path, options = {}) {
     return data;
 }
 
-async function getBooks(page = 1, size = 10, keyword = "") {
+async function getBooks(page = 1, size = 10, keyword = "", filters = {}) {
     const params = new URLSearchParams({ page, size });
 
     if (keyword.trim()) {
         params.set("keyword", keyword.trim());
+    }
+    if (filters?.categoryId) {
+        params.set("category_id", filters.categoryId);
+    }
+    if (filters?.availability) {
+        params.set("availability", filters.availability);
     }
 
     return await apiRequest(`/api/books?${params}`);

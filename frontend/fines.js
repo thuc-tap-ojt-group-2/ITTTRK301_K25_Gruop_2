@@ -92,6 +92,7 @@ function renderFinePage() {
                 button.textContent = "Đã thu tiền";
                 button.addEventListener("click", async () => {
                     await PTIT.confirm(`Xác nhận đã thu đủ số tiền ${fineMoney(fine.amount)} cho phiếu mượn #${fine.loanId}?`, {
+                        title: "Xác nhận thu tiền phạt",
                         confirmText: "Đã thu tiền",
                         onConfirm: async () => {
                             button.disabled = true;
@@ -179,6 +180,7 @@ PTIT.setAvatar(document.getElementById("userAvatar"), fineUserName);
 document.getElementById("refreshButton").addEventListener("click", loadFines);
 document.getElementById("logoutButton").addEventListener("click", async () => {
     await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        title: "Đăng xuất",
         confirmText: "Đăng xuất",
         onConfirm: async () => {
             try {

@@ -387,6 +387,37 @@ aside nav a.on,
     border-color: var(--color-danger);
 }
 
+html[data-theme="dark"] .navbar,
+html[data-theme="dark"] .header {
+    background-color: rgba(15, 23, 21, 0.92);
+    border-bottom-color: var(--color-border);
+}
+
+html[data-theme="dark"] .navbar.is-scrolled,
+html[data-theme="dark"] .header.is-scrolled {
+    background-color: rgba(15, 23, 21, 0.96);
+    border-bottom-color: rgba(141, 223, 188, 0.22);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="dark"] .brand-text small,
+html[data-theme="dark"] .brand small,
+html[data-theme="dark"] .brand-text strong,
+html[data-theme="dark"] .brand strong,
+html[data-theme="dark"] .sidebar .brand,
+html[data-theme="dark"] aside .logo,
+html[data-theme="dark"] .sidebar-brand,
+html[data-theme="dark"] .nav-links a:hover,
+html[data-theme="dark"] .nav-links a.active {
+    color: var(--color-primary-light);
+}
+
+html[data-theme="dark"] .nav a:hover,
+html[data-theme="dark"] aside nav a:hover,
+html[data-theme="dark"] .sidebar-menu .menu-item:hover {
+    color: var(--color-text-main);
+}
+
 /* ====================================================================
  * 3. VÙNG NỘI DUNG CHÍNH (MAIN CONTENT)
  * ==================================================================== */

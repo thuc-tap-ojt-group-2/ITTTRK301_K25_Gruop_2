@@ -1559,25 +1559,41 @@ body.theme-librarian .topbar {
 }
 
 html[data-theme="dark"] {
-    --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.22);
+    --shadow-card: 0 14px 34px rgba(0, 0, 0, 0.32);
 }
 
 html[data-theme="dark"] body.theme-admin .layout {
     background-image:
-        radial-gradient(ellipse at 92% 2%, rgba(38, 117, 87, 0.19), transparent 34rem),
+        radial-gradient(ellipse at 92% 2%, rgba(38, 117, 87, 0.22), transparent 34rem),
         radial-gradient(ellipse at 12% 100%, rgba(200, 145, 58, 0.08), transparent 30rem);
 }
 
 html[data-theme="dark"] body.theme-librarian .layout {
     background-image:
-        radial-gradient(ellipse at 92% 2%, rgba(39, 144, 136, 0.2), transparent 34rem),
-        radial-gradient(ellipse at 12% 100%, rgba(42, 111, 186, 0.1), transparent 30rem);
+        radial-gradient(ellipse at 92% 2%, rgba(39, 144, 136, 0.24), transparent 34rem),
+        radial-gradient(ellipse at 12% 100%, rgba(42, 111, 186, 0.11), transparent 30rem);
+}
+
+html[data-theme="dark"] body.theme-admin .sidebar {
+    background: linear-gradient(165deg, #132A24 0%, #0A1814 100%);
+    border-right-color: rgba(141, 223, 188, 0.14);
+}
+
+html[data-theme="dark"] body.theme-librarian .sidebar {
+    background: linear-gradient(165deg, #123133 0%, #0A1D1F 100%);
+    border-right-color: rgba(123, 224, 217, 0.14);
+}
+
+html[data-theme="dark"] body.theme-admin .sidebar .brand,
+html[data-theme="dark"] body.theme-librarian .sidebar .brand {
+    color: #EDF5F1;
 }
 
 html[data-theme="dark"] body.theme-admin .topbar,
 html[data-theme="dark"] body.theme-librarian .topbar {
     border-color: rgba(185, 210, 197, 0.14);
-    background: rgba(24, 37, 34, 0.82);
+    background: rgba(23, 35, 32, 0.86);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
 }
 
 html[data-theme="dark"] body.theme-admin .panel,
@@ -1585,7 +1601,9 @@ html[data-theme="dark"] body.theme-librarian .panel,
 html[data-theme="dark"] body.theme-admin .card--stat,
 html[data-theme="dark"] body.theme-librarian .card--stat,
 html[data-theme="dark"] body.theme-admin .table-wrapper,
-html[data-theme="dark"] body.theme-librarian .table-wrapper {
+html[data-theme="dark"] body.theme-librarian .table-wrapper,
+html[data-theme="dark"] body.theme-admin .filter-panel,
+html[data-theme="dark"] body.theme-librarian .filter-panel {
     background-color: var(--color-bg-surface);
     border-color: var(--color-border);
 }
@@ -1594,12 +1612,54 @@ html[data-theme="dark"] body.theme-admin table th,
 html[data-theme="dark"] body.theme-librarian table th {
     background-color: var(--color-bg-subtle);
     color: var(--color-text-main);
+    border-bottom-color: var(--color-border);
 }
 
 html[data-theme="dark"] body.theme-admin table td,
 html[data-theme="dark"] body.theme-librarian table td {
+    background-color: var(--color-bg-surface);
     color: var(--color-text-main);
     border-bottom-color: var(--color-border-light);
+}
+
+html[data-theme="dark"] body.theme-admin table tr:hover td,
+html[data-theme="dark"] body.theme-librarian table tr:hover td {
+    background-color: var(--color-primary-soft);
+}
+
+html[data-theme="dark"] body.theme-admin .card--stat strong,
+html[data-theme="dark"] body.theme-librarian .card--stat strong,
+html[data-theme="dark"] body.theme-admin .panel-head h2,
+html[data-theme="dark"] body.theme-librarian .panel-head h2,
+html[data-theme="dark"] body.theme-admin .filter-heading h2,
+html[data-theme="dark"] body.theme-librarian .filter-heading h2,
+html[data-theme="dark"] body.theme-admin .book-name,
+html[data-theme="dark"] body.theme-librarian .book-name,
+html[data-theme="dark"] body.theme-admin .chart-count,
+html[data-theme="dark"] body.theme-librarian .chart-count,
+html[data-theme="dark"] body.theme-admin .monthly-insight-copy strong,
+html[data-theme="dark"] body.theme-librarian .monthly-insight-copy strong,
+html[data-theme="dark"] body.theme-admin .monthly-insight-total strong,
+html[data-theme="dark"] body.theme-librarian .monthly-insight-total strong,
+html[data-theme="dark"] body.theme-admin .fines-hero-card h3,
+html[data-theme="dark"] body.theme-librarian .fines-hero-card h3,
+html[data-theme="dark"] body.theme-admin #historyDialog h2,
+html[data-theme="dark"] body.theme-librarian #historyDialog h2,
+html[data-theme="dark"] body.theme-admin .account-menu-item-icon,
+html[data-theme="dark"] body.theme-librarian .account-menu-item-icon,
+html[data-theme="dark"] body.theme-admin .stat-icon--loans,
+html[data-theme="dark"] body.theme-librarian .stat-icon--loans,
+html[data-theme="dark"] body.theme-admin .stat-icon--books,
+html[data-theme="dark"] body.theme-librarian .stat-icon--books,
+html[data-theme="dark"] #bookTable td:first-child,
+html[data-theme="dark"] #readerTable td:first-child,
+html[data-theme="dark"] #loanTableBody td:first-child,
+html[data-theme="dark"] #fineTable td:first-child,
+html[data-theme="dark"] .auth-intro h2,
+html[data-theme="dark"] .auth-card h1,
+html[data-theme="dark"] .auth-chips span,
+html[data-theme="dark"] .service-link {
+    color: var(--color-primary-light) !important;
 }
 
 html[data-theme="dark"] body.theme-admin input,
@@ -1618,10 +1678,27 @@ html[data-theme="dark"] body.theme-librarian .account-menu-dropdown {
 }
 
 html[data-theme="dark"] body.theme-admin .monthly-insight,
-html[data-theme="dark"] body.theme-librarian .monthly-insight {
+html[data-theme="dark"] body.theme-librarian .monthly-insight,
+html[data-theme="dark"] .fines-hero-card {
     background:
-        radial-gradient(circle at 90% 0, rgba(200, 145, 58, 0.1), transparent 38%),
+        radial-gradient(circle at 90% 0, rgba(200, 145, 58, 0.12), transparent 38%),
         linear-gradient(120deg, var(--color-primary-soft), var(--color-bg-surface) 72%);
+    border-color: var(--color-border);
+}
+
+html[data-theme="dark"] .chart-month:hover,
+html[data-theme="dark"] .chart-month.is-selected {
+    color: var(--color-primary-light);
+    background: var(--color-primary-soft);
+}
+
+html[data-theme="dark"] .chart-bar {
+    background: linear-gradient(180deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+}
+
+html[data-theme="dark"] #monthlyStats tr.is-selected td {
+    background: var(--color-primary-soft);
+    color: var(--color-text-main);
 }
 
 .account-menu-item-icon {
@@ -1725,7 +1802,7 @@ html[data-theme="dark"] body.theme-librarian .monthly-insight {
 }
 
 #categoryForm input {
-    background-color: #ffffff;
+    background-color: var(--color-bg-surface);
 }
 
 /* Bảng thể loại rút gọn */
@@ -1978,7 +2055,7 @@ html[data-theme="dark"] body.theme-librarian .monthly-insight {
  * 7. QUẢN LÝ TIỀN PHẠT (fines.html)
  * ==================================================================== */
 .fines-hero-card {
-    background: linear-gradient(135deg, var(--color-primary-soft) 0%, #ffffff 100%);
+    background: linear-gradient(135deg, var(--color-primary-soft) 0%, var(--color-bg-surface) 100%);
     border: 1px solid var(--color-primary-soft-hover);
     border-radius: var(--radius-card);
     padding: var(--space-6) var(--space-8);

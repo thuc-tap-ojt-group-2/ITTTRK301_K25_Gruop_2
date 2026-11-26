@@ -207,7 +207,8 @@ function returnDisplayLoans() {
     } else {
         returnTableBody.innerHTML = pageLoans.map(loan => {
             const id = returnGetValue(loan, ["id", "loan_id"]);
-            const status = returnGetStatus(loan);
+            const loanStatus = PTIT.getLoanStatus(loan);
+            const status = loanStatus.displayStatus;
             const fine = returnGetFine(loan);
             const borrowDate = returnGetValue(loan, ["borrow_date", "borrowDate", "created_at"]);
             const dueDate = returnGetDueDate(loan);
