@@ -16,14 +16,33 @@ const DEFAULT_HOME = "index.html";
 const authMessage = document.getElementById("authMessage");
 const submitButton = document.getElementById("submitButton");
 
-function showMessage(text, type) {
+function showMessage(text, type, notify = true) {
     if (!authMessage) return;
     authMessage.textContent = text;
     authMessage.className = "message " + type;
     authMessage.hidden = false;
-    if (typeof PTIT !== "undefined" && PTIT.showToast) {
+    if (notify && typeof PTIT !== "undefined" && PTIT.showToast) {
         PTIT.showToast(text, type === "error" ? "error" : "success");
     }
+}
+
+function clearFieldErrors(form) {
+    form.querySelectorAll(".form-error").forEach(error => error.remove());
+    form.querySelectorAll("[aria-invalid='true']").forEach(field => {
+        field.removeAttribute("aria-invalid");
+        field.removeAttribute("aria-describedby");
+    });
+    if (authMessage) authMessage.hidden = true;
+}
+
+function showFieldError(field, message) {
+    const error = document.createElement("div");
+    error.className = "form-error";
+    error.id = field.id + "Error";
+    error.textContent = message;
+    field.setAttribute("aria-invalid", "true");
+    field.setAttribute("aria-describedby", error.id);
+    field.closest(".field").append(error);
 }
 
 function setBusy(isBusy) {
@@ -96,11 +115,22 @@ if (loginForm) {
     loginForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value;
+        clearFieldErrors(loginForm);
+        const usernameField = document.getElementById("username");
+        const passwordField = document.getElementById("password");
+        const username = usernameField.value.trim();
+        const password = passwordField.value;
 
-        if (username === "" || password === "") {
-            showMessage("Vui lòng nhập tên đăng nhập và mật khẩu.", "error");
+        const errors = [];
+        if (username === "") {
+            errors.push([usernameField, "Vui lòng nhập tên đăng nhập."]);
+        }
+        if (password === "") {
+            errors.push([passwordField, "Vui lòng nhập mật khẩu."]);
+        }
+        if (errors.length > 0) {
+            errors.forEach(([field, message]) => showFieldError(field, message));
+            showMessage("Vui lòng kiểm tra các trường được đánh dấu.", "error", false);
             return;
         }
 
@@ -164,42 +194,61 @@ if (registerForm) {
     registerForm.addEventListener("submit", function (event) {
         event.preventDefault();
 
-        const fullName = document.getElementById("fullName").value.trim();
-        const username = document.getElementById("username").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
+        clearFieldErrors(registerForm);
+        const fullNameField = document.getElementById("fullName");
+        const usernameField = document.getElementById("username");
+        const emailField = document.getElementById("email");
+        const passwordField = document.getElementById("password");
+        const confirmPasswordField = document.getElementById("confirmPassword");
+        const fullName = fullNameField.value.trim();
+        const username = usernameField.value.trim();
+        const email = emailField.value.trim();
+        const password = passwordField.value;
+        const confirmPassword = confirmPasswordField.value;
+        const errors = [];
 
         if (fullName === "") {
-            showMessage("Vui lòng nhập họ và tên.", "error");
-        } else if (username.length < 3 || username.length > 50) {
-            showMessage("Mã sinh viên (tên đăng nhập) phải từ 3 đến 50 ký tự.", "error");
-        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-            showMessage("Email không hợp lệ.", "error");
-        } else if (password.length < 6) {
-            showMessage("Mật khẩu phải có ít nhất 6 ký tự.", "error");
-        } else if (password !== confirmPassword) {
-            showMessage("Hai mật khẩu không giống nhau.", "error");
-        } else {
-            setBusy(true);
-            if (typeof PTIT !== "undefined" && PTIT.showLoading) {
-                PTIT.showLoading("Đang tạo tài khoản độc giả...");
-            }
-
-            apiRequest("/api/auth/register", {
-                method: "POST",
-                body: JSON.stringify({ username: username, email: email, password: password, full_name: fullName })
-            })
-                .then(function () {
-                    if (typeof PTIT !== "undefined" && PTIT.showLoading) {
-                        PTIT.showLoading("Tạo tài khoản thành công!");
-                    }
-
-                    setTimeout(function () {
-                        window.location.href = "login.html?registered=1";
-                    }, 250);
-                })
-                .catch(failed);
+            errors.push([fullNameField, "Vui lòng nhập họ và tên."]);
         }
+        if (username.length < 3 || username.length > 50) {
+            errors.push([usernameField, "Mã sinh viên (tên đăng nhập) phải từ 3 đến 50 ký tự."]);
+        }
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            errors.push([emailField, "Email không hợp lệ."]);
+        }
+        if (password.length < 6) {
+            errors.push([passwordField, "Mật khẩu phải có ít nhất 6 ký tự."]);
+        }
+        if (confirmPassword === "") {
+            errors.push([confirmPasswordField, "Vui lòng nhập lại mật khẩu."]);
+        } else if (password !== confirmPassword) {
+            errors.push([confirmPasswordField, "Hai mật khẩu không giống nhau."]);
+        }
+
+        if (errors.length > 0) {
+            errors.forEach(([field, message]) => showFieldError(field, message));
+            showMessage("Vui lòng kiểm tra các trường được đánh dấu.", "error", false);
+            return;
+        }
+
+        setBusy(true);
+        if (typeof PTIT !== "undefined" && PTIT.showLoading) {
+            PTIT.showLoading("Đang tạo tài khoản độc giả...");
+        }
+
+        apiRequest("/api/auth/register", {
+            method: "POST",
+            body: JSON.stringify({ username: username, email: email, password: password, full_name: fullName })
+        })
+            .then(function () {
+                if (typeof PTIT !== "undefined" && PTIT.showLoading) {
+                    PTIT.showLoading("Tạo tài khoản thành công!");
+                }
+
+                setTimeout(function () {
+                    window.location.href = "login.html?registered=1";
+                }, 250);
+            })
+            .catch(failed);
     });
 }

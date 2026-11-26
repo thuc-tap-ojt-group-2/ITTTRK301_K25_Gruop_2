@@ -83,33 +83,124 @@ section.landing-hero,
 
 /* Khối 3 bìa sách bên phải lơ lửng nhẹ (float 6s, biên độ 8px) tự chạy */
 @keyframes hero-float-1 {
-    0%, 100% { transform: rotate(-10deg) translate(-55px, 20px); }
-    50%      { transform: rotate(-10deg) translate(-55px, 12px); }
+    0%, 100% { transform: rotate(-12deg) translate(-55px, 24px) scale(1); }
+    50%      { transform: rotate(-8deg) translate(-55px, 6px) scale(1.04); }
 }
 
 @keyframes hero-float-2 {
-    0%, 100% { transform: rotate(2deg) translate(5px, -10px); }
-    50%      { transform: rotate(2deg) translate(5px, -18px); }
+    0%, 100% { transform: rotate(0deg) translate(5px, -4px) scale(0.99); }
+    50%      { transform: rotate(3deg) translate(5px, -18px) scale(1.03); }
 }
 
 @keyframes hero-float-3 {
-    0%, 100% { transform: rotate(12deg) translate(65px, 35px); }
-    50%      { transform: rotate(12deg) translate(65px, 27px); }
+    0%, 100% { transform: rotate(10deg) translate(65px, 38px) scale(1); }
+    50%      { transform: rotate(14deg) translate(65px, 18px) scale(1.04); }
 }
 
 .hero-book-card--1 {
-    animation: hero-float-1 6s ease-in-out infinite alternate;
+    animation: hero-float-1 5.2s ease-in-out infinite;
     animation-delay: 0.2s;
 }
 
 .hero-book-card--2 {
-    animation: hero-float-2 6s ease-in-out infinite alternate;
+    animation: hero-float-2 5.2s ease-in-out infinite;
     animation-delay: 0.8s;
 }
 
 .hero-book-card--3 {
-    animation: hero-float-3 6s ease-in-out infinite alternate;
+    animation: hero-float-3 5.2s ease-in-out infinite;
     animation-delay: 1.4s;
+}
+
+/* Shared entrance motion for staff, reader, and authentication screens. */
+@keyframes app-content-enter {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 18px, 0) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes app-sidebar-enter {
+    from {
+        opacity: 0;
+        transform: translateX(-14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.layout > .sidebar {
+    animation: app-sidebar-enter 0.5s var(--ease-standard) both;
+}
+
+.layout > .main {
+    animation: app-content-enter 0.58s var(--ease-standard) both;
+}
+
+.layout > .main > .topbar {
+    animation: app-content-enter 0.48s var(--ease-standard) 0.08s both;
+}
+
+.layout > .main > .filter-panel,
+.app > main > .top,
+.app > main > .head,
+.app > main > .statistics,
+.app > main > .filter-panel,
+.app > main > .card {
+    animation: app-content-enter 0.48s var(--ease-standard) both;
+}
+
+.app > main > .head {
+    animation-delay: 0.12s;
+}
+
+.app > main > .statistics {
+    animation-delay: 0.2s;
+}
+
+.layout > .main > .filter-panel,
+.app > main > .filter-panel {
+    animation-delay: 0.28s;
+}
+
+.app > main > .card {
+    animation-delay: 0.36s;
+}
+
+.app > main > .top {
+    animation-delay: 0.06s;
+}
+
+body.auth-page > .auth-header {
+    animation: app-content-enter 0.45s var(--ease-standard) both;
+}
+
+body.auth-page .auth-main > .auth-intro {
+    animation: app-content-enter 0.58s var(--ease-standard) 0.08s both;
+}
+
+body.auth-page > footer {
+    animation: app-content-enter 0.48s var(--ease-standard) 0.3s both;
+}
+
+.layout .stats-grid > *,
+.layout .statistics > *,
+.app > main > .statistics > * {
+    transition: transform var(--duration-hover) var(--ease-standard),
+                box-shadow var(--duration-hover) var(--ease-standard);
+}
+
+.layout .stats-grid > :hover,
+.layout .statistics > :hover,
+.app > main > .statistics > :hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
 }
 
 @media (max-width: 768px) {

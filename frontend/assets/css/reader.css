@@ -76,7 +76,7 @@
     display: block;
     margin-top: 4px;
     color: rgba(255, 255, 255, 0.68);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.04em;
 }
 
@@ -193,14 +193,14 @@
 
 #appView .sidebar-note strong {
     color: #fff;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4;
 }
 
 #appView .sidebar-note small {
     margin-top: 3px;
     color: rgba(255, 255, 255, 0.62);
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1.4;
 }
 
@@ -512,7 +512,7 @@
 
 #appView .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 14px;
     margin: 0 0 28px;
 }
@@ -631,7 +631,7 @@
 
 #appView .library-card__academy {
     color: rgba(255, 255, 255, 0.7);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.14em;
 }
@@ -826,7 +826,7 @@
 
 #appView .pill-out,
 #appView .status-rejected,
-#appView .status-cancelled {
+#appView .status-overdue {
     border-color: rgba(190, 65, 53, 0.14);
     background: #fff0ed;
     color: #a53d33;
@@ -836,6 +836,25 @@
     border-color: rgba(176, 120, 27, 0.14);
     background: #fff5df;
     color: #8c631c;
+}
+
+#appView .status-borrowing {
+    border-color: rgba(50, 105, 166, 0.16);
+    background: #edf5ff;
+    color: #285d91;
+}
+
+#appView .status-returned {
+    border-color: rgba(35, 122, 79, 0.16);
+    background: #eaf5ed;
+    color: #216747;
+}
+
+#appView .status-cancelled,
+#appView .status-unknown {
+    border-color: rgba(92, 105, 99, 0.16);
+    background: #eef1ef;
+    color: #4c5a53;
 }
 
 #appView .book-rating {
@@ -1119,6 +1138,20 @@
     stroke: currentColor;
     stroke-linecap: round;
     stroke-width: 1.8;
+}
+
+#appView .search-scope-select {
+    width: auto;
+    max-width: 112px;
+    min-width: 92px;
+    min-height: 40px;
+    flex: 0 0 auto;
+    padding: 6px 22px 6px 8px;
+    border: 1px solid rgba(31, 74, 56, 0.13);
+    border-radius: 10px;
+    background: #f7faf8;
+    color: #244537;
+    font-size: 11px;
 }
 
 #appView .reader-search-box .hero-search-input {
@@ -1678,10 +1711,11 @@ dialog#bookDialog {
     grid-template-areas:
         "title title"
         "cover availability"
+        "cover intro"
         "cover meta"
         "cover actions";
     grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
-    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
     gap: 0 24px;
     margin: auto;
     padding: 0;
@@ -1738,23 +1772,71 @@ dialog#bookDialog > .close-btn {
 }
 
 #bookDetailCover .book-cover {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     width: min(100%, 270px);
     min-height: 0;
     max-height: 430px;
     aspect-ratio: 0.72;
     overflow: hidden;
+    padding: 22px 18px;
     border: 1px solid rgba(31, 74, 56, 0.12);
     border-radius: 16px;
     background-color: #e7efe9;
+    color: #fff;
     box-shadow: 0 16px 30px rgba(19, 62, 40, 0.16);
 }
 
 #bookDetailCover .book-cover-image {
-    object-fit: contain;
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.72;
 }
 
-#bookDetailCover .book-cover.has-image > :not(.book-cover-image) {
-    visibility: hidden;
+#bookDetailCover .book-cover.has-image::after {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(7, 27, 21, 0.12) 0%, rgba(7, 27, 21, 0.08) 34%, rgba(7, 27, 21, 0.88) 100%);
+    content: "";
+    pointer-events: none;
+}
+
+#bookDetailCover .book-cover > :not(.book-cover-image) {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.48);
+}
+
+#bookDetailCover .book-cover .book-cat {
+    align-self: flex-start;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(8, 44, 32, 0.76);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+#bookDetailCover .book-cover .book-title {
+    margin: auto 0 10px;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+#bookDetailCover .book-cover .book-author {
+    font-size: 12px;
+    font-weight: 600;
 }
 
 #bookDetailAvailability {
@@ -1770,6 +1852,34 @@ dialog#bookDialog > .close-btn {
     font-size: 11px;
     font-weight: 700;
     line-height: 1.5;
+}
+
+.book-detail-intro {
+    grid-area: intro;
+    min-width: 0;
+    margin: 15px 24px 0;
+    padding: 18px 20px;
+    border: 1px solid rgba(27, 125, 79, 0.13);
+    border-left: 4px solid #c88a2e;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f3faf5, #fffaf0);
+    box-shadow: 0 10px 24px rgba(19, 62, 40, 0.06);
+}
+
+.book-detail-intro h3 {
+    margin: 0 0 9px;
+    color: #176044;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.book-detail-intro p {
+    margin: 0;
+    color: #405b4a;
+    font-size: 14px;
+    line-height: 1.75;
 }
 
 #bookDetailMeta {
@@ -1852,8 +1962,8 @@ dialog#bookDialog > .close-btn {
 }
 
 #bookDetailActions .rating-score small {
-    color: #78877e;
-    font-size: 9px;
+    color: var(--color-text-muted);
+    font-size: 12px;
 }
 
 #bookDetailActions .rating-bars {
@@ -1867,8 +1977,8 @@ dialog#bookDialog > .close-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #718077;
-    font-size: 9px;
+    color: var(--color-text-muted);
+    font-size: 12px;
 }
 
 #bookDetailActions .rating-bar-row > span:first-child {
@@ -1925,14 +2035,69 @@ dialog#bookDialog > .close-btn {
 
 #bookDetailActions .review-author {
     color: #294b39;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
+}
+
+#bookDetailActions .rating-bar-row {
+    width: 100%;
+    padding: 2px 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+#bookDetailActions .rating-bar-row:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+}
+
+#bookDetailActions .rating-bar-row[aria-pressed="true"] {
+    color: var(--color-text-main);
+    font-weight: 700;
+}
+
+#bookDetailActions .review-demo-note {
+    margin: 4px 0 8px;
+    padding: 7px 9px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+
+#bookDetailActions .review-sample-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: var(--color-primary-soft);
+    color: var(--color-primary-dark);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#bookDetailActions .review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+#bookDetailActions .review-actions .btn {
+    min-height: 30px;
+    padding: 5px 9px;
+    font-size: 12px;
 }
 
 #bookDetailActions .review-comment {
     margin-top: 4px;
-    color: #66776c;
-    font-size: 11px;
+    color: var(--color-text-muted);
+    font-size: 12px;
     line-height: 1.55;
     overflow-wrap: anywhere;
 }
@@ -2088,35 +2253,33 @@ dialog.review-dialog#reviewDialog[open] {
 }
 
 html[data-theme="dark"] #appView {
-    background: #0e1912;
-    color: #e2eee5;
+    background: var(--color-bg-page);
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #appView > .main {
-    background: #101b14;
+    background: var(--color-bg-page);
 }
 
 html[data-theme="dark"] #appView .topbar {
-    border-bottom-color: rgba(224, 238, 229, 0.1);
-    background: rgba(19, 32, 24, 0.92);
+    border-bottom-color: var(--color-border);
+    background: var(--color-bg-surface);
 }
 
 html[data-theme="dark"] #appView .topbar-title,
 html[data-theme="dark"] #appView .page h1,
 html[data-theme="dark"] #appView .section-title {
-    color: #e3f0e7;
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #appView .content {
-    background:
-        radial-gradient(ellipse at 92% 3%, rgba(30, 94, 60, 0.25), transparent 28rem),
-        linear-gradient(145deg, #14231a 0%, #101b14 58%, #16251b 100%);
+    background: var(--color-bg-page);
 }
 
 html[data-theme="dark"] #appView .reader-page-heading .text-muted,
 html[data-theme="dark"] #appView .stat-copy > span,
 html[data-theme="dark"] #appView .result-info {
-    color: #a7bcad;
+    color: var(--color-text-muted);
 }
 
 html[data-theme="dark"] #appView .card--stat,
@@ -2124,81 +2287,81 @@ html[data-theme="dark"] #appView .book-card,
 html[data-theme="dark"] #appView .book-open,
 html[data-theme="dark"] #appView .my-summary-card,
 html[data-theme="dark"] #appView .table-scroll {
-    border-color: rgba(225, 238, 228, 0.1);
-    background: #1a2a20;
-    color: #e2eee5;
+    border-color: var(--color-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #appView .stat-copy strong,
 html[data-theme="dark"] #appView .my-summary-card strong,
 html[data-theme="dark"] #appView .reader-table td {
-    color: #deeee3;
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #appView .reader-table th {
-    border-bottom-color: rgba(225, 238, 228, 0.1);
-    background: #24382a;
-    color: #b2c7b8;
+    border-bottom-color: var(--color-border);
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
 }
 
 html[data-theme="dark"] #appView .reader-table td {
-    border-top-color: rgba(225, 238, 228, 0.08);
+    border-top-color: var(--color-border-light);
 }
 
 html[data-theme="dark"] #appView .reader-table tbody tr:hover {
-    background: #213328;
+    background: var(--color-bg-subtle);
 }
 
 html[data-theme="dark"] #appView .reader-search-box,
 html[data-theme="dark"] #appView .filter-chip,
 html[data-theme="dark"] #appView .utility-btn,
 html[data-theme="dark"] #appView .account-menu-button {
-    border-color: rgba(225, 238, 228, 0.12);
-    background: #1a2a20;
-    color: #dcebe1;
+    border-color: var(--color-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #appView .reader-search-box .hero-search-input {
-    color: #e2eee5;
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #appView .table-empty,
 html[data-theme="dark"] #appView .my-empty-state,
 html[data-theme="dark"] #appView .empty {
-    border-color: rgba(168, 205, 180, 0.22);
-    background: rgba(27, 46, 34, 0.88);
-    color: #b6c8bb;
+    border-color: var(--color-border);
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
 }
 
 html[data-theme="dark"] #appView .page-btn {
-    border-color: rgba(225, 238, 228, 0.12);
-    background: #1a2a20;
-    color: #dcebe1;
+    border-color: var(--color-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] dialog.utility-dialog#utilityDialog,
 html[data-theme="dark"] dialog#bookDialog,
 html[data-theme="dark"] dialog.review-dialog#reviewDialog {
-    border-color: rgba(225, 238, 228, 0.12);
-    background: #18271d;
-    color: #e2eee5;
+    border-color: var(--color-border);
+    background: var(--color-bg-surface);
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #utilityTitle,
 html[data-theme="dark"] #bookDetailTitle,
 html[data-theme="dark"] #reviewTitle {
-    border-bottom-color: rgba(225, 238, 228, 0.1);
-    background: linear-gradient(110deg, #1d3325, #18271d 72%);
-    color: #e3f0e7;
+    border-bottom-color: var(--color-border);
+    background: var(--color-bg-subtle);
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #utilityContent .profile-row,
 html[data-theme="dark"] #utilityContent .password-change-form,
 html[data-theme="dark"] #utilityContent .notification-item,
 html[data-theme="dark"] #bookDetailActions .review-summary {
-    border-color: rgba(225, 238, 228, 0.1);
-    background: #203328;
-    color: #dcebe1;
+    border-color: var(--color-border);
+    background: var(--color-bg-subtle);
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #utilityContent .profile-row strong,
@@ -2206,15 +2369,15 @@ html[data-theme="dark"] #utilityContent .password-change-form h3,
 html[data-theme="dark"] #bookDetailTitle,
 html[data-theme="dark"] #bookDetailMeta strong,
 html[data-theme="dark"] #bookDetailActions .review-heading {
-    color: #e2eee5;
+    color: var(--color-text-main);
 }
 
 html[data-theme="dark"] #utilityContent .password-change-form input,
 html[data-theme="dark"] #reviewDialog select,
 html[data-theme="dark"] #reviewDialog textarea {
-    border-color: rgba(225, 238, 228, 0.15);
-    background: #132119;
-    color: #e2eee5;
+    border-color: var(--color-border);
+    background: var(--color-bg-page);
+    color: var(--color-text-main);
 }
 
 @media (max-width: 640px) {
@@ -2262,9 +2425,10 @@ html[data-theme="dark"] #reviewDialog textarea {
             "title title"
             "cover availability"
             "cover meta"
+            "intro intro"
             "actions actions";
         grid-template-columns: 102px minmax(0, 1fr);
-        grid-template-rows: auto auto auto auto;
+        grid-template-rows: auto auto auto auto auto;
         gap: 0 12px;
         overflow-y: auto;
         border-radius: 20px;
@@ -2306,6 +2470,21 @@ html[data-theme="dark"] #reviewDialog textarea {
     #bookDetailMeta {
         margin: 2px 12px 0 0;
         font-size: 10px;
+    }
+
+    .book-detail-intro {
+        grid-column: 1 / -1;
+        margin: 12px 14px 0;
+        padding: 14px 15px;
+    }
+
+    .book-detail-intro h3 {
+        font-size: 11px;
+    }
+
+    .book-detail-intro p {
+        font-size: 12px;
+        line-height: 1.65;
     }
 
     #bookDetailMeta p {

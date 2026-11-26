@@ -55,6 +55,13 @@
     transform: none;
 }
 
+#themeButton:disabled,
+[data-account-action="theme"]:disabled {
+    opacity: 1;
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+}
+
 /* Nút chính (Primary) */
 .btn--primary,
 .btn.primary,
@@ -336,7 +343,7 @@ textarea {
 }
 
 .password-wrap input {
-    padding-right: 48px;
+    padding-right: 60px;
 }
 
 .password-toggle {
@@ -344,8 +351,8 @@ textarea {
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -418,6 +425,26 @@ tr:hover td {
 .badge--warning { background-color: var(--color-warning-soft); color: var(--color-warning-dark); }
 .badge--danger  { background-color: var(--color-danger-soft);  color: var(--color-danger-dark); }
 .badge--info    { background-color: var(--color-info-soft);    color: var(--color-info-dark); }
+.badge--neutral { background-color: var(--color-bg-muted); color: var(--color-text-main); }
+
+.loan-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.loan-status--pending { background-color: var(--color-warning-soft); color: var(--color-warning-dark); }
+.loan-status--borrowing { background-color: var(--color-info-soft); color: var(--color-info-dark); }
+.loan-status--returned { background-color: var(--color-success-soft); color: var(--color-success-dark); }
+.loan-status--rejected,
+.loan-status--overdue { background-color: var(--color-danger-soft); color: var(--color-danger-dark); }
+.loan-status--cancelled,
+.loan-status--unknown { background-color: var(--color-bg-muted); color: var(--color-text-main); }
 
 /* ====================================================================
  * 6. HỘP THOẠI & MODAL (MODAL & OVERLAY)
@@ -494,6 +521,12 @@ dialog.modal[open] {
     margin: auto;
 }
 
+.account-profile-dialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+}
+
 dialog::backdrop {
     background-color: rgba(18, 38, 30, 0.65);
     backdrop-filter: blur(6px);
@@ -512,6 +545,34 @@ dialog::backdrop {
     color: var(--color-text-muted);
     margin-bottom: var(--space-4);
     line-height: 1.5;
+}
+
+.account-profile-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.account-profile-list > div {
+    display: grid;
+    gap: 4px;
+    padding: var(--space-3);
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-input);
+}
+
+.account-profile-list dt {
+    color: var(--color-text-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.account-profile-list dd {
+    margin: 0;
+    color: var(--color-text-main);
+    font-weight: 600;
+    overflow-wrap: anywhere;
 }
 
 /* Khử border/shadow của panel bên trong modal */

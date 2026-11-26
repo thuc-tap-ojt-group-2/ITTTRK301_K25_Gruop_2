@@ -91,23 +91,32 @@ function renderFinePage() {
                 button.className = "btn btn--primary btn--sm";
                 button.textContent = "Đã thu tiền";
                 button.addEventListener("click", async () => {
-                    const confirmed = await PTIT.confirm(`Xác nhận đã thu đủ số tiền ${fineMoney(fine.amount)} cho phiếu mượn #${fine.loanId}?`, { confirmText: "Đã thu tiền" });
-                    if (!confirmed) return;
-
-                    button.disabled = true;
-                    try {
-                        await markFinePaid(fine.id);
-                        if (typeof PTIT !== "undefined" && PTIT.showToast) {
-                            PTIT.showToast(`Đã thu ${fineMoney(fine.amount)} cho phiếu #${fine.loanId}`, "success");
+                    await PTIT.confirm(`Xác nhận đã thu đủ số tiền ${fineMoney(fine.amount)} cho phiếu mượn #${fine.loanId}?`, {
+                        confirmText: "Đã thu tiền",
+                        onConfirm: async () => {
+                            button.disabled = true;
+                            try {
+                                await markFinePaid(fine.id);
+                            } catch (error) {
+                                fineMessage.textContent = "Không thể cập nhật khoản phạt: " + error.message;
+                                fineMessage.className = "message error";
+                                fineMessage.hidden = false;
+                                throw error;
+                            } finally {
+                                button.disabled = false;
+                            }
+                            if (typeof PTIT !== "undefined" && PTIT.showToast) {
+                                PTIT.showToast(`Đã thu ${fineMoney(fine.amount)} cho phiếu #${fine.loanId}`, "success");
+                            }
+                            try {
+                                await loadFines();
+                            } catch (error) {
+                                fineMessage.textContent = "Đã cập nhật khoản phạt nhưng không thể tải lại: " + error.message;
+                                fineMessage.className = "message error";
+                                fineMessage.hidden = false;
+                            }
                         }
-                        await loadFines();
-                    } catch (error) {
-                        fineMessage.textContent = "Không thể cập nhật khoản phạt: " + error.message;
-                        fineMessage.className = "message error";
-                        fineMessage.hidden = false;
-                    } finally {
-                        button.disabled = false;
-                    }
+                    });
                 });
                 actionCell.appendChild(button);
             } else {
@@ -166,18 +175,20 @@ async function loadFines() {
 const fineUser = getCurrentUser();
 const fineUserName = fineUser.full_name || fineUser.fullName || fineUser.username || "Nhân viên";
 document.getElementById("userName").textContent = fineUserName;
-document.getElementById("userAvatar").textContent = fineUserName.trim().charAt(0).toUpperCase() || "U";
+PTIT.setAvatar(document.getElementById("userAvatar"), fineUserName);
 document.getElementById("refreshButton").addEventListener("click", loadFines);
 document.getElementById("logoutButton").addEventListener("click", async () => {
-    const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
-    if (!confirmed) return;
-
-    try {
-        await logoutAPI();
-    } catch (error) {
-        console.error("Không thể thu hồi token đăng xuất:", error);
-    }
-    window.location.replace("index.html");
+    await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        confirmText: "Đăng xuất",
+        onConfirm: async () => {
+            try {
+                await logoutAPI();
+            } catch (error) {
+                throw new Error("Không thể thu hồi token đăng xuất: " + error.message);
+            }
+            window.location.replace("index.html");
+        }
+    });
 });
 
 if (isAuthorized) loadFines();

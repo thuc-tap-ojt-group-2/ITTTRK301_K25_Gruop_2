@@ -29,7 +29,8 @@ def get_books_paginated(
     db: Session, 
     page: int = 1, 
     size: int = 5, 
-    keyword: Optional[str] = None
+    keyword: Optional[str] = None,
+    search_by: Optional[str] = None,
 ) -> PageResponse:
     page = max(1, page)
     size = max(1, size)
@@ -44,17 +45,27 @@ def get_books_paginated(
             .order_by(Book.id.desc())
             .all()
         )
-        matching_books = [
-            book
-            for book in matching_books
-            if normalized_tokens and all(
-                token
-                in _normalize_search_text(
-                    f"{book.title} {book.author} {book.category.name if book.category else ''}"
+        def matches_search(book: Book) -> bool:
+            if search_by == "title":
+                searchable_text = book.title
+            elif search_by == "author":
+                searchable_text = book.author
+            elif search_by == "isbn":
+                searchable_text = book.isbn or ""
+            else:
+                searchable_text = (
+                    f"{book.title} {book.author} "
+                    f"{book.category.name if book.category else ''}"
                 )
+
+            normalized_text = _normalize_search_text(searchable_text)
+            return bool(normalized_tokens) and all(
+                token
+                in normalized_text
                 for token in normalized_tokens
             )
-        ]
+
+        matching_books = [book for book in matching_books if matches_search(book)]
         total_elements = len(matching_books)
         books = matching_books[skip : skip + size]
     else:

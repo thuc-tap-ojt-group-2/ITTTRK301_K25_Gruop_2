@@ -10,6 +10,10 @@ let categories = [];
 let editingId = null;
 let currentPage = 1;
 const pageSize = 10;
+let booksLoaded = false;
+let categoriesLoaded = false;
+let totalTitlesFromServer = null;
+let totalCopiesFromServer = null;
 
 const bookTable = document.getElementById("bookTable");
 const bookModal = document.getElementById("bookModal");
@@ -88,17 +92,37 @@ function escapeHTML(value) {
 }
 
 function updateStatistics() {
-    document.getElementById("totalTitles").textContent =
-        Number(books.length).toLocaleString("vi-VN");
+    const titleLabel = document.getElementById("totalTitlesLabel");
+    const copiesLabel = document.getElementById("totalCopiesLabel");
+    const hasServerTotalTitles = Number.isInteger(totalTitlesFromServer) && totalTitlesFromServer >= 0;
+    const hasServerTotalCopies = Number.isInteger(totalCopiesFromServer) && totalCopiesFromServer >= 0;
+    const hasKeyword = Boolean(searchInput && searchInput.value.trim());
 
-    document.getElementById("totalCopies").textContent =
-        Number(books.reduce(
-            (sum, book) => sum + Number(book.totalCopies || 0),
-            0
-        )).toLocaleString("vi-VN");
+    document.getElementById("totalTitles").textContent = !booksLoaded
+        ? "—"
+        : (hasServerTotalTitles ? totalTitlesFromServer : books.length).toLocaleString("vi-VN");
+    if (titleLabel) {
+        titleLabel.textContent = hasServerTotalTitles
+            ? (hasKeyword ? "Kết quả tìm thấy" : "Tổng đầu sách")
+            : "Trong trang này";
+    }
 
-    document.getElementById("totalCategories").textContent =
-        categories.length;
+    const currentPageCopies = books.reduce(
+        (sum, book) => sum + Number(book.totalCopies || 0),
+        0
+    );
+    document.getElementById("totalCopies").textContent = !booksLoaded
+        ? "—"
+        : (hasServerTotalCopies ? totalCopiesFromServer : currentPageCopies).toLocaleString("vi-VN");
+    if (copiesLabel) {
+        copiesLabel.textContent = hasServerTotalCopies
+            ? "Tổng số bản sách"
+            : "Trong trang này";
+    }
+
+    document.getElementById("totalCategories").textContent = categoriesLoaded
+        ? categories.length.toLocaleString("vi-VN")
+        : "—";
 }
 
 function updateUserInformation() {
@@ -115,8 +139,7 @@ function updateUserInformation() {
     document.getElementById("userRole").textContent =
         user.role === "LIBRARIAN" ? "Thủ thư" : "Quản trị viên";
 
-    document.getElementById("userAvatar").textContent =
-        String(name).trim().charAt(0).toUpperCase() || "U";
+    PTIT.setAvatar(document.getElementById("userAvatar"), name);
 
     const welcome = document.getElementById("welcomeMessage");
     if (welcome) {
@@ -130,6 +153,7 @@ async function loadCategories() {
     categories = Array.isArray(response)
         ? response
         : response.content || response.categories || [];
+    categoriesLoaded = true;
 
     categorySelect.innerHTML =
         '<option value="">Chọn thể loại</option>';
@@ -203,19 +227,27 @@ function displayCategories() {
         remove.textContent = "Xóa";
         remove.style.marginLeft = "8px";
         remove.addEventListener("click", async () => {
-            if (!await PTIT.confirm(`Bạn có chắc chắn muốn xóa thể loại "${category.name}"?`, { danger: true, confirmText: "Xóa thể loại" })) return;
-
-            remove.disabled = true;
-
-            try {
-                await deleteCategory(category.id);
-                showCategoryMessage("Xóa thể loại thành công.");
-                await loadCategories();
-            } catch (error) {
-                showCategoryMessage("Không thể xóa thể loại: " + error.message, "error");
-            } finally {
-                remove.disabled = false;
-            }
+            await PTIT.confirm(`Bạn có chắc chắn muốn xóa thể loại "${category.name}"?`, {
+                danger: true,
+                confirmText: "Xóa thể loại",
+                onConfirm: async () => {
+                    remove.disabled = true;
+                    try {
+                        await deleteCategory(category.id);
+                    } catch (error) {
+                        showCategoryMessage("Không thể xóa thể loại: " + error.message, "error");
+                        throw error;
+                    } finally {
+                        remove.disabled = false;
+                    }
+                    showCategoryMessage("Xóa thể loại thành công.");
+                    try {
+                        await loadCategories();
+                    } catch (error) {
+                        showCategoryMessage("Đã xóa thể loại nhưng không thể tải lại danh sách: " + error.message, "error");
+                    }
+                }
+            });
         });
 
         actions.append(edit, remove);
@@ -273,6 +305,11 @@ async function loadBooks() {
         </tr>
     `;
 
+    booksLoaded = false;
+    totalTitlesFromServer = null;
+    totalCopiesFromServer = null;
+    updateStatistics();
+
     try {
         const keyword = searchInput ? searchInput.value.trim() : "";
         const response = await getBooks(currentPage, pageSize, keyword);
@@ -280,11 +317,43 @@ async function loadBooks() {
         books = Array.isArray(response)
             ? response
             : response.content || response.items || response.books || [];
+        const totalElements = Number(response?.totalElements);
+        totalTitlesFromServer = response?.totalElements !== undefined
+            && response.totalElements !== null
+            && Number.isInteger(totalElements)
+            && totalElements >= 0
+            ? totalElements
+            : null;
 
+        let statisticsError = null;
+        try {
+            const overview = await getStatsOverview();
+            const totalCopies = Number(overview?.totalCopies);
+            totalCopiesFromServer = overview?.totalCopies !== undefined
+                && overview.totalCopies !== null
+                && Number.isInteger(totalCopies)
+                && totalCopies >= 0
+                ? totalCopies
+                : null;
+            if (totalCopiesFromServer === null) {
+                statisticsError = new Error("Backend không trả tổng số bản hợp lệ.");
+            }
+        } catch (error) {
+            totalCopiesFromServer = null;
+            statisticsError = error;
+        }
+
+        booksLoaded = true;
         displayBooks(searchInput.value);
         updateStatistics();
+        if (statisticsError) {
+            showMessage(
+                `Không thể tải tổng số bản: ${statisticsError.message} Đang hiển thị số bản trong trang này.`,
+                "error"
+            );
+        }
 
-        const totalItems = Number(response.totalElements ?? books.length);
+        const totalItems = totalTitlesFromServer ?? books.length;
         const totalPages = Math.max(
             Number(response.totalPages ?? Math.ceil(totalItems / pageSize)),
             1
@@ -323,6 +392,9 @@ async function loadBooks() {
         `;
 
         books = [];
+        booksLoaded = false;
+        totalTitlesFromServer = null;
+        totalCopiesFromServer = null;
         updateStatistics();
 
         const prev = document.getElementById("previousPage");
@@ -575,38 +647,32 @@ async function removeBook(id, button = null) {
         return;
     }
 
-    const confirmed = await PTIT.confirm(
+    await PTIT.confirm(
         `Bạn có chắc chắn muốn xóa cuốn sách "${book.title}" khỏi hệ thống?`,
-        { danger: true, confirmText: "Xóa sách" }
+        {
+            danger: true,
+            confirmText: "Xóa sách",
+            onConfirm: async () => {
+                if (button) button.disabled = true;
+                try {
+                    await deleteBookAPI(id);
+                } catch (error) {
+                    showMessage("Không thể xóa sách: " + error.message, "error");
+                    throw error;
+                } finally {
+                    if (button) button.disabled = false;
+                }
+
+                if (books.length === 1 && currentPage > 1) currentPage--;
+                showMessage("Xóa sách thành công.");
+                try {
+                    await loadBooks();
+                } catch (error) {
+                    showMessage("Đã xóa sách nhưng không thể tải lại danh sách: " + error.message, "error");
+                }
+            }
+        }
     );
-
-    if (!confirmed) {
-        return;
-    }
-
-    if (button) {
-        button.disabled = true;
-    }
-
-    try {
-        await deleteBookAPI(id);
-
-        if (books.length === 1 && currentPage > 1) {
-            currentPage--;
-        }
-
-        showMessage("Xóa sách thành công.");
-        await loadBooks();
-    } catch (error) {
-        showMessage(
-            "Không thể xóa sách: " + error.message,
-            "error"
-        );
-    } finally {
-        if (button) {
-            button.disabled = false;
-        }
-    }
 }
 
 bookForm.addEventListener("submit", async function(event) {
@@ -703,15 +769,17 @@ document.getElementById("nextPage").addEventListener("click", async function() {
 });
 
 document.getElementById("logoutButton").addEventListener("click", async function() {
-    const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
-    if (!confirmed) return;
-
-    try {
-        await logoutAPI();
-    } catch (error) {
-        console.error("Không thể thu hồi token đăng xuất:", error);
-    }
-    window.location.replace("index.html");
+    await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        confirmText: "Đăng xuất",
+        onConfirm: async () => {
+            try {
+                await logoutAPI();
+            } catch (error) {
+                throw new Error("Không thể thu hồi token đăng xuất: " + error.message);
+            }
+            window.location.replace("index.html");
+        }
+    });
 });
 
 async function initializePage() {
@@ -721,11 +789,16 @@ async function initializePage() {
 
     updateUserInformation();
 
-    try {
-        await loadCategories();
-        await loadBooks();
-    } catch (error) {
-        showMessage(error.message, "error");
+    const [categoriesResult] = await Promise.allSettled([
+        loadCategories(),
+        loadBooks()
+    ]);
+    if (categoriesResult.status === "rejected") {
+        const reason = categoriesResult.reason;
+        const message = reason && typeof reason.message === "string"
+            ? reason.message
+            : "Lỗi không xác định.";
+        showMessage(`Không thể tải thể loại: ${message}`, "error");
     }
 }
 

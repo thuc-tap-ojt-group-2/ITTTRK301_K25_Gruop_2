@@ -43,34 +43,6 @@ function getLoanValue(loan, keys) {
     return "";
 }
 
-function getStatusText(status) {
-    const labels = {
-        PENDING: "Chờ duyệt",
-        BORROWING: "Đang mượn",
-        RETURNED: "Đã trả",
-        REJECTED: "Bị từ chối",
-        CANCELLED: "Đã hủy",
-        RESERVED: "Đặt trước"
-    };
-
-    return labels[String(status || "").toUpperCase()]
-        || status
-        || "Không xác định";
-}
-
-function getStatusClass(status) {
-    const classes = {
-        PENDING: "badge--warning",
-        BORROWING: "badge--info",
-        RETURNED: "badge--success",
-        REJECTED: "badge--danger",
-        CANCELLED: "badge--neutral",
-        RESERVED: "badge--warning"
-    };
-
-    return classes[String(status || "").toUpperCase()] || "badge--neutral";
-}
-
 function formatDate(value) {
     if (!value) {
         return "—";
@@ -151,7 +123,7 @@ function getFilteredLoans() {
         const readerName = getReaderName(loan).toLowerCase();
         const readerCode = getReaderCode(loan).toLowerCase();
         const bookName = getBookName(loan).toLowerCase();
-        const status = String(loan.status || "").toUpperCase();
+        const status = PTIT.getLoanStatus(loan).status;
 
         const matchesKeyword =
             loanId.includes(keyword)
@@ -204,7 +176,8 @@ function displayLoans() {
             const bookName = getBookName(loan);
             const registeredDate = getRegisteredDate(loan);
             const days = getLoanValue(loan, ["days"]);
-            const status = String(loan.status || "").toUpperCase();
+            const loanStatus = PTIT.getLoanStatus(loan);
+            const status = loanStatus.status;
 
             return `
                 <tr>
@@ -219,8 +192,8 @@ function displayLoans() {
                     <td>${formatDate(registeredDate)}</td>
                     <td>${days ? `<span class="badge badge--neutral">${escapeHTML(days)} ngày</span>` : "—"}</td>
                     <td style="text-align: center;">
-                        <span class="badge ${getStatusClass(status)}">
-                            ${escapeHTML(getStatusText(status))}
+                        <span class="badge loan-status ${loanStatus.statusClass}">
+                            ${escapeHTML(loanStatus.label)}
                         </span>
                     </td>
                     <td style="text-align: right;">
@@ -348,8 +321,7 @@ function updateUserInformation() {
 
     document.getElementById("userName").textContent = displayName;
 
-    document.getElementById("userAvatar").textContent =
-        String(displayName).trim().charAt(0).toUpperCase() || "U";
+    PTIT.setAvatar(document.getElementById("userAvatar"), displayName);
     
     const roleSpan = document.querySelector(".user-info span");
     if (roleSpan) {
@@ -396,44 +368,39 @@ async function handleLoanAction(button) {
             ? "từ chối"
             : "nhận trả";
 
-    const confirmed = await PTIT.confirm(
-        `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`,
-        { danger: action === "reject", confirmText: actionText[0].toUpperCase() + actionText.slice(1) }
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
     const rowButtons = button.closest("tr").querySelectorAll(
         "button[data-action]"
     );
 
-    rowButtons.forEach(item => {
-        item.disabled = true;
-    });
+    await PTIT.confirm(
+        `Bạn có chắc chắn muốn ${actionText} phiếu #${loanId}?`,
+        {
+            danger: action === "reject",
+            confirmText: actionText[0].toUpperCase() + actionText.slice(1),
+            onConfirm: async () => {
+                rowButtons.forEach(item => { item.disabled = true; });
+                try {
+                    await apiFunction(loanId);
+                } catch (error) {
+                    showMessage(error.message || `Không thể ${actionText} phiếu mượn.`, true);
+                    throw error;
+                } finally {
+                    rowButtons.forEach(item => { item.disabled = false; });
+                }
 
-    try {
-        await apiFunction(loanId);
-
-        document.dispatchEvent(new CustomEvent(
-            action === "return" ? "ptit:return-success" : "ptit:borrow-success",
-            { detail: { loanId: loanId } }
-        ));
-
-        showMessage(`Đã ${actionText} phiếu mượn #${loanId} thành công.`);
-
-        await loadLoans();
-    } catch (error) {
-        showMessage(
-            error.message || `Không thể ${actionText} phiếu mượn.`,
-            true
-        );
-    } finally {
-        rowButtons.forEach(item => {
-            item.disabled = false;
-        });
-    }
+                document.dispatchEvent(new CustomEvent(
+                    action === "return" ? "ptit:return-success" : "ptit:borrow-success",
+                    { detail: { loanId: loanId } }
+                ));
+                showMessage(`Đã ${actionText} phiếu mượn #${loanId} thành công.`);
+                try {
+                    await loadLoans();
+                } catch (error) {
+                    showMessage(`Đã ${actionText} phiếu nhưng không thể tải lại danh sách: ${error.message}`, true);
+                }
+            }
+        }
+    );
 }
 
 function syncTabsWithSelect(selectedStatus) {
@@ -502,15 +469,17 @@ nextPageButton.addEventListener("click", () => {
 
 document.getElementById("logoutButton")
     .addEventListener("click", async () => {
-        const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
-        if (!confirmed) return;
-
-        try {
-            await logoutAPI();
-        } catch (error) {
-            console.error("Không thể thu hồi token đăng xuất:", error);
-        }
-        window.location.replace("index.html");
+        await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+            confirmText: "Đăng xuất",
+            onConfirm: async () => {
+                try {
+                    await logoutAPI();
+                } catch (error) {
+                    throw new Error("Không thể thu hồi token đăng xuất: " + error.message);
+                }
+                window.location.replace("index.html");
+            }
+        });
     });
 
 loanTableBody.addEventListener("click", async function(event) {

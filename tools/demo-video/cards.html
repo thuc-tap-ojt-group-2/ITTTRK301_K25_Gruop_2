@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Thẻ demo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #0A4331; color: white; font-family: "Segoe UI", sans-serif; }
+    .card { width: 1920px; height: 1080px; display: grid; place-items: center; position: relative; }
+    .logo { position: absolute; top: 56px; left: 72px; width: 108px; height: 108px; object-fit: contain; }
+    .content { width: 1480px; }
+    h1 { margin: 0 0 28px; font-size: 82px; line-height: 1.12; }
+    h2 { margin: 0 0 24px; font-size: 58px; }
+    .eyebrow { font-size: 30px; letter-spacing: 4px; color: #F2C94C; margin-bottom: 20px; }
+    .lead { font-size: 42px; line-height: 1.5; max-width: 1380px; }
+    .members { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 50px; margin-top: 44px; font-size: 34px; }
+    ul { font-size: 42px; line-height: 1.55; }
+    .architecture { display: flex; align-items: center; justify-content: space-between; width: 1380px; }
+    .layer { width: 360px; height: 260px; border: 3px solid #F2C94C; border-radius: 24px; display:grid; place-items:center; text-align:center; font-size:38px; background:#123E31; }
+    .arrow { font-size:72px; color:#F2C94C; }
+  </style>
+</head>
+<body>
+  <main id="card" class="card"></main>
+  <script>
+    const id = new URLSearchParams(location.search).get("id") || "0.1";
+    const card = document.getElementById("card");
+    const logo = '<img class="logo" src="../../frontend/assets/images/logo.png" alt="PTIT">';
+    const pages = {
+      "0.1": `${logo}<section class="content"><div class="eyebrow">NHÓM 2 · DỊCH VỤ PHÁT TRIỂN WEB</div><h1>Hệ thống website quản lý thư viện PTIT</h1><div class="members"><div>Nguyễn Văn Thông — Nhóm trưởng, Backend</div><div>Nguyễn Hoàng Thành — Backend</div><div>Huỳnh Hồ Nhĩ Đan — Frontend, độc giả</div><div>Hà Ngọc Hoàng Tân — Frontend, thủ thư và admin</div></div></section>`,
+      "0.2": `${logo}<section class="content"><div class="eyebrow">BÀI TOÁN</div><h1>Quản lý thủ công đang bộc lộ ba vấn đề</h1><ul><li>Không biết tình trạng sách còn hay hết</li><li>Ghi phiếu và tính phạt bằng tay</li><li>Khó truy vết khi phát sinh sai sót</li></ul></section>`,
+      "0.3": `${logo}<section class="content"><div class="eyebrow">MỤC TIÊU</div><h1>Hệ thống tự động hóa quy trình thư viện</h1><ul><li>Tra cứu và đăng ký mượn trực tuyến</li><li>Duyệt phiếu, nhận trả và cập nhật số bản</li><li>Tự tính phạt 5.000đ mỗi ngày trễ</li><li>Tách quyền ba vai trò và lưu nhật ký</li></ul></section>`,
+      "0.4": `${logo}<section class="content"><div class="eyebrow">CÔNG NGHỆ</div><h2>Kiến trúc ba lớp</h2><div class="architecture"><div class="layer">Trình duyệt<br>HTML · CSS · JavaScript</div><div class="arrow">→</div><div class="layer">FastAPI<br>JWT · BCrypt</div><div class="arrow">→</div><div class="layer">MySQL 8<br>SQLAlchemy</div></div></section>`,
+      "10": `${logo}<section class="content"><div class="eyebrow">KẾT LUẬN</div><h1>Hệ thống đã hoàn thành yêu cầu bắt buộc</h1><div class="lead">Hạn chế: chưa có thanh toán trực tuyến và gia hạn sách.<br>Hướng phát triển: gia hạn, xuất CSV và thanh toán phạt.</div></section>`
+    };
+    card.innerHTML = pages[id] || pages["0.1"];
+  </script>
+</body>
+</html>

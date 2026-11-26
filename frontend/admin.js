@@ -139,32 +139,38 @@ function createLockButton(user, statusCell) {
 
     lockBtn.addEventListener("click", async () => {
         const actionText = user.is_locked ? "mở khóa" : "khóa";
-        const confirmed = await PTIT.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản "${user.username}"?`, { danger: true, confirmText: actionText === "khóa" ? "Khóa tài khoản" : "Mở khóa" });
-        if (!confirmed) return;
+        await PTIT.confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản "${user.username}"?`, {
+            danger: !user.is_locked,
+            confirmText: actionText === "khóa" ? "Khóa tài khoản" : "Mở khóa",
+            onConfirm: async () => {
+                lockBtn.disabled = true;
+                let updatedUser;
+                try {
+                    updatedUser = await updateAdminUserLock(user.id, !user.is_locked);
+                } catch (error) {
+                    showAdminMessage("Không thể thay đổi trạng thái tài khoản: " + error.message, true);
+                    lockBtn.disabled = isCurrentAdmin;
+                    throw error;
+                }
 
-        lockBtn.disabled = true;
+                user.is_locked = updatedUser.is_locked;
+                statusCell.replaceChildren();
+                const statusBadge = document.createElement("span");
+                statusBadge.className = `badge ${user.is_locked ? "badge--danger" : "badge--success"}`;
+                statusBadge.textContent = user.is_locked ? "Đã khóa" : "Hoạt động";
+                statusCell.appendChild(statusBadge);
 
-        try {
-            const nextStatus = !user.is_locked;
-            const updatedUser = await updateAdminUserLock(user.id, nextStatus);
-            user.is_locked = updatedUser.is_locked;
-
-            statusCell.replaceChildren();
-            const statusBadge = document.createElement("span");
-            statusBadge.className = `badge ${user.is_locked ? "badge--danger" : "badge--success"}`;
-            statusBadge.textContent = user.is_locked ? "Đã khóa" : "Hoạt động";
-            statusCell.appendChild(statusBadge);
-
-            lockBtn.className = user.is_locked ? "btn btn--secondary btn--sm" : "btn btn--danger btn--sm";
-            lockBtn.textContent = user.is_locked ? "Mở khóa" : "Khóa tài khoản";
-
-            showAdminMessage(`Đã ${actionText} tài khoản "${user.username}" thành công.`);
-            await loadAdminLogs();
-        } catch (error) {
-            showAdminMessage("Không thể thay đổi trạng thái tài khoản: " + error.message, true);
-        } finally {
-            lockBtn.disabled = isCurrentAdmin;
-        }
+                lockBtn.className = user.is_locked ? "btn btn--secondary btn--sm" : "btn btn--danger btn--sm";
+                lockBtn.textContent = user.is_locked ? "Mở khóa" : "Khóa tài khoản";
+                lockBtn.disabled = isCurrentAdmin;
+                showAdminMessage(`Đã ${actionText} tài khoản "${user.username}" thành công.`);
+                try {
+                    await loadAdminLogs();
+                } catch (error) {
+                    showAdminMessage(`Đã ${actionText} tài khoản nhưng không thể tải nhật ký: ${error.message}`, true);
+                }
+            }
+        });
     });
 
     return lockBtn;
@@ -235,6 +241,17 @@ function renderAdminUsers(users) {
     }
 }
 
+function formatAuditLogTimestamp(value) {
+    if (!value) return "—";
+
+    const timestamp = typeof value === "string" && !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)
+        ? `${value}Z`
+        : value;
+    return new Date(timestamp).toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh"
+    });
+}
+
 function renderAdminLogs(logs) {
     if (Array.isArray(logs)) {
         allAdminLogs = logs;
@@ -259,7 +276,7 @@ function renderAdminLogs(logs) {
         // Thời gian
         const timeCell = appendAdminCell(
             row,
-            log.created_at ? new Date(log.created_at).toLocaleString("vi-VN") : "—"
+            formatAuditLogTimestamp(log.created_at)
         );
         timeCell.style.fontSize = "13px";
         timeCell.style.color = "var(--color-text-muted)";
@@ -347,22 +364,22 @@ const adminName =
     "Quản trị viên";
 
 document.getElementById("userName").textContent = adminName;
-document.getElementById("userAvatar").textContent =
-    adminName.trim().charAt(0).toUpperCase() || "A";
+PTIT.setAvatar(document.getElementById("userAvatar"), adminName);
 
 document.getElementById("refreshButton").addEventListener("click", loadAdminData);
 
 document.getElementById("logoutButton").addEventListener("click", async () => {
-    const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
-    if (!confirmed) return;
-
-    try {
-        await logoutAPI();
-    } catch (error) {
-        console.error("Không thể thu hồi token đăng xuất:", error);
-    }
-
-    window.location.replace("index.html");
+    await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        confirmText: "Đăng xuất",
+        onConfirm: async () => {
+            try {
+                await logoutAPI();
+            } catch (error) {
+                throw new Error("Không thể thu hồi token đăng xuất: " + error.message);
+            }
+            window.location.replace("index.html");
+        }
+    });
 });
 
 if (isAuthorized) {
