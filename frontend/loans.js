@@ -245,7 +245,7 @@ function displayLoans() {
             itemLabel: "phiếu mượn",
             onPageChange: function(newPage) {
                 currentPage = newPage;
-                renderLoans();
+                displayLoans();
                 window.scrollTo({ top: 0, behavior: "smooth" });
             }
         });

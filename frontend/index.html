@@ -215,7 +215,7 @@
         </div>
       </section>
 
-      <!-- THỐNG KÊ 3 Ô SỐ LỚN: Hiện skeleton hoặc "—" rồi đếm lên khi có dữ liệu (LỖI 1) -->
+      <!-- THỐNG KÊ 3 Ô SỐ LỚN -->
       <section class="landing-stats reveal" aria-label="Thống kê thư viện PTIT">
         <div class="landing-stat reveal">
           <strong data-home-stat="titles">—</strong>
@@ -232,7 +232,7 @@
         <p class="landing-stats-note" id="homeStatsStatus">Số liệu thống kê được đồng bộ trực tiếp từ hệ thống thư viện</p>
       </section>
 
-      <!-- ================= SECTION SÁCH NỔI BẬT (6 BÌA DỰ PHÒNG CSS) ================= -->
+      <!-- ================= SECTION SÁCH NỔI BẬT ================= -->
       <section class="landing-section featured-books-section" id="featured-books" aria-labelledby="featuredBooksTitle">
         <div class="section-heading">
           <div class="eyebrow"><span aria-hidden="true">✦</span> BỘ SƯU TẬP HỌC TẬP</div>
@@ -240,14 +240,13 @@
           <p id="featuredBooksDescription">Những tài nguyên học tập và giáo trình chuyên khảo được mượn nhiều nhất tại thư viện PTIT.</p>
         </div>
 
-        <!-- Khối 6 bìa sách: bảo toàn ID bookCarousel, bookTrack, bookTickerStatus cho landing.js -->
         <div class="book-carousel" id="bookCarousel" role="region" aria-label="Sách nổi bật tại thư viện" tabindex="0">
           <div class="book-track featured-books-grid" id="bookTrack" aria-live="polite"></div>
         </div>
         <p class="book-ticker-status" id="bookTickerStatus" role="status" hidden>Đang tải sách trong thư viện…</p>
       </section>
 
-      <!-- 3 LỢI ÍCH ĐÁNH SỐ (HIGHLIGHTS) - Staggered fade-up -->
+      <!-- 3 LỢI ÍCH ĐÁNH SỐ (HIGHLIGHTS) -->
       <section class="landing-highlights reveal-stagger" aria-label="Lợi ích khi dùng thư viện">
         <article class="highlight-item reveal">
           <span class="highlight-number">01</span>
@@ -274,7 +273,7 @@
         </article>
       </section>
 
-      <!-- VỀ THƯ VIỆN + KHUNG TRÍCH DẪN SANG TRỌNG -->
+      <!-- VỀ THƯ VIỆN -->
       <section class="landing-section about-section reveal" id="about" aria-labelledby="aboutTitle">
         <div class="eyebrow"><span aria-hidden="true">✦</span> VỀ THƯ VIỆN PTIT</div>
         <div class="about-grid">
@@ -360,7 +359,7 @@
         </div>
       </section>
 
-      <!-- FAQ ACCORDION (CÂU ĐẦU MỞ SẴN) -->
+      <!-- FAQ ACCORDION -->
       <section class="landing-section faq-section" id="faq" aria-labelledby="faqTitle">
         <div class="section-heading">
           <div class="eyebrow"><span aria-hidden="true">✦</span> GIẢI ĐÁP NHANH</div>
@@ -369,7 +368,6 @@
         </div>
 
         <div class="faq-list">
-          <!-- Câu đầu mở sẵn -->
           <details open>
             <summary>Làm thế nào để bắt đầu sử dụng thư viện trực tuyến?</summary>
             <p>Bạn chỉ cần tạo tài khoản độc giả bằng mã sinh viên PTIT và email trường cấp. Sau khi đăng ký thành công, bạn có thể đăng nhập để tra cứu danh mục sách, gửi yêu cầu mượn và kiểm tra tình trạng phiếu mượn bất cứ lúc nào.</p>
@@ -405,11 +403,10 @@
     </div>
   </main>
 
-  <!-- FOOTER 4 CỘT CHUẨN: Bọc trong .container 1200px, Nền dark contrast đạt chuẩn WCAG AA -->
+  <!-- FOOTER 4 CỘT -->
   <footer class="landing-footer" role="contentinfo">
     <div class="container footer-container">
       <div class="footer-columns">
-        <!-- Cột 1: Thông tin PTIT (logo 48px trong khung trắng + địa chỉ + hotline) -->
         <div class="footer-col footer-col--info">
           <div class="footer-brand">
             <div class="footer-logo-box">
@@ -437,7 +434,6 @@
           </ul>
         </div>
 
-        <!-- Cột 2: Liên kết nhanh -->
         <nav class="footer-col footer-col--links" aria-label="Liên kết nhanh">
           <h2 class="footer-col-title">Khám phá</h2>
           <ul class="footer-nav-list">
@@ -450,7 +446,6 @@
           </ul>
         </nav>
 
-        <!-- Cột 3: Giờ mở cửa & Mạng xã hội -->
         <div class="footer-col footer-col--hours">
           <h2 class="footer-col-title">Giờ mở cửa</h2>
           <dl class="footer-hours-table">
@@ -476,7 +471,6 @@
           </div>
         </div>
 
-        <!-- Cột 4: Bản đồ chỉ đường (cao 200px, rộng 100%, có link mở tab mới) -->
         <div class="footer-col footer-col--map">
           <h2 class="footer-col-title">Bản đồ chỉ đường</h2>
           <div class="footer-map-wrapper">
@@ -491,7 +485,6 @@
         </div>
       </div>
 
-      <!-- Thanh bản quyền dưới cùng: copyright bên trái, Lên đầu trang bên phải -->
       <div class="footer-bottom">
         <p>© 2026 Thư viện Học viện Công nghệ Bưu chính Viễn thông. Mọi quyền được bảo lưu.</p>
         <a href="#home" class="footer-back-to-top" aria-label="Cuộn lên đầu trang">
@@ -650,7 +643,7 @@
       <span class="topbar-title" id="topbarTitle">Tổng quan</span>
       <span class="topbar-user" id="topbarUser"></span>
       <div class="toolbar-actions">
-        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="notificationsButton"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span>Thông báo</span></button>
+        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="notificationsButton"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span>Thông báo</span><span class="reader-noti-dot" id="readerNotificationBadge" hidden></span></button>
         <button type="button" class="btn btn--sm btn--secondary utility-btn" id="profileButton"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span>Hồ sơ</span></button>
         <button type="button" class="btn btn--sm btn--secondary utility-btn" id="themeButton" aria-pressed="false" disabled title="Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản."><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></span><span>Giao diện (đang tắt)</span></button>
       </div>
@@ -839,10 +832,10 @@
 
 <p class="toast" id="appToast" role="status" hidden></p>
 
-<!-- Nút lên đầu trang nổi (C10: hiện khi cuộn > 600px) -->
+<!-- Nút lên đầu trang nổi -->
 <a href="#home" id="backToTopBtn" class="back-to-top-floating" aria-label="Lên đầu trang">↑</a>
 
-<!-- Lớp phủ chuyển trang mượt mà (C11: Fade-in / Fade-out) -->
+<!-- Lớp phủ chuyển trang mượt mà -->
 <div class="page-transition-overlay" aria-hidden="true"></div>
 
 <!-- Toàn bộ JavaScript: UI, Hiệu ứng chuyển động, Motion Controller, Chuyển trang, Logic ứng dụng & Landing -->
