@@ -311,7 +311,7 @@ async function loadAdminUsers() {
 }
 
 async function loadAdminLogs() {
-    const logs = await getAdminLogs(10);
+    const logs = await getAdminLogs(100);
     const safeLogs = Array.isArray(logs) ? logs : [];
     renderAdminLogs(safeLogs);
     return safeLogs;

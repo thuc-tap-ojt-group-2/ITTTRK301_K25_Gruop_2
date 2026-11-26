@@ -689,10 +689,6 @@
         <div class="category-filters" id="categoryFilters" role="group" aria-label="Lọc theo thể loại">
           <button type="button" class="btn btn--sm btn--primary filter-chip active" data-filter="all" aria-pressed="true">Tất cả</button>
           <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="favorites" aria-pressed="false">Yêu thích</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Văn học" aria-pressed="false">Văn học</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Công nghệ" aria-pressed="false">Công nghệ</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Giáo trình" aria-pressed="false">Giáo trình</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Lịch sử" aria-pressed="false">Lịch sử</button>
         </div>
 
         <p class="result-info" id="resultInfo" aria-live="polite"></p>
@@ -774,7 +770,7 @@
 <!-- Modal Viết đánh giá -->
 <dialog class="modal review-dialog" id="reviewDialog" aria-labelledby="reviewTitle">
   <h2 id="reviewTitle">Đánh giá sách</h2>
-  <form id="reviewForm">
+  <form id="reviewForm" data-warn-unsaved="true">
     <div class="field">
       <label for="reviewStars">Số sao đánh giá</label>
       <select id="reviewStars" required>

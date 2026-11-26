@@ -48,8 +48,16 @@ async function showReaderHistory(reader) {
                 const statusCell = row.insertCell();
                 const statusBadge = document.createElement("span");
                 const st = String(loan.status || "").toUpperCase();
-                statusBadge.className = `badge ${st === "RETURNED" ? "badge--success" : st === "BORROWING" ? "badge--info" : "badge--warning"}`;
-                statusBadge.textContent = st === "RETURNED" ? "Đã trả" : st === "BORROWING" ? "Đang mượn" : "Chờ duyệt";
+                const statusBadgeMap = {
+                    RETURNED: { cls: "badge--success", text: "Đã trả" },
+                    BORROWING: { cls: "badge--info", text: "Đang mượn" },
+                    PENDING: { cls: "badge--warning", text: "Chờ duyệt" },
+                    REJECTED: { cls: "badge--danger", text: "Bị từ chối" },
+                    CANCELLED: { cls: "badge--neutral", text: "Đã hủy" }
+                };
+                const badgeInfo = statusBadgeMap[st] || { cls: "badge--neutral", text: st || "Không xác định" };
+                statusBadge.className = `badge ${badgeInfo.cls}`;
+                statusBadge.textContent = badgeInfo.text;
                 statusCell.appendChild(statusBadge);
 
                 const borrowCell = row.insertCell();

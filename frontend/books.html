@@ -235,7 +235,7 @@
             <button type="button" class="close-btn" id="modalCloseIcon" data-modal-close aria-label="Đóng">&times;</button>
             <h2 id="modalTitle">Thêm sách mới</h2>
 
-            <form id="bookForm" novalidate>
+            <form id="bookForm" data-warn-unsaved="true" novalidate>
                 <div class="field">
                     <label for="bookName">Tên sách <span style="color: var(--color-danger);">*</span></label>
                     <input
@@ -282,9 +282,9 @@
                     <label for="bookImage">Đường dẫn ảnh bìa (không bắt buộc)</label>
                     <input
                         id="bookImage"
-                        type="url"
+                        type="text"
                         maxlength="500"
-                        placeholder="https://example.com/book-cover.jpg"
+                        placeholder="https://example.com/book-cover.jpg hoặc /covers/ten-sach.svg"
                     >
                 </div>
                 <div class="field">

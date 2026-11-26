@@ -66,6 +66,18 @@ function getCategoryGradient(categoryName, index) {
     return GRADIENT_PALETTE[index % GRADIENT_PALETTE.length];
 }
 
+function resolveLandingCoverUrl(rawUrl) {
+    let cleanUrl = String(rawUrl || "").trim();
+    if (!cleanUrl) return "";
+    if (cleanUrl.startsWith("/covers/") || cleanUrl.startsWith("covers/")) {
+        return "./" + cleanUrl.replace(/^\/+/, "");
+    }
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
+        return homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
+    }
+    return cleanUrl;
+}
+
 /**
  * Hiển thị 3 cuốn sách nổi bật ở khu vực Hero (CNTT, ATTT, Viễn thông)
  * Lấy ảnh bìa và thông tin trực tiếp từ Database qua API /api/books
@@ -110,11 +122,7 @@ function renderHeroBooks(books) {
 
         if (imgEl && (item.book.imageUrl || item.book.image_url)) {
             imgEl.hidden = true;
-            const rawUrl = item.book.imageUrl || item.book.image_url;
-            let cleanUrl = String(rawUrl).trim();
-            if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
-                cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
-            }
+            const cleanUrl = resolveLandingCoverUrl(item.book.imageUrl || item.book.image_url);
             imgEl.referrerPolicy = "no-referrer";
             imgEl.loading = "lazy";
             imgEl.src = cleanUrl;
@@ -216,10 +224,14 @@ function createBookCard(book, index) {
     card.setAttribute("aria-label", [book.title, book.author].filter(Boolean).join(" — "));
     card.tabIndex = 0;
 
-    // Chuyển đến trang tra cứu sách khi click hoặc nhấn Enter
+    // Mở modal chi tiết sách khi click hoặc nhấn Enter
     card.addEventListener("click", function () {
-        const query = book.title || "";
-        window.location.href = "books.html" + (query ? "?keyword=" + encodeURIComponent(query) : "");
+        if (typeof openBookDetail === "function") {
+            openBookDetail(book);
+        } else {
+            const openBtn = document.querySelector('[data-open="login"]');
+            if (openBtn) openBtn.click();
+        }
     });
     card.addEventListener("keydown", function (e) {
         if (e.key === "Enter" || e.key === " ") {
@@ -245,11 +257,7 @@ function createBookCard(book, index) {
     const rawImageUrl = typeof book.imageUrl === "string" ? book.imageUrl : book.image_url;
 
     if (typeof rawImageUrl === "string" && rawImageUrl.trim().length > 0) {
-        let cleanUrl = rawImageUrl.trim();
-        // Bình thường hóa đường dẫn nếu là relative path từ máy chủ
-        if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
-            cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
-        }
+        const cleanUrl = resolveLandingCoverUrl(rawImageUrl);
 
         const image = document.createElement("img");
         image.className = "featured-book-img";
@@ -302,8 +310,8 @@ function createBookCard(book, index) {
         if (typeof openBookDetail === "function") {
             openBookDetail(book);
         } else {
-            const query = book.title || "";
-            window.location.href = "books.html" + (query ? "?keyword=" + encodeURIComponent(query) : "");
+            const openBtn = document.querySelector('[data-open="login"]');
+            if (openBtn) openBtn.click();
         }
     });
 
@@ -539,12 +547,21 @@ function loadHomepageData() {
             renderBookTicker(books);
             renderHeroBooks(books);
             const openBookId = new URLSearchParams(window.location.search).get("openBook");
-            if (openBookId) {
+            if (openBookId && typeof openBookDetail === "function") {
                 const selectedBook = books.find(function (book) {
                     return String(book.id) === String(openBookId);
                 });
-                if (selectedBook && typeof openBookDetail === "function") {
+                if (selectedBook) {
                     openBookDetail(selectedBook);
+                } else {
+                    fetch(homepageApiBaseUrl + "/api/books?page=1&size=100")
+                        .then(res => res.ok ? res.json() : null)
+                        .then(fullPayload => {
+                            const list = fullPayload?.content || fullPayload?.items || [];
+                            const found = list.find(item => String(item.id) === String(openBookId));
+                            if (found) openBookDetail(found);
+                        })
+                        .catch(() => {});
                 }
             }
         })
@@ -571,14 +588,57 @@ loadHomepageData();
 
 const heroSearchForm = document.getElementById("heroSearchForm");
 if (heroSearchForm) {
-    heroSearchForm.addEventListener("submit", function (event) {
+    heroSearchForm.addEventListener("submit", async function (event) {
         event.preventDefault();
         const input = document.getElementById("heroSearchInput");
+        const typeSelect = document.getElementById("heroSearchType");
         const query = input ? input.value.trim() : "";
-        if (query) {
-            window.location.href = "books.html?keyword=" + encodeURIComponent(query);
-        } else if (input) {
-            input.focus();
+        const searchType = typeSelect ? typeSelect.value : "title";
+
+        if (!query) {
+            if (input) input.focus();
+            loadHomepageData();
+            return;
+        }
+
+        const appViewEl = document.getElementById("appView");
+        if (appViewEl && !appViewEl.hidden && typeof navigate === "function" && typeof applySearch === "function") {
+            const readerSearch = document.getElementById("searchInput");
+            if (readerSearch) readerSearch.value = query;
+            navigate("search");
+            applySearch(query);
+            return;
+        }
+
+        renderSkeletonCards();
+        const featuredSection = document.getElementById("featured-books");
+        if (featuredSection) {
+            featuredSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        try {
+            const params = new URLSearchParams({ page: 1, size: 100, keyword: query });
+            const res = await fetch(`${homepageApiBaseUrl}/api/books?${params}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const payload = await res.json();
+            let list = Array.isArray(payload) ? payload : (payload.content || payload.items || []);
+
+            const qLower = query.toLowerCase();
+            if (searchType === "author") {
+                const authorMatches = list.filter(b => String(b.author || "").toLowerCase().includes(qLower));
+                if (authorMatches.length) list = authorMatches;
+            } else if (searchType === "isbn") {
+                const isbnMatches = list.filter(b => String(b.isbn || "").toLowerCase().includes(qLower) || String(b.id) === query);
+                if (isbnMatches.length) list = isbnMatches;
+            }
+
+            if (list.length === 0) {
+                renderEmptyState(`Không tìm thấy sách phù hợp với từ khóa "${query}".`);
+            } else {
+                renderBookTicker(list);
+            }
+        } catch (error) {
+            renderErrorState(error.message || "Không thể tìm kiếm sách.");
         }
     });
 }
