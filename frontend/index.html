@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="assets/js/theme-init.js?v=20261127-theme-1"></script>
   <title>Thư viện PTIT | Học viện Công nghệ Bưu chính Viễn thông</title>
   <link rel="icon" href="assets/images/logo.png">
   
@@ -12,20 +13,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
   
   <!-- Hệ thống CSS theo đúng thứ tự chuẩn -->
-  <link rel="stylesheet" href="assets/css/variables.css">
+  <link rel="stylesheet" href="assets/css/variables.css?v=20261127-theme-1">
   <link rel="stylesheet" href="assets/css/base.css">
-  <link rel="stylesheet" href="assets/css/components.css?v=20261124-3">
+  <link rel="stylesheet" href="assets/css/components.css?v=20261127-avatar-theme-review-1">
   <link rel="stylesheet" href="assets/css/layout.css?v=20261124-3">
-  <link rel="stylesheet" href="assets/css/pages.css">
-  <link rel="stylesheet" href="assets/css/effects.css?v=20261124-5">
-  <link rel="stylesheet" href="assets/css/preloader.css">
-  <link rel="stylesheet" href="assets/css/loader.css">
-  <link rel="stylesheet" href="assets/css/responsive.css?v=20261124-3">
-  <link rel="stylesheet" href="assets/css/landing.css?v=20261124-4">
-  <link rel="stylesheet" href="assets/css/reader.css?v=20261124-9">
+  <link rel="stylesheet" href="assets/css/pages.css?v=20261127-theme-1">
+  <link rel="stylesheet" href="assets/css/effects.css?v=20261127-page-motion">
+  <link rel="stylesheet" href="assets/css/preloader.css?v=20261126-bookflip-2">
+  <link rel="stylesheet" href="assets/css/loader.css?v=20261126-bookflip">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=20261127-home-search-scopes">
+  <link rel="stylesheet" href="assets/css/landing.css?v=20261127-hero-image-fallback-2">
+  <link rel="stylesheet" href="assets/css/reader.css?v=20261127-review-avatar-theme-1">
 
   <!-- Điều khiển Preloader ngay trong <head> không defer để chống nhấp nháy giao diện -->
-  <script src="assets/js/preloader.js"></script>
+  <script src="assets/js/preloader.js?v=20261126-bookflip-2"></script>
 </head>
 <body>
 
@@ -54,6 +55,9 @@
           <div class="book-page book-page--1"></div>
           <div class="book-page book-page--2"></div>
           <div class="book-page book-page--3"></div>
+          <div class="book-page book-page--4"></div>
+          <div class="book-page book-page--5"></div>
+          <div class="book-page book-page--6"></div>
         </div>
       </div>
       <p class="preloader-tagline">
@@ -63,10 +67,6 @@
       </p>
       <div class="preloader-progress-track">
         <div class="preloader-progress-fill"></div>
-      </div>
-      <div class="preloader-dragon" aria-label="Rồng tri thức bay mở cánh cửa thư viện" role="img">
-        <span class="preloader-dragon__trail" aria-hidden="true"></span>
-        <img src="assets/images/dragon.png" alt="" width="460" height="400" loading="eager">
       </div>
     </div>
     <button type="button" id="preloaderSkip" class="preloader-skip" aria-label="Bỏ qua phần giới thiệu">Bỏ qua ✕</button>
@@ -131,13 +131,30 @@
           
           <!-- Thanh tìm kiếm lớn ở Hero (Hero Search Bar) -->
           <form class="hero-search-box hero-stagger-item" id="heroSearchForm" role="search">
-            <select class="hero-search-select" id="heroSearchType" aria-label="Lọc theo mục">
-              <option value="title">Nhan đề</option>
-              <option value="author">Tác giả</option>
-              <option value="isbn">Mã / ISBN</option>
-            </select>
-            <input type="search" class="hero-search-input" id="heroSearchInput" placeholder="Tìm tên sách, tác giả, chuyên ngành..." aria-label="Nhập từ khóa tìm kiếm">
-            <button type="submit" class="btn btn--primary hero-search-btn">Tìm kiếm</button>
+            <fieldset class="hero-search-scopes">
+              <legend class="sr-only">Tìm sách theo</legend>
+              <label class="hero-search-scope">
+                <input type="radio" name="heroSearchType" value="all" checked>
+                <span>Tất cả</span>
+              </label>
+              <label class="hero-search-scope">
+                <input type="radio" name="heroSearchType" value="title">
+                <span>Nhan đề</span>
+              </label>
+              <label class="hero-search-scope">
+                <input type="radio" name="heroSearchType" value="author">
+                <span>Tác giả</span>
+              </label>
+              <label class="hero-search-scope">
+                <input type="radio" name="heroSearchType" value="isbn">
+                <span>ISBN</span>
+              </label>
+            </fieldset>
+            <input type="search" class="hero-search-input" id="heroSearchInput" placeholder="Tìm theo nhan đề sách..." aria-label="Nhập từ khóa tìm kiếm">
+            <button type="submit" class="btn btn--primary hero-search-btn">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+              <span>Tìm kiếm</span>
+            </button>
           </form>
 
           <div class="hero-actions hero-stagger-item">
@@ -220,7 +237,7 @@
         <div class="section-heading">
           <div class="eyebrow"><span aria-hidden="true">✦</span> BỘ SƯU TẬP HỌC TẬP</div>
           <h2 id="featuredBooksTitle">Sách &amp; Giáo trình nổi bật</h2>
-          <p>Những tài nguyên học tập và giáo trình chuyên khảo được mượn nhiều nhất tại thư viện PTIT.</p>
+          <p id="featuredBooksDescription">Những tài nguyên học tập và giáo trình chuyên khảo được mượn nhiều nhất tại thư viện PTIT.</p>
         </div>
 
         <!-- Khối 6 bìa sách: bảo toàn ID bookCarousel, bookTrack, bookTickerStatus cho landing.js -->
@@ -635,7 +652,7 @@
       <div class="toolbar-actions">
         <button type="button" class="btn btn--sm btn--secondary utility-btn" id="notificationsButton"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span>Thông báo</span></button>
         <button type="button" class="btn btn--sm btn--secondary utility-btn" id="profileButton"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span>Hồ sơ</span></button>
-        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="themeButton" aria-pressed="false"><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></span><span>Giao diện</span></button>
+        <button type="button" class="btn btn--sm btn--secondary utility-btn" id="themeButton" aria-pressed="false" disabled title="Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản."><span class="utility-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></span><span>Giao diện (đang tắt)</span></button>
       </div>
     </header>
 
@@ -652,10 +669,11 @@
         </div>
         
         <div class="stats-grid overview-stats-grid">
-          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22z"/><path d="M5 4.5v15A2.5 2.5 0 0 1 7.5 17H20"/></svg></span><div class="stat-copy"><strong id="statBorrowing">0</strong><span>Sách đang mượn</span></div></div>
-          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="stat-copy"><strong id="statPending">0</strong><span>Chờ duyệt / Đặt trước</span></div></div>
-          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.7-1.6-1-3-1-1.7 0-3 .8-3 2s1.3 2 3 2 3 .8 3 2-1.3 2-3 2c-1.3 0-2.3-.4-3-1.1M12 6v12"/></svg></span><div class="stat-copy"><strong id="statFines">0đ</strong><span>Tiền phạt của bạn</span></div></div>
-          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18m9-9H3"/><circle cx="12" cy="12" r="9"/></svg></span><div class="stat-copy"><strong id="statRemaining">3</strong><span>Lượt mượn còn lại</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v18H7.5A2.5 2.5 0 0 0 5 22z"/><path d="M5 4.5v15A2.5 2.5 0 0 1 7.5 17H20"/></svg></span><div class="stat-copy"><strong id="statBorrowing">—</strong><span>Sách đang mượn</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="stat-copy"><strong id="statPending">—</strong><span>Phiếu chờ duyệt</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/><path d="M9 8h6M9 12h6"/></svg></span><div class="stat-copy"><strong id="statReservations">—</strong><span>Phiếu đặt trước</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.7-1.6-1-3-1-1.7 0-3 .8-3 2s1.3 2 3 2 3 .8 3 2-1.3 2-3 2c-1.3 0-2.3-.4-3-1.1M12 6v12"/></svg></span><div class="stat-copy"><strong id="statFines">—</strong><span>Tiền phạt của bạn</span></div></div>
+          <div class="card--stat"><span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18m9-9H3"/><circle cx="12" cy="12" r="9"/></svg></span><div class="stat-copy"><strong id="statRemaining">—</strong><span>Lượt mượn còn lại</span></div></div>
         </div>
 
         <article class="card library-card" aria-label="Thẻ thư viện số">
@@ -669,7 +687,7 @@
           <div class="library-barcode" aria-hidden="true"><span></span></div>
         </article>
 
-        <h2 class="section-title section-title--spaced">Được mượn nhiều nhất</h2>
+        <h2 class="section-title section-title--spaced">Sách gợi ý</h2>
         <div class="book-list popular-books" id="popularBooks"></div>
 
         <h2 class="section-title section-title--spaced">Sách bạn đang mượn</h2>
@@ -689,6 +707,13 @@
         
         <form class="hero-search-box reader-search-box" id="searchForm" role="search">
           <span class="reader-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg></span>
+          <label class="sr-only" for="searchScope">Phạm vi tìm kiếm</label>
+          <select id="searchScope" class="search-scope-select" aria-label="Phạm vi tìm kiếm">
+            <option value="all">Tất cả</option>
+            <option value="title">Nhan đề</option>
+            <option value="author">Tác giả</option>
+            <option value="isbn">Mã ISBN</option>
+          </select>
           <input type="search" class="hero-search-input" id="searchInput" placeholder="Tìm theo tên sách, tác giả hoặc thể loại..." aria-label="Tìm kiếm sách">
           <button type="submit" class="btn btn--primary hero-search-btn">Tìm kiếm</button>
         </form>
@@ -696,10 +721,6 @@
         <div class="category-filters" id="categoryFilters" role="group" aria-label="Lọc theo thể loại">
           <button type="button" class="btn btn--sm btn--primary filter-chip active" data-filter="all" aria-pressed="true">Tất cả</button>
           <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="favorites" aria-pressed="false">Yêu thích</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Văn học" aria-pressed="false">Văn học</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Công nghệ" aria-pressed="false">Công nghệ</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Giáo trình" aria-pressed="false">Giáo trình</button>
-          <button type="button" class="btn btn--sm btn--secondary filter-chip" data-filter="Lịch sử" aria-pressed="false">Lịch sử</button>
         </div>
 
         <p class="result-info" id="resultInfo" aria-live="polite"></p>
@@ -736,6 +757,10 @@
   <h2 id="bookDetailTitle" tabindex="-1">Chi tiết tài liệu</h2>
   <div id="bookDetailCover" class="book-detail-cover"></div>
   <p class="text-muted book-availability" id="bookDetailAvailability"></p>
+  <section class="book-detail-intro" id="bookDetailIntro" aria-labelledby="bookDetailIntroTitle">
+    <h3 id="bookDetailIntroTitle">Giới thiệu sách</h3>
+    <p id="bookDetailDescription"></p>
+  </section>
   <div class="book-meta" id="bookDetailMeta"></div>
 
   <section id="bookDetailActions">
@@ -821,12 +846,13 @@
 <div class="page-transition-overlay" aria-hidden="true"></div>
 
 <!-- Toàn bộ JavaScript: UI, Hiệu ứng chuyển động, Motion Controller, Chuyển trang, Logic ứng dụng & Landing -->
-<script src="assets/js/ui.js?v=20261123-modal"></script>
-<script src="assets/js/loader.js" defer></script>
+<script src="assets/js/ui.js?v=20261127-avatar-theme-review-1"></script>
+<script src="assets/js/loader.js?v=20261126-bookflip" defer></script>
 <script src="assets/js/animations.js"></script>
 <script src="assets/js/effects.js"></script>
 <script src="assets/js/page-transition.js"></script>
-<script src="assets/js/script.js?v=20261124-4"></script>
-<script src="landing.js?v=20261124-1"></script>
+<script src="assets/js/sample-reviews.js?v=20261127-sample-reviews-1"></script>
+<script src="assets/js/script.js?v=20261127-sample-reviews-1"></script>
+<script src="landing.js?v=20261127-hero-image-fallback-2"></script>
 </body>
 </html>

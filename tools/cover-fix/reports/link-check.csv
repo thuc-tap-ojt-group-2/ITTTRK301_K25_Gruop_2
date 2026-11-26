@@ -1,0 +1,44 @@
+﻿id,title,link,status,content_type,reason
+1,Cấu trúc dữ liệu và Giải thuật,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbQOwD_WLD0qcmEusIH28EETE3zE2y7YtGTm8FE1461Q&s=10,GOOD,image/jpeg,dang hoat dong
+2,Clean Code - Mã sạch,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTuerhqpH9BLOD2nkwOkCubvRQBsFA-8jA6Jmg2ySKWw&s=10,GOOD,image/png,dang hoat dong
+3,Lập trình hướng đối tượng Python,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR30pRRwz_WR_qriW9ABRzFs2DMUwphs2-7KuRXdAXEHA&s=10,GOOD,image/jpeg,dang hoat dong
+4,Hệ quản trị cơ sở dữ liệu MySQL,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSORfzL-imjySXOuThcbx1YdwdVSDxmxT1jEeKZlXiplw&s=10,GOOD,image/jpeg,dang hoat dong
+5,Scrum: The Art of Doing Twice the Work in Half the Time,https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=500,GOOD,image/jpeg,dang hoat dong
+6,MininoNihongo,https://www.davibooks.vn/stores/uploads/l/b4__84402_image2_800_thum.jpg,GOOD,image/jpeg,dang hoat dong
+7,Toán Cao Cấp 1,https://th.bing.com/th/id/OIP.OF7M-TmkojxXlCuibIO62gHaLB?w=204&h=305&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3,GOOD,image/webp,dang hoat dong
+8,Nền tảng Giáo dục học,https://images.unsplash.com/photo-1462331848778-442579fb8e70?w=400&h=600&fit=crop,BROKEN,,HTTP Error 404: Not Found
+9,Phương pháp học tập chủ động,https://images.unsplash.com/photo-1544620348-c7fd4533399f?w=400&h=600&fit=crop,BROKEN,,HTTP Error 404: Not Found
+10,Kinh tế học qua tình huống đời thường,https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+11,Quản lý tài chính cá nhân căn bản,https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+12,Mùa hạ bên hiên nhà,https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+13,Chuyến tàu qua miền sương,https://images.unsplash.com/photo-1559539707-721290587a0e?w=400&h=600&fit=crop,BROKEN,,HTTP Error 404: Not Found
+14,Bầu trời đêm cho người mới bắt đầu,https://images.unsplash.com/photo-1557339572-1d76094753bd?w=400&h=600&fit=crop,BROKEN,,HTTP Error 404: Not Found
+15,Hệ Mặt Trời và những hành tinh,https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+16,Khám phá đại dương sâu,https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+17,Hành trình qua rừng nhiệt đới,https://images.unsplash.com/photo-1534578678718-a14456294e09?w=400&h=600&fit=crop,BROKEN,,HTTP Error 404: Not Found
+18,Kỹ thuật Viễn thông và Mạng không dây,https://images.unsplash.com/photo-1544717305-2782549b5136?w=500,GOOD,image/jpeg,dang hoat dong
+19,Lập trình Web hiện đại,https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+20,Hệ quản trị cơ sở dữ liệu,https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+21,Mạng máy tính căn bản,https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+22,An toàn thông tin ứng dụng,https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+23,Trí tuệ nhân tạo cho người mới bắt đầu,https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+24,Kỹ thuật phần mềm thực hành,https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+25,Python nâng cao,https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+26,Java từ cơ bản đến dự án,https://images.unsplash.com/photo-1516101922849-9109e3b0f58f?w=400&h=600&fit=crop,BROKEN,,HTTP Error 404: Not Found
+27,Tiếng Anh giao tiếp cho sinh viên,https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+28,Từ vựng tiếng Anh chuyên ngành CNTT,https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+29,Luyện nghe tiếng Anh qua hội thoại,https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+30,Tiếng Nhật sơ cấp,https://images.unsplash.com/photo-1528164344705-47542687000d?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+31,Vật lý đại cương,https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+32,Hóa học cơ sở,https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+33,Sinh học phân tử,https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+34,Đại số tuyến tính ứng dụng,https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+35,Xác suất và Thống kê,https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+36,Lãnh đạo và Quản trị,https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+37,Khởi nghiệp sáng tạo,https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+38,Kỹ năng thuyết trình,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLw_o11SujvfTynLon0oNUDgV13MLjoYSlJ0vm75S9Ng&s=10,GOOD,image/jpeg,dang hoat dong
+39,Quản lý thời gian hiệu quả,https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+40,Tư duy phản biện,https://images.unsplash.com/photo-1456324504439-367cee3b3c32?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+41,Kinh tế Việt Nam trong hội nhập,https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+42,Chính trị học đại cương,https://images.unsplash.com/photo-1523995462485-3d171b5c8fa9?w=400&h=600&fit=crop,GOOD,image/jpeg,dang hoat dong
+43,Tâm lý học đám đông,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTsE5BIqn2T3bMutLovBukB99sw54xMWHgt9J8Y2iWjJQ&s=10,GOOD,image/jpeg,dang hoat dong

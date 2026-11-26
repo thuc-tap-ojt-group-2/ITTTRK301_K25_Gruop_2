@@ -51,6 +51,7 @@ class BooksAndStatsTests(unittest.TestCase):
                 id=1,
                 title="Lập trình Python nâng cao",
                 author="Nguyễn Hoàng Thành",
+                isbn="9786040000001",
                 category_id=1,
                 total_copies=2,
                 available_copies=2,
@@ -105,6 +106,28 @@ class BooksAndStatsTests(unittest.TestCase):
         res = crud.delete_book(self.db, created_book.id, actor_id=2)
         self.assertIn("thành công", res["message"])
         crud.delete_category(self.db, cat.id, actor_id=2)
+
+    def test_book_search_can_be_scoped_by_title_author_and_isbn(self):
+        title_results = crud.get_books_paginated(
+            self.db, keyword="Python", search_by="title"
+        )
+        self.assertEqual(title_results.totalElements, 1)
+
+        title_only_results = crud.get_books_paginated(
+            self.db, keyword="Python", search_by="author"
+        )
+        self.assertEqual(title_only_results.totalElements, 0)
+
+        author_results = crud.get_books_paginated(
+            self.db, keyword="nguyen hoang", search_by="author"
+        )
+        self.assertEqual(author_results.totalElements, 1)
+
+        isbn_results = crud.get_books_paginated(
+            self.db, keyword="9786040000001", search_by="isbn"
+        )
+        self.assertEqual(isbn_results.totalElements, 1)
+        self.assertEqual(isbn_results.content[0].isbn, "9786040000001")
 
     def test_statistics_overview_top_books_and_monthly(self):
         loan = LoanService.create_request(self.db, user_id=1, book_id=1, days=7)

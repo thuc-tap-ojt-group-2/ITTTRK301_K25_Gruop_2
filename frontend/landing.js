@@ -11,6 +11,12 @@ const bookTrack = document.getElementById("bookTrack");
 const bookTickerStatus = document.getElementById("bookTickerStatus");
 const bookCarousel = document.getElementById("bookCarousel");
 const homeStatsStatus = document.getElementById("homeStatsStatus");
+const homepageSearchParams = new URLSearchParams(window.location.search);
+const homepageSearchQuery = (homepageSearchParams.get("search") || "").trim();
+const requestedSearchScope = homepageSearchParams.get("search_by");
+const homepageSearchScope = ["all", "title", "author", "isbn"].includes(requestedSearchScope)
+    ? requestedSearchScope
+    : "all";
 
 /**
  * Bảng 6 màu gradient chuẩn mực theo từng nhóm thể loại:
@@ -108,20 +114,20 @@ function renderHeroBooks(books) {
         if (authorEl) authorEl.textContent = item.book.author || "Học viện PTIT";
         if (badgeEl) badgeEl.textContent = item.badge;
 
-        if (imgEl && (item.book.imageUrl || item.book.image_url)) {
-            imgEl.hidden = true;
-            const rawUrl = item.book.imageUrl || item.book.image_url;
+        const rawUrl = item.book.imageUrl || item.book.image_url;
+        if (imgEl) imgEl.hidden = true;
+        if (imgEl && rawUrl && !/^\/covers\//i.test(String(rawUrl).trim())) {
             let cleanUrl = String(rawUrl).trim();
             if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://") && !cleanUrl.startsWith("//")) {
                 cleanUrl = homepageApiBaseUrl + (cleanUrl.startsWith("/") ? "" : "/") + cleanUrl;
             }
             imgEl.referrerPolicy = "no-referrer";
             imgEl.loading = "lazy";
-            imgEl.src = cleanUrl;
-            imgEl.hidden = false;
             imgEl.onerror = function () {
                 imgEl.hidden = true;
             };
+            imgEl.hidden = false;
+            imgEl.src = cleanUrl;
         }
 
         // Cập nhật aria-label
@@ -242,7 +248,15 @@ function createBookCard(book, index) {
     coverWrapper.appendChild(fallbackCover);
 
     // Kiểm tra và hiển thị ảnh thật từ API nếu có
-    const rawImageUrl = typeof book.imageUrl === "string" ? book.imageUrl : book.image_url;
+    const description = String(book.description || "");
+    const hasSampleDescription = description.startsWith("Dữ liệu mẫu giới thiệu sách ");
+    const apiImageUrl = typeof book.imageUrl === "string" ? book.imageUrl : book.image_url;
+    const isUnverifiedSampleThumbnail = hasSampleDescription &&
+        typeof apiImageUrl === "string" &&
+        apiImageUrl.includes("encrypted-tbn0.gstatic.com");
+    const rawImageUrl = isUnverifiedSampleThumbnail || /^\/covers\//i.test(String(apiImageUrl || "").trim())
+        ? ""
+        : apiImageUrl;
 
     if (typeof rawImageUrl === "string" && rawImageUrl.trim().length > 0) {
         let cleanUrl = rawImageUrl.trim();
@@ -256,22 +270,20 @@ function createBookCard(book, index) {
         image.alt = bookTitle;
         image.loading = "lazy";
         image.referrerPolicy = "no-referrer";
-        image.hidden = true;
 
         image.onload = function () {
-            image.hidden = false;
-            if (fallbackCover.parentNode) {
-                fallbackCover.hidden = true;
-            }
+            image.classList.add("is-loaded");
+            coverWrapper.classList.add("has-photo");
         };
 
         image.onerror = function () {
             image.remove();
+            coverWrapper.classList.remove("has-photo");
             fallbackCover.hidden = false;
         };
 
-        image.src = cleanUrl;
         coverWrapper.appendChild(image);
+        image.src = cleanUrl;
     }
 
     // 2. Khối thông tin đặt DƯỚI ảnh bìa (không đè lên ảnh)
@@ -321,11 +333,13 @@ function renderBookTicker(books) {
     bookTrack.replaceChildren();
 
     if (!Array.isArray(books) || books.length === 0) {
-        renderEmptyState("Hiện chưa có cuốn sách nào trong danh mục.");
+        renderEmptyState(homepageSearchQuery
+            ? "Không tìm thấy sách phù hợp với tiêu chí tìm kiếm."
+            : "Hiện chưa có cuốn sách nào trong danh mục.");
         return;
     }
 
-    const displayList = books.slice(0, 6);
+    const displayList = homepageSearchQuery ? books : books.slice(0, 6);
     displayList.forEach(function (book, index) {
         const card = createBookCard(book, index);
         if (card) {
@@ -412,6 +426,55 @@ function resetHomepageStats() {
     });
 }
 
+function initializeHomepageSearch() {
+    const form = document.getElementById("heroSearchForm");
+    const input = document.getElementById("heroSearchInput");
+    const title = document.getElementById("featuredBooksTitle");
+    const description = document.getElementById("featuredBooksDescription");
+    const placeholders = {
+        all: "Tìm nhan đề, tác giả, thể loại hoặc ISBN...",
+        title: "Tìm theo nhan đề sách...",
+        author: "Tìm theo tên tác giả...",
+        isbn: "Nhập mã ISBN..."
+    };
+
+    if (input) {
+        input.value = homepageSearchQuery;
+        input.placeholder = placeholders[homepageSearchScope];
+    }
+
+    const selectedScope = form && form.querySelector(
+        `input[name="heroSearchType"][value="${homepageSearchScope}"]`
+    );
+    if (selectedScope) {
+        selectedScope.checked = true;
+    }
+    if (form) {
+        form.querySelectorAll('input[name="heroSearchType"]').forEach(function (radio) {
+            radio.addEventListener("change", function () {
+                if (input) {
+                    input.placeholder = placeholders[radio.value] || placeholders.title;
+                }
+            });
+        });
+    }
+
+    if (homepageSearchQuery) {
+        const scopeLabels = {
+            all: "nhan đề, tác giả, thể loại hoặc ISBN",
+            title: "nhan đề",
+            author: "tác giả",
+            isbn: "ISBN"
+        };
+        if (title) {
+            title.textContent = "Kết quả tìm kiếm";
+        }
+        if (description) {
+            description.textContent = `Đang tìm theo ${scopeLabels[homepageSearchScope]} cho từ khóa "${homepageSearchQuery}".`;
+        }
+    }
+}
+
 /**
  * Cập nhật số liệu thống kê thư viện và kích hoạt số nhảy khi API trả về thành công
  */
@@ -490,7 +553,8 @@ function loadHomepageData() {
             console.error("Không thể tải thống kê công khai:", error.message);
         });
 
-    const endpointUrl = homepageApiBaseUrl + "/api/books?page=1&size=10";
+    const bookSearchParams = new URLSearchParams({ page: "1", size: "10" });
+    const endpointUrl = homepageApiBaseUrl + "/api/books?" + bookSearchParams.toString();
 
     fetch(endpointUrl)
         .then(async function (response) {
@@ -522,7 +586,7 @@ function loadHomepageData() {
 
             return payload;
         })
-        .then(function (response) {
+        .then(async function (response) {
             const books = Array.isArray(response)
                 ? response
                 : response && Array.isArray(response.content)
@@ -535,10 +599,59 @@ function loadHomepageData() {
                 throw new Error("Cấu trúc danh sách sách không đúng định dạng chuẩn.");
             }
 
+            let matchedBooks = books;
+            if (homepageSearchQuery) {
+                const totalPages = Math.max(1, Number(response.totalPages) || 1);
+                const additionalPages = await Promise.all(
+                    Array.from({ length: totalPages - 1 }, async function (_, index) {
+                        const params = new URLSearchParams(bookSearchParams);
+                        params.set("page", String(index + 2));
+                        const pageResponse = await fetch(homepageApiBaseUrl + "/api/books?" + params.toString());
+                        const pageData = await pageResponse.json().catch(() => null);
+                        if (!pageResponse.ok || !pageData) {
+                            throw new Error(`Không thể tải trang ${index + 2} của kết quả tìm kiếm.`);
+                        }
+                        const pageBooks = Array.isArray(pageData)
+                            ? pageData
+                            : pageData.content || pageData.items || pageData.books || pageData.results || pageData.data;
+                        if (!Array.isArray(pageBooks)) {
+                            throw new Error(`Cấu trúc trang ${index + 2} của kết quả tìm kiếm không hợp lệ.`);
+                        }
+                        return pageBooks;
+                    })
+                );
+                const allBooks = books.concat(...additionalPages);
+                const normalizeSearch = value => String(value || "")
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[đĐ]/g, "d").toLocaleLowerCase("vi").trim().replace(/\s+/g, " ");
+                const tokens = normalizeSearch(homepageSearchQuery).split(" ").filter(Boolean);
+                matchedBooks = allBooks.filter(book => {
+                    const searchText = homepageSearchScope === "title" ? book.title
+                        : homepageSearchScope === "author" ? book.author
+                            : homepageSearchScope === "isbn" ? book.isbn
+                                : [book.title, book.author, book.categoryName || book.category_name || book.category, book.isbn].join(" ");
+                    const normalized = normalizeSearch(searchText);
+                    return tokens.every(token => normalized.includes(token));
+                });
+
+                const description = document.getElementById("featuredBooksDescription");
+                const scopeLabel = {
+                    all: "mọi trường",
+                    title: "nhan đề",
+                    author: "tác giả",
+                    isbn: "ISBN"
+                }[homepageSearchScope];
+                if (description) {
+                    description.textContent = `Tìm thấy ${matchedBooks.length} sách theo ${scopeLabel}.`;
+                }
+            }
+
             // Hiển thị sách và số liệu thống kê thực tế
-            renderBookTicker(books);
-            renderHeroBooks(books);
-            const openBookId = new URLSearchParams(window.location.search).get("openBook");
+            renderBookTicker(matchedBooks);
+            if (!homepageSearchQuery) {
+                renderHeroBooks(books);
+            }
+            const openBookId = homepageSearchParams.get("openBook");
             if (openBookId) {
                 const selectedBook = books.find(function (book) {
                     return String(book.id) === String(openBookId);
@@ -567,6 +680,7 @@ function loadHomepageData() {
 }
 
 // Bắt đầu tải dữ liệu khi trang sẵn sàng
+initializeHomepageSearch();
 loadHomepageData();
 
 const heroSearchForm = document.getElementById("heroSearchForm");
@@ -575,8 +689,14 @@ if (heroSearchForm) {
         event.preventDefault();
         const input = document.getElementById("heroSearchInput");
         const query = input ? input.value.trim() : "";
+        const selectedScope = heroSearchForm.querySelector('input[name="heroSearchType"]:checked');
         if (query) {
-            window.location.href = "books.html?keyword=" + encodeURIComponent(query);
+            const destination = new URL(window.location.href);
+            destination.search = "";
+            destination.searchParams.set("search", query);
+            destination.searchParams.set("search_by", selectedScope ? selectedScope.value : "title");
+            destination.hash = "featured-books";
+            window.location.href = destination.toString();
         } else if (input) {
             input.focus();
         }

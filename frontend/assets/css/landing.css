@@ -50,7 +50,7 @@
     box-shadow: var(--shadow-card);
 }
 
-.hero-search-select {
+.hero-search-scopes {
     background: var(--color-bg-subtle);
 }
 
@@ -60,12 +60,30 @@
 
 .hero-art {
     min-height: 420px;
+    perspective: 1200px;
 }
 
 .hero-art::before {
-    width: 360px;
-    height: 360px;
-    background: var(--color-primary-soft);
+    width: min(430px, 92vw);
+    height: min(430px, 92vw);
+    background: radial-gradient(circle, rgba(232, 179, 92, 0.38), var(--color-primary-soft) 46%, transparent 74%);
+    box-shadow: 0 0 70px rgba(15, 92, 66, 0.2);
+}
+
+.hero-art::after {
+    position: absolute;
+    z-index: 0;
+    width: min(450px, 94vw);
+    aspect-ratio: 1;
+    border: 1px dashed rgba(200, 145, 58, 0.48);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+    animation: hero-art-orbit 28s linear infinite;
+}
+
+@keyframes hero-art-orbit {
+    to { transform: rotate(360deg); }
 }
 
 .hero-stacked-books {
@@ -77,6 +95,28 @@
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-hover);
+}
+
+.hero-book-cover-wrapper {
+    position: relative;
+    flex: 1;
+    min-height: 120px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--color-primary-soft), var(--color-bg-surface));
+}
+
+.hero-book-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-book-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 65%, rgba(0, 0, 0, 0.12));
+    pointer-events: none;
 }
 
 .hero-book-card--1 {
@@ -93,7 +133,7 @@
 
 @media (min-width: 1025px) {
     .hero-art {
-        transform: translateX(-40px) scale(0.78);
+        transform: translateX(-12px) scale(0.92);
         transform-origin: center;
     }
 }
@@ -137,6 +177,53 @@
     box-shadow: var(--shadow-card);
 }
 
+.featured-book-cover {
+    isolation: isolate;
+}
+
+.featured-book-cover img.featured-book-img {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-standard),
+                transform var(--duration-hover) var(--ease-standard);
+}
+
+.featured-book-cover img.featured-book-img.is-loaded {
+    opacity: 1;
+}
+
+.featured-book-cover.has-photo .featured-book-fallback {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, rgba(7, 27, 21, 0.1) 0%, rgba(7, 27, 21, 0.08) 34%, rgba(7, 27, 21, 0.86) 100%);
+}
+
+.featured-book-cover.has-photo .featured-book-fallback-icon,
+.featured-book-cover.has-photo .featured-book-fallback-mark {
+    display: none;
+}
+
+.featured-book-cover.has-photo .featured-book-fallback-tag {
+    align-self: flex-start;
+    margin-left: 14px;
+    background: rgba(8, 44, 32, 0.76);
+}
+
+.featured-book-cover.has-photo .featured-book-fallback-title {
+    text-align: left;
+    font-size: 19px;
+    -webkit-line-clamp: 4;
+    padding-inline: 8px;
+}
+
+.featured-book-cover.has-photo .featured-book-fallback-author {
+    text-align: left;
+    padding-left: 8px;
+}
+
 .featured-book-fallback,
 .featured-book-cover {
     background: var(--color-primary);
@@ -144,24 +231,39 @@
 
 .featured-book-fallback--green,
 .featured-book-cover--green {
-    background: linear-gradient(145deg, var(--color-primary-light), var(--color-primary-dark));
+    background:
+        radial-gradient(circle at 72% 38%, rgba(255, 255, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 18% 76%, rgba(225, 178, 87, 0.22), transparent 34%),
+        linear-gradient(145deg, var(--color-primary-light), var(--color-primary-dark));
 }
 
 .featured-book-fallback--navy {
-    background: linear-gradient(145deg, var(--color-info-light, var(--color-info)), var(--color-info-dark));
+    background:
+        radial-gradient(circle at 72% 38%, rgba(255, 255, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 18% 76%, rgba(225, 178, 87, 0.2), transparent 34%),
+        linear-gradient(145deg, var(--color-info-light, var(--color-info)), var(--color-info-dark));
 }
 
 .featured-book-fallback--amber {
-    background: linear-gradient(145deg, var(--color-accent-gold), var(--color-accent-gold-dark));
+    background:
+        radial-gradient(circle at 72% 38%, rgba(255, 255, 255, 0.2), transparent 28%),
+        radial-gradient(circle at 18% 76%, rgba(24, 55, 42, 0.2), transparent 34%),
+        linear-gradient(145deg, var(--color-accent-gold), var(--color-accent-gold-dark));
 }
 
 .featured-book-fallback--wine,
 .featured-book-fallback--purple {
-    background: linear-gradient(145deg, var(--color-danger), var(--color-danger-dark));
+    background:
+        radial-gradient(circle at 72% 38%, rgba(255, 255, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 18% 76%, rgba(225, 178, 87, 0.2), transparent 34%),
+        linear-gradient(145deg, var(--color-danger), var(--color-danger-dark));
 }
 
 .featured-book-fallback--teal {
-    background: linear-gradient(145deg, var(--color-primary-light), var(--color-info-dark));
+    background:
+        radial-gradient(circle at 72% 38%, rgba(255, 255, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 18% 76%, rgba(225, 178, 87, 0.2), transparent 34%),
+        linear-gradient(145deg, var(--color-primary-light), var(--color-info-dark));
 }
 
 .featured-book-info {

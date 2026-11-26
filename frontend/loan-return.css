@@ -400,6 +400,25 @@ tbody tr:hover {
     color: #58636b;
 }
 
+.loan-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.loan-status--pending { background: var(--color-warning-soft); color: var(--color-warning-dark); }
+.loan-status--borrowing { background: var(--color-info-soft); color: var(--color-info-dark); }
+.loan-status--returned { background: var(--color-success-soft); color: var(--color-success-dark); }
+.loan-status--rejected,
+.loan-status--overdue { background: var(--color-danger-soft); color: var(--color-danger-dark); }
+.loan-status--cancelled,
+.loan-status--unknown { background: var(--color-bg-muted); color: var(--color-text-main); }
+
 .empty {
     padding: 30px 15px;
     color: var(--loan-muted);

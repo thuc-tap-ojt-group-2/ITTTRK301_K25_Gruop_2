@@ -58,11 +58,6 @@ function isLocked(user) {
     status === 'LOCKED' || status === 'BLOCKED';
 }
 
-function initials(name) {
-  const w = String(name || '?').trim().split(/\s+/);
-  return w.slice(-2).map(x => x[0]).join('').toUpperCase();
-}
-
 /* ---------- Dữ liệu sách giả (chỉ dùng cho demo) ---------- */
 const MOCK_BOOKS = [
   ['Dế Mèn phiêu lưu ký', 'Tô Hoài', 'Văn học', 4],
@@ -248,7 +243,7 @@ function showApp(user) {
   $('publicView').hidden = true;
   $('appView').hidden = false;
   $('userName').textContent = name;
-  $('userAvatar').textContent = initials(name);
+  PTIT.setAvatar($('userAvatar'), name);
   $('userRole').textContent = role;
   $('topbarUser').textContent = name;
   $('greeting').textContent = 'Xin chào, ' + name;
@@ -475,7 +470,7 @@ $('loginForm').addEventListener('submit', async e => {
 /* =====================================================
    BOOK-01 / BOOK-02 — Tra cứu sách (phân trang, tìm kiếm)
    ===================================================== */
-const books = { all: null, filter: 'all', keyword: '', page: 1, loading: false, error: '', token: 0 };
+const books = { all: null, filter: 'all', scope: 'all', keyword: '', page: 1, loading: false, error: '', token: 0 };
 
 const COVER_COLORS = [
   ['#3f7f86', '#17525d'], ['#8a4a5e', '#6e2a40'], ['#4a5c9a', '#2d4284'], ['#8f6a1f', '#7a520f'],
@@ -511,7 +506,10 @@ function normalizeBook(raw) {
     publicationYear: pickFirst(raw, ['publicationYear', 'publication_year', 'year']),
     description: String(pickFirst(raw, ['description', 'summary']) || ''),
   };
-  book.search = normalizeText([book.title, book.author, book.category].join(' '));
+  book.searchTitle = normalizeText(book.title);
+  book.searchAuthor = normalizeText(book.author);
+  book.searchISBN = normalizeText(book.isbn);
+  book.search = normalizeText([book.title, book.author, book.category, book.isbn].join(' '));
   return book;
 }
 
@@ -576,6 +574,7 @@ async function loadBooks(force = false) {
     const all = await fetchAllBooks();
     if (id !== books.token) return;
     books.all = all;
+    renderCategoryFilters();
   } catch (err) {
     if (id !== books.token) return;
     books.all = null;
@@ -586,13 +585,17 @@ async function loadBooks(force = false) {
 }
 
 async function ensureBooksLoaded() {
-  if (!books.all) books.all = await fetchAllBooks();
+  if (!books.all) {
+    books.all = await fetchAllBooks();
+    renderCategoryFilters();
+  }
 }
 
 function resetBooks() {
   books.token++;
-  Object.assign(books, { all: null, filter: 'all', keyword: '', page: 1, loading: false, error: '' });
+  Object.assign(books, { all: null, filter: 'all', scope: 'all', keyword: '', page: 1, loading: false, error: '' });
   $('searchInput').value = '';
+  $('searchScope').value = 'all';
   updateFilterButtons();
   renderBooks();
 }
@@ -608,9 +611,12 @@ function el(tag, className, text) {
 function getFilteredBooks() {
   const tokens = normalizeText(books.keyword).split(/\s+/).filter(Boolean);
   const favorites = readFavorites();
+  const searchField = books.scope === 'title' ? 'searchTitle'
+    : books.scope === 'author' ? 'searchAuthor'
+      : books.scope === 'isbn' ? 'searchISBN' : 'search';
   return books.all.filter(book =>
     (books.filter === 'all' || (books.filter === 'favorites' ? favorites.includes(book.id) : book.category === books.filter)) &&
-    tokens.every(token => book.search.includes(token)));
+    tokens.every(token => book[searchField].includes(token)));
 }
 
 function bookCard(book) {
@@ -703,6 +709,7 @@ function renderBooks() {
 
   const filtered = getFilteredBooks();
   if (!filtered.length) {
+    $('resultInfo').textContent = books.keyword.trim() ? 'Tìm thấy 0 sách' : '0 sách';
     list.append(stateBox(books.filter === 'favorites' && !books.keyword ? 'Bạn chưa có sách yêu thích trong danh sách này.' : 'Không tìm thấy sách phù hợp.'));
     return;
   }
@@ -720,6 +727,7 @@ function renderBooks() {
 /* ---------- Tìm kiếm (BOOK-02) ---------- */
 function applySearch(value) {
   books.keyword = value;
+  books.scope = $('searchScope').value;
   books.page = 1;
   renderBooks();
 }
@@ -727,13 +735,14 @@ function applySearch(value) {
 let searchTimer = null;
 $('searchInput').addEventListener('input', e => {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => applySearch(e.target.value), 250);
+  searchTimer = setTimeout(() => applySearch(e.target.value), 300);
 });
 $('searchForm').addEventListener('submit', e => {
   e.preventDefault();
   clearTimeout(searchTimer);
   applySearch($('searchInput').value);
 });
+$('searchScope').addEventListener('change', () => applySearch($('searchInput').value));
 
 function bookCover(b) {
   return getBookCover(b);
@@ -746,7 +755,12 @@ function getBookCover(b) {
   cover.style.background = `linear-gradient(135deg, ${c1}, ${c2})`;
   cover.append(el('span', 'book-cat', b.category), el('h3', 'book-title', b.title), el('span', 'book-author', b.author));
 
-  const rawUrl = typeof b.imageUrl === 'string' ? b.imageUrl.trim() : '';
+  const description = String(b.description || '');
+  const hasSampleDescription = description.startsWith('Dữ liệu mẫu giới thiệu sách ');
+  const apiImageUrl = typeof b.imageUrl === 'string' ? b.imageUrl.trim() : '';
+  const isUnverifiedSampleThumbnail = hasSampleDescription &&
+    apiImageUrl.includes('encrypted-tbn0.gstatic.com');
+  const rawUrl = isUnverifiedSampleThumbnail || /^\/covers\//i.test(apiImageUrl) ? '' : apiImageUrl;
   if (!rawUrl) return cover;
 
   let cleanUrl = rawUrl;
@@ -790,6 +804,18 @@ function userEmail(user = getUser()) {
   return String(user && user.email || '').trim().toLowerCase();
 }
 
+function reviewUserId(user = getUser()) {
+  const id = user && (user.id ?? user.userId ?? user.user_id);
+  return id === undefined || id === null || String(id).trim() === ''
+    ? 'email:' + userEmail(user)
+    : String(id);
+}
+
+function isOwnReview(review) {
+  return String(review.userId || '') === reviewUserId() ||
+    (!review.userId && Boolean(userEmail()) && review.userEmail === userEmail());
+}
+
 function dateInVietnam(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
@@ -799,8 +825,7 @@ function dateInVietnam(date = new Date()) {
 }
 
 function isLoanOverdue(loan) {
-  return loan.status === 'BORROWING' && !loan.returnDate &&
-    Boolean(loan.dueDate) && loan.dueDate < dateInVietnam();
+  return PTIT.getLoanStatus(loan).isOverdue;
 }
 
 function withDemoLoanLock(action) {
@@ -1067,22 +1092,29 @@ function logout() {
   closeSidebar();
   showPublic();
 }
-$('logoutBtn').addEventListener('click', logout);
+$('logoutBtn').addEventListener('click', async event => {
+  const button = event.currentTarget;
+  await PTIT.confirm('Bạn có chắc chắn muốn đăng xuất?', {
+    title: 'Đăng xuất',
+    confirmText: 'Đăng xuất',
+    onConfirm: async () => {
+      button.disabled = true;
+      logout();
+    },
+  });
+});
 
 /* ---------- Giao diện độc giả theo ảnh tham chiếu ---------- */
 const READER_DEMO_EMAIL = 'docgia@ptit.edu.vn';
 const FAVORITES_KEY = 'ptit_reader_favorites_v1';
 const REVIEWS_KEY = 'ptit_reader_reviews_v1';
 const SEED_KEY = 'ptit_reader_demo_seed_v1';
-const SAMPLE_REVIEWS = [
-  { bookId: 1, stars: 5, comment: 'Tuổi thơ ùa về, bản in sạch đẹp.', date: '2026-10-13' },
-  { bookId: 3, stars: 5, comment: 'Một hành trình nhiều cảm hứng, rất đáng đọc.', date: '2026-10-15' },
-  { bookId: 4, stars: 4, comment: 'Nhiều ví dụ hữu ích cho việc viết mã dễ đọc.', date: '2026-10-17' },
-  { bookId: 5, stars: 4, comment: 'Nội dung rõ ràng, phù hợp để ôn tập.', date: '2026-10-19' },
-].map(review => ({ ...review, userEmail: READER_DEMO_EMAIL, name: 'Nguyễn Hoàng An' }));
 let myLoansPage = 1;
 let reviewBook = null;
 let reviewReturnFocus = null;
+let reviewFilterBookId = null;
+let selectedReviewStars = 0;
+let reviewStorageErrorShown = false;
 let toastTimer;
 const readerData = { loans: [], fines: [], reservations: [], totalUnpaid: 0 };
 
@@ -1219,30 +1251,60 @@ function toggleFavorite(id, button) {
   } catch { showToast('Không thể lưu sách yêu thích. Vui lòng thử lại.'); }
 }
 function updateFilterButtons() {
-  document.querySelectorAll('[data-filter]').forEach(button => {
+  document.querySelectorAll('#categoryFilters [data-filter]').forEach(button => {
     const selected = button.dataset.filter === books.filter;
     button.classList.toggle('active', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
 }
-document.querySelectorAll('[data-filter]').forEach(button => {
-  button.addEventListener('click', () => {
+function renderCategoryFilters() {
+  const container = $('categoryFilters');
+  const pinned = ['all', 'favorites'].map(filter =>
+    container.querySelector(`[data-filter="${filter}"]`)
+  ).filter(Boolean);
+  container.replaceChildren(...pinned);
+
+  const categories = [...new Set((books.all || []).map(book => book.category.trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'vi'));
+  if (books.filter !== 'all' && books.filter !== 'favorites' && !categories.includes(books.filter)) {
+    books.filter = 'all';
+  }
+  categories.forEach(category => {
+    const button = el('button', 'btn btn--sm btn--secondary filter-chip', category);
+    button.type = 'button';
+    button.dataset.filter = category;
+    button.setAttribute('aria-pressed', 'false');
+    container.append(button);
+  });
+  updateFilterButtons();
+}
+$('categoryFilters').addEventListener('click', event => {
+  const button = event.target.closest('button[data-filter]');
+  if (!button || !event.currentTarget.contains(button)) return;
     clearTimeout(searchTimer);
     books.keyword = $('searchInput').value;
     books.filter = button.dataset.filter;
     books.page = 1;
     updateFilterButtons();
     renderBooks();
-  });
 });
 
 function getReviews(bookId) {
   let saved = [];
-  try { saved = readStoredObject(REVIEWS_KEY, []); } catch { /* vẫn hiển thị mẫu */ }
-  if (!Array.isArray(saved)) saved = [];
-  const base = USE_MOCK_API ? SAMPLE_REVIEWS : [];
-  return [...base.filter(review => !saved.some(item => item.bookId === review.bookId && item.userEmail === review.userEmail)), ...saved]
-    .filter(review => review.bookId === bookId);
+  try {
+    saved = readStoredObject(REVIEWS_KEY, []);
+    if (!Array.isArray(saved)) throw new Error('Dữ liệu đánh giá đã lưu không hợp lệ.');
+  } catch (error) {
+    console.error('Không thể đọc đánh giá đã lưu:', error);
+    saved = [];
+    if (!reviewStorageErrorShown) {
+      showToast('Không thể đọc đánh giá cá nhân đã lưu trên trình duyệt.');
+      reviewStorageErrorShown = true;
+    }
+  }
+  const samples = window.PTIT_SAMPLE_REVIEWS.forBook(bookId);
+  return [...samples, ...saved.filter(review => String(review.bookId) === String(bookId))]
+    .sort((left, right) => String(right.date || '').localeCompare(String(left.date || '')));
 }
 function bookRating(bookId) {
   const reviews = getReviews(bookId);
@@ -1256,11 +1318,10 @@ function renderPopularBooks() {
 }
 
 function statusBadge(loan) {
-  const labels = { PENDING: 'Chờ duyệt', BORROWING: 'Đang mượn', RETURNED: 'Đã trả', CANCELLED: 'Đã hủy', REJECTED: 'Từ chối' };
-  const badge = el('span', 'pill status-' + loan.status.toLowerCase(), isLoanOverdue(loan) ? 'Quá hạn' : labels[loan.status] || loan.status);
-  badge.title = loan.status;
-  badge.setAttribute('aria-label', loan.status + ' — ' + badge.textContent);
-  if (isLoanOverdue(loan)) badge.classList.add('pill-out');
+  const status = PTIT.getLoanStatus(loan);
+  const badge = el('span', 'loan-status ' + status.statusClass, status.label);
+  badge.title = status.status || 'Không xác định';
+  badge.setAttribute('aria-label', status.label);
   return badge;
 }
 
@@ -1289,7 +1350,7 @@ function renderOverview() {
   if (!user) return;
   if (!USE_MOCK_API) {
     Promise.all([loadReaderData(), ensureBooksLoaded()]).then(renderOverviewContent).catch(error => {
-      ['statBorrowing', 'statPending', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
+      ['statBorrowing', 'statPending', 'statReservations', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
       $('currentLoans').replaceChildren(el('p', 'error', 'Không thể tải dữ liệu trang tổng quan: ' + error.message));
     });
     return;
@@ -1301,7 +1362,7 @@ function renderOverviewContent() {
   const user = getUser();
   if (!user) return;
   $('libraryName').textContent = user.fullName || user.name || user.email;
-  $('libraryAvatar').textContent = initials(user.fullName || user.email);
+  PTIT.setAvatar($('libraryAvatar'), user.fullName || user.email);
   $('libraryStudentId').textContent = user.studentId || user.studentCode || 'Chưa cập nhật';
   renderPopularBooks();
   const holder = $('currentLoans');
@@ -1313,7 +1374,8 @@ function renderOverviewContent() {
     const activeReservations = readerData.reservations.filter(reservation =>
       ['WAITING', 'HOLDING'].includes(reservation.status));
     $('statBorrowing').textContent = borrowing.length;
-    $('statPending').textContent = pending.length + activeReservations.length;
+    $('statPending').textContent = pending.length;
+    $('statReservations').textContent = activeReservations.length;
     $('statFines').textContent = money(totalFines(loans));
     $('statRemaining').textContent = Math.max(0, 3 - borrowing.length - pending.length);
     if (!borrowing.length) { holder.append(el('p', 'table-empty', 'Bạn chưa có sách đang mượn.')); return; }
@@ -1327,7 +1389,7 @@ function renderOverviewContent() {
     });
     holder.append(wrap);
   } catch {
-    ['statBorrowing', 'statPending', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
+    ['statBorrowing', 'statPending', 'statReservations', 'statFines', 'statRemaining'].forEach(id => { $(id).textContent = '—'; });
     holder.append(el('p', 'error', 'Không thể đọc phiếu mượn đã lưu.'));
   }
 }
@@ -1412,7 +1474,7 @@ function renderMyLoansContent() {
       list.append(wrap);
     }
 
-    const history = mine.filter(loan => ['RETURNED', 'CANCELLED', 'REJECTED'].includes(loan.status));
+    const history = mine.filter(loan => !['PENDING', 'BORROWING'].includes(PTIT.getLoanStatus(loan).status));
     list.append(el('h2', 'section-title section-title--spaced', 'Lịch sử mượn'));
     if (!history.length) {
       list.append(el('p', 'table-empty my-empty-state', 'Chưa có lịch sử mượn trả.'));
@@ -1501,8 +1563,14 @@ function renderMyLoansContent() {
 }
 
 function renderBookDetails(book) {
+  const bookKey = String(book.id);
+  if (reviewFilterBookId !== bookKey) {
+    reviewFilterBookId = bookKey;
+    selectedReviewStars = 0;
+  }
   $('registerLoanButton').hidden = book.copies === 0;
   $('reserveBookButton').hidden = book.copies !== 0;
+  $('bookDetailDescription').textContent = getBookIntroduction(book);
   const meta = $('bookDetailMeta');
   meta.replaceChildren();
   const line = (label, value) => {
@@ -1515,9 +1583,6 @@ function renderBookDetails(book) {
   line('ISBN: ', book.isbn || 'Chưa cập nhật');
   line('Nhà xuất bản: ', book.publisher || 'Chưa cập nhật');
   line('Năm xuất bản: ', book.publicationYear || 'Chưa cập nhật');
-  if (book.description) {
-    line('Mô tả: ', book.description);
-  }
   const demoBook = USE_MOCK_API && MOCK_BOOKS.find(item => item.id === book.id);
   if (demoBook) {
     line('Vị trí kệ: ', 'K' + (Math.floor((book.id - 1) / 8) + 2) + '-B' + ((book.id - 1) % 8 + 1));
@@ -1535,7 +1600,10 @@ function renderBookDetails(book) {
   const bars = el('div', 'rating-bars');
   for (let stars = 5; stars >= 1; stars--) {
     const count = reviews.filter(review => review.stars === stars).length;
-    const row = el('div', 'rating-bar-row');
+    const row = el('button', 'rating-bar-row');
+    row.type = 'button';
+    row.dataset.reviewStars = String(stars);
+    row.setAttribute('aria-pressed', String(selectedReviewStars === stars));
     const track = el('span', 'rating-track');
     const fill = el('span', 'rating-fill');
     fill.style.width = (reviews.length ? count / reviews.length * 100 : 0) + '%';
@@ -1546,58 +1614,170 @@ function renderBookDetails(book) {
   summary.append(score, bars);
   const list = $('reviewList');
   list.replaceChildren();
+  const visibleReviews = selectedReviewStars
+    ? reviews.filter(review => review.stars === selectedReviewStars)
+    : reviews;
+  if (reviews.some(review => review.isSample)) {
+    list.append(el('p', 'review-demo-note', 'Dữ liệu minh họa phục vụ demo'));
+  }
   if (!reviews.length) list.append(el('p', 'muted', 'Chưa có đánh giá. Hãy chia sẻ cảm nhận của bạn.'));
-  reviews.forEach(review => {
+  else if (!visibleReviews.length) list.append(el('p', 'muted', 'Không có nhận xét ở mức sao này.'));
+  visibleReviews.forEach(review => {
     const row = el('article', 'reader-review');
     const content = el('div', 'review-content');
     const heading = el('p', 'review-author');
     heading.append(el('strong', '', review.name), el('span', 'stars', '★'.repeat(review.stars) + '☆'.repeat(5 - review.stars)));
+    if (review.isSample) heading.append(el('span', 'review-sample-badge', 'Đánh giá mẫu'));
     content.append(heading, el('small', 'muted', displayDate(review.date)), el('p', 'review-comment', review.comment || 'Độc giả đã đánh giá ' + review.stars + ' sao.'));
-    row.append(el('span', 'avatar', initials(review.name)), content);
+    const avatar = el('span', 'avatar');
+    PTIT.setAvatar(avatar, review.name);
+    row.append(avatar, content);
+    if (!review.isSample && isOwnReview(review)) {
+      const actions = el('div', 'review-actions');
+      const edit = el('button', 'btn btn--sm btn--outline', 'Sửa');
+      edit.type = 'button';
+      edit.addEventListener('click', () => openReview(book));
+      const remove = el('button', 'btn btn--sm btn--danger', 'Xóa');
+      remove.type = 'button';
+      remove.addEventListener('click', () => deleteReview(review, book));
+      actions.append(edit, remove);
+      content.append(actions);
+    }
     list.append(row);
   });
 }
 
+$('reviewSummary').addEventListener('click', event => {
+  const button = event.target.closest('button[data-review-stars]');
+  if (!button) return;
+  const stars = Number(button.dataset.reviewStars);
+  selectedReviewStars = selectedReviewStars === stars ? 0 : stars;
+  if (loanState.book) renderBookDetails(loanState.book);
+});
+
+function deleteReview(review, book) {
+  PTIT.confirm('Bạn có chắc chắn muốn xóa đánh giá này?', {
+    confirmText: 'Xóa đánh giá',
+    onConfirm: async () => {
+      try {
+        const saved = readStoredObject(REVIEWS_KEY, []);
+        if (!Array.isArray(saved)) throw new Error('Dữ liệu đánh giá đã lưu không hợp lệ.');
+        const id = reviewUserId();
+        const email = userEmail();
+        const remaining = saved.filter(item => !(
+          String(item.bookId) === String(book.id) &&
+          (String(item.userId || '') === id || (!item.userId && item.userEmail === email))
+        ));
+        localStorage.setItem(REVIEWS_KEY, JSON.stringify(remaining));
+        selectedReviewStars = 0;
+        renderBookDetails(book);
+        renderBooks();
+        renderPopularBooks();
+        showToast('Đã xóa đánh giá của bạn.');
+      } catch (error) {
+        console.error('Không thể xóa đánh giá đã lưu:', error);
+        showToast('Không thể xóa đánh giá trên trình duyệt này.');
+      }
+    }
+  });
+}
+
+const SAMPLE_BOOK_INTRODUCTIONS = new Map([
+  ['tâm lý học đám đông', 'Khám phá cách cảm xúc, niềm tin và ảnh hưởng xã hội có thể định hình hành vi của con người khi ở trong đám đông. Nội dung phù hợp với bạn đọc quan tâm tới tâm lý học xã hội và hành vi con người.'],
+  ['chính trị học đại cương', 'Giới thiệu những khái niệm nền tảng về quyền lực, nhà nước, thể chế và đời sống chính trị. Cuốn sách giúp bạn đọc tiếp cận các vấn đề chính trị - xã hội một cách có hệ thống.'],
+  ['kinh tế việt nam trong hội nhập', 'Khái quát những chuyển động của kinh tế Việt Nam trong bối cảnh hội nhập, từ cơ hội phát triển đến các thách thức về cạnh tranh và chính sách. Hữu ích cho bạn đọc muốn hiểu bức tranh kinh tế trong nước.'],
+  ['tư duy phản biện', 'Gợi mở cách đặt câu hỏi, kiểm tra luận cứ và đánh giá thông tin trước khi đưa ra kết luận. Những kỹ năng này có thể áp dụng trong học tập, trao đổi và giải quyết vấn đề.'],
+  ['quản lý thời gian hiệu quả', 'Tổng hợp cách xác định ưu tiên, lập kế hoạch và tổ chức công việc để sử dụng thời gian chủ động hơn. Phù hợp với bạn đọc cần cân bằng nhiều đầu việc trong học tập và cuộc sống.'],
+  ['kỹ năng thuyết trình', 'Hướng dẫn cách chuẩn bị nội dung, sắp xếp ý tưởng và trình bày rõ ràng trước người nghe. Tài liệu phù hợp để rèn sự tự tin khi thuyết trình trong học tập và công việc.'],
+]);
+
+function getBookIntroduction(book) {
+  const description = String(book.description || '').trim();
+  const isPlaceholder = description.startsWith('Dữ liệu mẫu giới thiệu sách ') &&
+    description.includes('Vui lòng cập nhật bằng thông tin thư mục chính thức.');
+
+  if (description && !isPlaceholder) return description;
+
+  const titleKey = String(book.title || '').trim().toLocaleLowerCase('vi-VN');
+  const sampleIntroduction = SAMPLE_BOOK_INTRODUCTIONS.get(titleKey);
+  if (sampleIntroduction) return sampleIntroduction;
+
+  const category = book.category ? `thuộc lĩnh vực ${book.category}` : 'trong danh mục thư viện';
+  return `Tài liệu “${book.title}” ${category}, giới thiệu các kiến thức nền tảng và khái niệm trọng tâm để bạn đọc tham khảo, học tập và tìm hiểu sâu hơn về chủ đề.`;
+}
+
 async function cancelLoanRequest(loanId) {
-  if (!await PTIT.confirm('Bạn có chắc muốn hủy phiếu mượn này?', { danger: true, confirmText: 'Hủy phiếu mượn' })) return;
-  try {
-    const response = await authRequest(`/loans/${loanId}/cancel`, { method: 'PUT' });
-    if (!response.ok) throw new Error(response.message);
-    await loadReaderData();
-    renderMyLoans();
-    renderOverview();
-    showToast('Đã hủy phiếu mượn.');
-  } catch (error) {
-    showToast('Không thể hủy phiếu mượn: ' + error.message);
-  }
+  await PTIT.confirm('Bạn có chắc muốn hủy phiếu mượn này?', {
+    danger: true,
+    confirmText: 'Hủy phiếu mượn',
+    onConfirm: async () => {
+      try {
+        const response = await authRequest(`/loans/${loanId}/cancel`, { method: 'PUT' });
+        if (!response.ok) throw new Error(response.message);
+      } catch (error) {
+        showToast('Không thể hủy phiếu mượn: ' + error.message);
+        throw error;
+      }
+      try {
+        await loadReaderData();
+        renderMyLoans();
+        renderOverview();
+      } catch (error) {
+        showToast('Đã hủy phiếu mượn nhưng không thể tải lại dữ liệu: ' + error.message);
+        return;
+      }
+      showToast('Đã hủy phiếu mượn.');
+    }
+  });
 }
 
 async function extendLoanRequest(loanId) {
-  if (!await PTIT.confirm('Gia hạn phiếu mượn thêm 7 ngày?', { confirmText: 'Gia hạn' })) return;
-  try {
-    const response = await authRequest(`/loans/${loanId}/extend`, { method: 'POST' });
-    if (!response.ok) throw new Error(response.message);
-    await loadReaderData();
-    renderMyLoans();
-    renderOverview();
-    showToast('Đã gia hạn phiếu mượn thành công.');
-  } catch (error) {
-    showToast('Không thể gia hạn: ' + error.message);
-  }
+  await PTIT.confirm('Gia hạn phiếu mượn thêm 7 ngày?', {
+    confirmText: 'Gia hạn',
+    onConfirm: async () => {
+      try {
+        const response = await authRequest(`/loans/${loanId}/extend`, { method: 'POST' });
+        if (!response.ok) throw new Error(response.message);
+      } catch (error) {
+        showToast('Không thể gia hạn: ' + error.message);
+        throw error;
+      }
+      try {
+        await loadReaderData();
+        renderMyLoans();
+        renderOverview();
+      } catch (error) {
+        showToast('Đã gia hạn phiếu nhưng không thể tải lại dữ liệu: ' + error.message);
+        return;
+      }
+      showToast('Đã gia hạn phiếu mượn thành công.');
+    }
+  });
 }
 
 async function cancelReservationRequest(reservationId) {
-  if (!await PTIT.confirm('Bạn có chắc muốn hủy phiếu đặt trước này?', { danger: true, confirmText: 'Hủy đặt trước' })) return;
-  try {
-    const response = await authRequest(`/reservations/${reservationId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error(response.message);
-    await loadReaderData();
-    renderMyLoans();
-    renderOverview();
-    showToast('Đã hủy phiếu đặt trước.');
-  } catch (error) {
-    showToast('Không thể hủy phiếu đặt trước: ' + error.message);
-  }
+  await PTIT.confirm('Bạn có chắc muốn hủy phiếu đặt trước này?', {
+    danger: true,
+    confirmText: 'Hủy đặt trước',
+    onConfirm: async () => {
+      try {
+        const response = await authRequest(`/reservations/${reservationId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error(response.message);
+      } catch (error) {
+        showToast('Không thể hủy phiếu đặt trước: ' + error.message);
+        throw error;
+      }
+      try {
+        await loadReaderData();
+        renderMyLoans();
+        renderOverview();
+      } catch (error) {
+        showToast('Đã hủy đặt trước nhưng không thể tải lại dữ liệu: ' + error.message);
+        return;
+      }
+      showToast('Đã hủy phiếu đặt trước.');
+    }
+  });
 }
 
 $('reserveBookButton').addEventListener('click', async () => {
@@ -1621,7 +1801,6 @@ $('reserveBookButton').addEventListener('click', async () => {
             title: 'Không thể đặt trước',
             confirmText: 'Đã hiểu',
             cancelText: 'Đóng',
-            danger: true,
           }
         );
       } else {
@@ -1660,10 +1839,11 @@ function openReview(book) {
   reviewBook = book;
   reviewReturnFocus = document.activeElement;
   $('reviewTitle').textContent = 'Đánh giá: ' + book.title;
-  const previous = getReviews(book.id).find(review => review.userEmail === userEmail());
+  const previous = getReviews(book.id).find(isOwnReview);
   $('reviewStars').value = previous ? previous.stars : '5';
   $('reviewComment').value = previous ? previous.comment : '';
   $('reviewError').textContent = '';
+  $('reviewForm').querySelector('[type="submit"]').textContent = previous ? 'Cập nhật đánh giá' : 'Gửi đánh giá';
   if (window.PTIT?.openModal) PTIT.openModal('reviewDialog');
   else $('reviewDialog').showModal();
   document.body.style.overflow = 'hidden';
@@ -1691,10 +1871,29 @@ $('reviewForm').addEventListener('submit', event => {
   try {
     const saved = readStoredObject(REVIEWS_KEY, []);
     if (!Array.isArray(saved)) throw new Error('Dữ liệu đánh giá không hợp lệ');
-    const review = { bookId: reviewBook.id, userEmail: userEmail(), name: getUser().fullName || getUser().email, stars, comment, date: dateInVietnam() };
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify([...saved.filter(item => !(item.bookId === review.bookId && item.userEmail === review.userEmail)), review]));
+    const reviewedBook = reviewBook;
+    const user = getUser() || {};
+    const email = userEmail(user);
+    const id = reviewUserId(user);
+    const review = {
+      bookId: reviewBook.id,
+      userId: id,
+      userEmail: email,
+      name: user.fullName || user.full_name || user.name || user.email || 'Độc giả',
+      stars,
+      comment,
+      date: dateInVietnam(),
+    };
+    const remaining = saved.filter(item => !(
+      String(item.bookId) === String(review.bookId) &&
+      (String(item.userId || '') === id || (!item.userId && item.userEmail === email))
+    ));
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify([...remaining, review]));
     closeReview();
-    if (loanState.book) renderBookDetails(loanState.book);
+    selectedReviewStars = 0;
+    if (loanState.book && String(loanState.book.id) === String(reviewedBook.id)) {
+      renderBookDetails(loanState.book);
+    }
     renderBooks();
     renderPopularBooks();
     showToast('Đã lưu đánh giá của bạn.');
@@ -1784,16 +1983,7 @@ $('notificationsButton').addEventListener('click', () => openUtility('Thông bá
     content.append(el('p', 'muted', 'Dữ liệu demo được lưu trên trình duyệt này.'));
   } catch { content.append(el('p', 'error', 'Không thể đọc thông báo từ phiếu mượn.')); }
 }));
-function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  $('themeButton').setAttribute('aria-pressed', String(theme === 'dark'));
-}
-try { applyTheme(localStorage.getItem('ptit_theme') === 'dark' ? 'dark' : 'light'); } catch { applyTheme('light'); }
-$('themeButton').addEventListener('click', () => {
-  const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-  applyTheme(theme);
-  try { localStorage.setItem('ptit_theme', theme); } catch { showToast('Giao diện đã đổi, nhưng không thể lưu lựa chọn.'); }
-});
+PTIT.initThemeButton($('themeButton'));
 
 /* ---------- Khởi động: giữ đăng nhập nếu token còn hạn ---------- */
 (function init() {

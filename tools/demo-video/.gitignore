@@ -1,0 +1,6 @@
+.env.demo
+node_modules/
+audio/
+recordings/
+errors/
+renders/

@@ -10,6 +10,117 @@
 const PTIT = window.PTIT || {};
 PTIT.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+PTIT.getInitials = function (name) {
+    const words = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return "👤";
+    return (words.length === 1
+        ? words[0].slice(0, 1)
+        : words[0].slice(0, 1) + words[words.length - 1].slice(0, 1)
+    ).toLocaleUpperCase("vi-VN");
+};
+
+PTIT.getAvatarColor = function (name) {
+    const colors = ["#155E42", "#1F528D", "#6A3F86", "#8A3B24", "#145B70", "#6B3B50", "#405A27", "#4D4B78"];
+    let hash = 0;
+    for (const character of String(name || "").trim()) {
+        hash = (hash * 31 + character.codePointAt(0)) >>> 0;
+    }
+    return colors[hash % colors.length];
+};
+
+PTIT.setAvatar = function (element, name) {
+    if (!element) return;
+    element.textContent = PTIT.getInitials(name);
+    element.style.backgroundColor = PTIT.getAvatarColor(name);
+    element.style.color = "#FFFFFF";
+};
+
+PTIT.resolveTheme = function () {
+    return "light";
+};
+
+PTIT.applyTheme = function (theme, persist = false) {
+    const nextTheme = "light";
+    document.documentElement.dataset.theme = nextTheme;
+    document.querySelectorAll("#themeButton, [data-account-action='theme']").forEach(function (button) {
+        button.setAttribute("aria-pressed", String(nextTheme === "dark"));
+    });
+    if (persist) {
+        try {
+            localStorage.setItem("ptit_theme", nextTheme);
+        } catch (error) {
+            console.error("Không thể lưu giao diện đã chọn:", error);
+            PTIT.showToast("Giao diện đã đổi, nhưng không thể lưu lựa chọn trên thiết bị này.", "error");
+        }
+    }
+    return nextTheme;
+};
+
+PTIT.toggleTheme = function () {
+    PTIT.showToast("Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản.", "info");
+    return "light";
+};
+
+PTIT.initThemeButton = function (button) {
+    if (!button || button.dataset.themeBound === "true") return;
+    button.dataset.themeBound = "true";
+    button.disabled = true;
+    button.title = "Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản.";
+    button.setAttribute("aria-pressed", "false");
+};
+
+PTIT.getLoanStatus = function (loan) {
+    const status = String(loan && loan.status || "").trim().toUpperCase();
+    const labels = {
+        PENDING: ["Chờ duyệt", "badge--warning", "t-warn", "status-pending", "loan-status--pending"],
+        BORROWING: ["Đang mượn", "badge--info", "t-info", "status-borrowing", "loan-status--borrowing"],
+        RETURNED: ["Đã trả", "badge--success", "t-ok", "status-returned", "loan-status--returned"],
+        REJECTED: ["Bị từ chối", "badge--danger", "t-bad", "status-rejected", "loan-status--rejected"],
+        CANCELLED: ["Đã hủy", "badge--neutral", "t-mut", "status-cancelled", "loan-status--cancelled"]
+    };
+    const dueDate = loan && (loan.due_date || loan.dueDate);
+    const dateKey = value => {
+        if (!value) return "";
+        const text = String(value).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+            const parsedDate = new Date(`${text}T00:00:00Z`);
+            return !Number.isNaN(parsedDate.getTime()) && parsedDate.toISOString().slice(0, 10) === text ? text : "";
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "";
+        const parts = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Ho_Chi_Minh",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).formatToParts(date);
+        const part = type => parts.find(item => item.type === type).value;
+        return `${part("year")}-${part("month")}-${part("day")}`;
+    };
+    const today = dateKey(new Date());
+    const dueKey = dateKey(dueDate);
+    const overdue = status === "BORROWING" && Boolean(dueKey) && dueKey < today;
+    const displayStatus = overdue ? "OVERDUE" : status;
+    const daysUntilDue = dueKey
+        ? Math.round((Date.parse(`${dueKey}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400000)
+        : null;
+    const details = overdue
+        ? ["Quá hạn", "badge--danger", "t-bad", "status-overdue", "loan-status--overdue"]
+        : labels[status] || ["Không xác định", "badge--neutral", "t-mut", "status-unknown", "loan-status--unknown"];
+    return {
+        status,
+        displayStatus,
+        dueDateKey: dueKey,
+        daysUntilDue,
+        label: details[0],
+        badgeClass: details[1],
+        returnClass: details[2],
+        readerClass: details[3],
+        statusClass: details[4],
+        isOverdue: overdue
+    };
+};
+
 /* ====================================================================
  * L1. THANH TIẾN TRÌNH TRÊN CÙNG (TOP PROGRESS BAR)
  * ==================================================================== */
@@ -500,49 +611,128 @@ document.addEventListener("keydown", function (event) {
     }
 });
 
+let ptitConfirmDialog = null;
+let ptitConfirmResolver = null;
+let ptitConfirmOptions = null;
+let ptitConfirmBusy = false;
+
+function finishPTITConfirm(value) {
+    if (!ptitConfirmResolver || !ptitConfirmDialog) return;
+
+    const resolve = ptitConfirmResolver;
+    const dialog = ptitConfirmDialog;
+    const previousId = dialog.dataset.ptitOriginalFocus;
+    ptitConfirmResolver = null;
+    ptitConfirmOptions = null;
+    ptitConfirmBusy = false;
+
+    if (dialog.open) dialog.close();
+    dialog.querySelectorAll("button").forEach(button => {
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+    });
+
+    if (!document.querySelector("dialog.modal[open], .overlay.show, .overlay:not([hidden])")) {
+        document.body.classList.remove("ptit-modal-open");
+        document.body.style.paddingRight = "";
+    }
+
+    const previous = previousId ? document.getElementById(previousId) : null;
+    if (previous?.isConnected) previous.focus();
+    resolve(value);
+}
+
+function getPTITConfirmDialog() {
+    if (ptitConfirmDialog?.isConnected) return ptitConfirmDialog;
+
+    const dialog = document.createElement("dialog");
+    dialog.className = "modal ptit-confirm-dialog";
+    dialog.id = "ptitConfirmDialog";
+    dialog.setAttribute("aria-label", "Xác nhận thao tác");
+    dialog.innerHTML = `
+        <button type="button" class="close-btn" data-confirm-action="cancel" aria-label="Đóng">&times;</button>
+        <div class="ptit-confirm-icon" aria-hidden="true">?</div>
+        <h2 class="ptit-confirm-title"></h2>
+        <p class="text-muted ptit-confirm-message"></p>
+        <p class="message error ptit-confirm-error" role="alert" hidden></p>
+        <div class="form-actions">
+            <button type="button" class="btn btn--secondary ptit-confirm-cancel" data-confirm-action="cancel" autofocus>Hủy</button>
+            <button type="button" class="btn ptit-confirm-ok" data-confirm-action="confirm"></button>
+        </div>
+    `;
+    dialog.addEventListener("click", function (event) {
+        const action = event.target.closest("[data-confirm-action]");
+        if (action) {
+            if (ptitConfirmBusy) return;
+            if (action.dataset.confirmAction === "confirm" && typeof ptitConfirmOptions?.onConfirm === "function") {
+                runPTITConfirmAction();
+            } else {
+                finishPTITConfirm(action.dataset.confirmAction === "confirm");
+            }
+        } else if (event.target === dialog) {
+            if (!ptitConfirmBusy) finishPTITConfirm(false);
+        }
+    });
+    dialog.addEventListener("cancel", function (event) {
+        event.preventDefault();
+        if (!ptitConfirmBusy) finishPTITConfirm(false);
+    });
+    document.body.appendChild(dialog);
+    ptitConfirmDialog = dialog;
+    return dialog;
+}
+
+async function runPTITConfirmAction() {
+    if (ptitConfirmBusy || !ptitConfirmResolver || !ptitConfirmDialog) return;
+
+    ptitConfirmBusy = true;
+    const buttons = ptitConfirmDialog.querySelectorAll("button");
+    const confirmButton = ptitConfirmDialog.querySelector(".ptit-confirm-ok");
+    const error = ptitConfirmDialog.querySelector(".ptit-confirm-error");
+    const originalText = ptitConfirmOptions.confirmText || "Xác nhận";
+    buttons.forEach(button => {
+        button.disabled = true;
+        button.setAttribute("aria-busy", "true");
+    });
+    confirmButton.textContent = "Đang xử lý...";
+    error.hidden = true;
+    error.textContent = "";
+
+    try {
+        const result = await ptitConfirmOptions.onConfirm();
+        if (result === false) throw new Error("Thao tác chưa được hoàn tất.");
+        finishPTITConfirm(true);
+    } catch (errorValue) {
+        error.textContent = errorValue && errorValue.message
+            ? errorValue.message
+            : "Không thể hoàn tất thao tác. Vui lòng thử lại.";
+        error.hidden = false;
+        ptitConfirmBusy = false;
+        buttons.forEach(button => {
+            button.disabled = false;
+            button.removeAttribute("aria-busy");
+        });
+        confirmButton.textContent = originalText;
+    }
+}
+
 PTIT.confirm = function (message, options = {}) {
+    if (ptitConfirmResolver) return Promise.resolve(false);
+    const dialog = getPTITConfirmDialog();
+    if (typeof dialog.showModal !== "function") return Promise.resolve(false);
+
+    dialog.querySelector(".ptit-confirm-title").textContent = options.title || "Xác nhận thao tác";
+    dialog.querySelector(".ptit-confirm-message").textContent = message;
+    dialog.querySelector(".ptit-confirm-cancel").textContent = options.cancelText || "Hủy";
+    const confirmButton = dialog.querySelector(".ptit-confirm-ok");
+    confirmButton.textContent = options.confirmText || "Xác nhận";
+    confirmButton.className = `btn ${options.danger ? "btn--danger" : "btn--primary"} ptit-confirm-ok`;
+    dialog.querySelector(".ptit-confirm-error").hidden = true;
+    dialog.querySelector(".ptit-confirm-error").textContent = "";
+    ptitConfirmOptions = options;
+
     return new Promise(function (resolve) {
-        const testDialog = document.createElement("dialog");
-        if (typeof testDialog.showModal !== "function") {
-            resolve(false);
-            return;
-        }
-
-        const dialog = document.createElement("dialog");
-        dialog.className = "modal ptit-confirm-dialog";
-        dialog.id = "ptitConfirmDialog";
-        dialog.setAttribute("aria-label", "Xác nhận thao tác");
-        dialog.innerHTML = `
-            <button type="button" class="close-btn" data-modal-close aria-label="Đóng">&times;</button>
-            <div class="ptit-confirm-icon" aria-hidden="true">?</div>
-            <h2>${options.title || "Xác nhận thao tác"}</h2>
-            <p class="text-muted ptit-confirm-message"></p>
-            <div class="form-actions">
-                <button type="button" class="btn btn--secondary ptit-confirm-cancel">Hủy</button>
-                <button type="button" class="btn ${options.danger ? "btn--danger" : "btn--primary"} ptit-confirm-ok">${options.confirmText || "Xác nhận"}</button>
-            </div>
-        `;
-
-        dialog.querySelector(".ptit-confirm-message").textContent = message;
-        document.body.appendChild(dialog);
-
-        function finish(value) {
-            if (dialog.open && typeof dialog.close === "function") dialog.close();
-            dialog.remove();
-            resolve(value);
-        }
-
-        dialog.querySelector(".ptit-confirm-cancel").addEventListener("click", function () { finish(false); });
-        dialog.querySelector(".ptit-confirm-ok").addEventListener("click", function () { finish(true); });
-        dialog.querySelector(".close-btn").addEventListener("click", function () { finish(false); });
-        dialog.addEventListener("click", function (event) {
-            if (event.target === dialog) finish(false);
-        });
-        dialog.addEventListener("cancel", function (event) {
-            event.preventDefault();
-            finish(false);
-        });
-
+        ptitConfirmResolver = resolve;
         PTIT.openModal(dialog.id);
         dialog.querySelector(".ptit-confirm-cancel").focus();
     });
@@ -688,6 +878,8 @@ PTIT.initAccountMenu = function () {
     const topbar = document.querySelector(".topbar");
     if (!topbar) return;
 
+    PTIT.applyTheme(PTIT.resolveTheme());
+
     const iconPaths = {
         dashboard: '<path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"/>',
         books: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
@@ -714,10 +906,12 @@ PTIT.initAccountMenu = function () {
 
     let role = "";
     let name = "";
+    let accountUser = {};
     try {
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
-        name = user.full_name || user.fullName || user.name || user.username || user.email || "Người dùng";
-        role = String(user.role || "").toUpperCase();
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        accountUser = storedUser && typeof storedUser === "object" ? storedUser : {};
+        name = accountUser.full_name || accountUser.fullName || accountUser.name || accountUser.username || accountUser.email || "Người dùng";
+        role = String(accountUser.role || "").toUpperCase();
     } catch {
         name = "Người dùng";
     }
@@ -738,27 +932,35 @@ PTIT.initAccountMenu = function () {
 
     const menu = document.createElement("div");
     menu.className = "account-menu";
-    const initials = String(name).trim().split(/\s+/).slice(-2).map(function (word) {
-        return word.charAt(0) || "";
-    }).join("").toUpperCase();
+    const initials = PTIT.getInitials(name);
     const roleLabel = role === "ADMIN" ? "Quản trị viên" : role === "LIBRARIAN" ? "Thủ thư" : "Độc giả";
 
     menu.innerHTML = `
         <button type="button" class="account-menu-button" aria-expanded="false" aria-haspopup="menu">
-            <span class="avatar" aria-hidden="true">${initials || "PT"}</span>
+            <span class="avatar" aria-hidden="true" style="background-color:${PTIT.getAvatarColor(name)}">${initials}</span>
             <span class="account-menu-name">${name}</span>
             <span aria-hidden="true">⌄</span>
         </button>
         <div class="account-menu-dropdown" role="menu" hidden>
-            <button type="button" role="menuitem" data-account-action="profile">Hồ sơ <small>${roleLabel}</small></button>
-            <button type="button" role="menuitem" data-account-action="theme">Đổi giao diện</button>
-            <button type="button" role="menuitem" class="account-logout" data-account-action="logout">Đăng xuất</button>
+            <button type="button" role="menuitem" data-account-action="profile"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span><span>Hồ sơ <small>${roleLabel}</small></span></button>
+            <button type="button" role="menuitem" data-account-action="theme" aria-pressed="false" disabled title="Giao diện tối tạm thời tắt vì chưa xác minh đủ độ tương phản."><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span><span id="accountThemeLabel">Giao diện tối (đang tắt)</span></button>
+            <button type="button" role="menuitem" class="account-logout" data-account-action="logout"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg></span><span>Đăng xuất</span></button>
         </div>
     `;
 
     topbar.appendChild(menu);
     const button = menu.querySelector(".account-menu-button");
     const dropdown = menu.querySelector(".account-menu-dropdown");
+    const themeLabel = menu.querySelector("#accountThemeLabel");
+    const updateThemeLabel = function () {
+        if (themeLabel) {
+            const isDark = document.documentElement.dataset.theme === "dark";
+            themeLabel.textContent = "Giao diện tối (đang tắt)";
+            menu.querySelector("[data-account-action='theme']").setAttribute("aria-pressed", String(isDark));
+        }
+    };
+    updateThemeLabel();
+
     button.addEventListener("click", function () {
         dropdown.hidden = !dropdown.hidden;
         button.setAttribute("aria-expanded", String(!dropdown.hidden));
@@ -771,21 +973,56 @@ PTIT.initAccountMenu = function () {
         dropdown.hidden = true;
         button.setAttribute("aria-expanded", "false");
         if (action === "theme") {
-            document.body.classList.toggle("reader-compact");
-            PTIT.showToast("Đã thay đổi giao diện.", "success");
+            const nextTheme = PTIT.toggleTheme();
+            updateThemeLabel();
+            PTIT.showToast("Đã chuyển sang giao diện " + (nextTheme === "dark" ? "tối." : "sáng."), "success");
         } else if (action === "profile") {
-            PTIT.showToast("Đang mở thông tin tài khoản.", "info");
+            let profileDialog = document.getElementById("accountProfileDialog");
+            if (!profileDialog) {
+                profileDialog = document.createElement("dialog");
+                profileDialog.id = "accountProfileDialog";
+                profileDialog.className = "modal account-profile-dialog";
+                profileDialog.setAttribute("aria-labelledby", "accountProfileTitle");
+                profileDialog.innerHTML = `
+                    <button type="button" class="close-btn" data-modal-close aria-label="Đóng hồ sơ">×</button>
+                    <h2 id="accountProfileTitle">Hồ sơ tài khoản</h2>
+                    <p class="sub">Thông tin tài khoản hiện đang đăng nhập.</p>
+                    <dl class="account-profile-list">
+                        <div><dt>Họ và tên</dt><dd data-profile-field="name"></dd></div>
+                        <div><dt>Tên đăng nhập</dt><dd data-profile-field="username"></dd></div>
+                        <div><dt>Email</dt><dd data-profile-field="email"></dd></div>
+                        <div><dt>Vai trò</dt><dd data-profile-field="role"></dd></div>
+                    </dl>
+                `;
+                profileDialog.addEventListener("cancel", function (event) {
+                    event.preventDefault();
+                    PTIT.closeModal(profileDialog.id);
+                });
+                document.body.appendChild(profileDialog);
+            }
+
+            const profileValues = {
+                name: accountUser.full_name || accountUser.fullName || accountUser.name,
+                username: accountUser.username || accountUser.student_id || accountUser.studentId || accountUser.studentCode,
+                email: accountUser.email,
+                role: roleLabel,
+            };
+            Object.keys(profileValues).forEach(function (key) {
+                const field = profileDialog.querySelector(`[data-profile-field="${key}"]`);
+                if (field) field.textContent = profileValues[key] || "Chưa cập nhật";
+            });
+            PTIT.openModal(profileDialog.id);
         } else if (action === "logout") {
-            const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+            await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
                 title: "Đăng xuất",
                 confirmText: "Đăng xuất",
-                danger: true,
+                onConfirm: async () => {
+                    ["access_token", "token", "ptit_token", "user", "ptit_user"].forEach(function (key) {
+                        localStorage.removeItem(key);
+                    });
+                    window.location.replace("index.html");
+                }
             });
-            if (!confirmed) return;
-            ["access_token", "token", "ptit_token", "user", "ptit_user"].forEach(function (key) {
-                localStorage.removeItem(key);
-            });
-            window.location.replace("index.html");
         }
     });
 

@@ -1,0 +1,12 @@
+{
+  "name": "ptit-library-demo-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "phase1": "node run.js --voice-only",
+    "scene": "node run.js"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}

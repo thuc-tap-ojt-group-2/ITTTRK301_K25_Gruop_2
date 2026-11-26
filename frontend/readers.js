@@ -14,8 +14,6 @@ const READER_PAGE_SIZE = 10;
 let currentReaderPage = 1;
 let allReaders = [];
 
-const avatarColors = ["#0F5C42", "#1F528D", "#C8913A", "#6A4C93", "#1E8E5A", "#C0392B"];
-
 function showReaderError(message) {
     readerMessage.textContent = message;
     readerMessage.hidden = false;
@@ -47,9 +45,9 @@ async function showReaderHistory(reader) {
 
                 const statusCell = row.insertCell();
                 const statusBadge = document.createElement("span");
-                const st = String(loan.status || "").toUpperCase();
-                statusBadge.className = `badge ${st === "RETURNED" ? "badge--success" : st === "BORROWING" ? "badge--info" : "badge--warning"}`;
-                statusBadge.textContent = st === "RETURNED" ? "Đã trả" : st === "BORROWING" ? "Đang mượn" : "Chờ duyệt";
+                const loanStatus = PTIT.getLoanStatus(loan);
+                statusBadge.className = `badge loan-status ${loanStatus.statusClass}`;
+                statusBadge.textContent = loanStatus.label;
                 statusCell.appendChild(statusBadge);
 
                 const borrowCell = row.insertCell();
@@ -101,9 +99,6 @@ function renderReaderPage() {
             // Họ tên kèm Avatar chữ cái đầu
             const nameCell = row.insertCell();
             const displayName = reader.fullName || reader.username || "Độc giả";
-            const initial = displayName.trim().charAt(0).toUpperCase() || "U";
-            const color = avatarColors[Math.abs(displayName.charCodeAt(0)) % avatarColors.length];
-
             const nameWrap = document.createElement("div");
             nameWrap.style.display = "flex";
             nameWrap.style.alignItems = "center";
@@ -114,8 +109,7 @@ function renderReaderPage() {
             avatarEl.style.width = "34px";
             avatarEl.style.height = "34px";
             avatarEl.style.fontSize = "14px";
-            avatarEl.style.backgroundColor = color;
-            avatarEl.textContent = initial;
+            PTIT.setAvatar(avatarEl, displayName);
 
             const nameStrong = document.createElement("strong");
             nameStrong.textContent = displayName;
@@ -200,7 +194,7 @@ async function loadReaders() {
 const readerUser = getCurrentUser();
 const readerName = readerUser.full_name || readerUser.fullName || readerUser.username || "Nhân viên";
 document.getElementById("userName").textContent = readerName;
-document.getElementById("userAvatar").textContent = readerName.trim().charAt(0).toUpperCase() || "U";
+PTIT.setAvatar(document.getElementById("userAvatar"), readerName);
 
 readerSearch.addEventListener("input", () => {
     clearTimeout(readerSearchTimer);
@@ -210,15 +204,17 @@ readerSearch.addEventListener("input", () => {
 document.getElementById("refreshButton").addEventListener("click", loadReaders);
 
 document.getElementById("logoutButton").addEventListener("click", async () => {
-    const confirmed = await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", { confirmText: "Đăng xuất" });
-    if (!confirmed) return;
-
-    try {
-        await logoutAPI();
-    } catch (error) {
-        console.error("Không thể thu hồi token đăng xuất:", error);
-    }
-    window.location.replace("index.html");
+    await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        confirmText: "Đăng xuất",
+        onConfirm: async () => {
+            try {
+                await logoutAPI();
+            } catch (error) {
+                throw new Error("Không thể thu hồi token đăng xuất: " + error.message);
+            }
+            window.location.replace("index.html");
+        }
+    });
 });
 
 if (isAuthorized) loadReaders();

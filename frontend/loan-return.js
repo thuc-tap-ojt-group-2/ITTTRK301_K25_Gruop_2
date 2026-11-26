@@ -89,23 +89,7 @@ function returnGetDueDate(loan) {
 }
 
 function returnIsOverdue(loan) {
-    const dueDate = returnGetDueDate(loan);
-
-    if (!dueDate || String(loan.status || "").toUpperCase() !== "BORROWING") {
-        return false;
-    }
-
-    const due = new Date(dueDate);
-    const today = new Date();
-
-    if (Number.isNaN(due.getTime())) {
-        return false;
-    }
-
-    due.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-
-    return due < today;
+    return PTIT.getLoanStatus(loan).isOverdue;
 }
 
 function returnGetFine(loan) {
@@ -124,33 +108,7 @@ function returnGetFine(loan) {
 }
 
 function returnGetStatus(loan) {
-    const status = String(loan.status || "").toUpperCase();
-
-    if (status === "BORROWING" && returnIsOverdue(loan)) {
-        return "OVERDUE";
-    }
-
-    return status;
-}
-
-function returnGetStatusText(status) {
-    const labels = {
-        BORROWING: "Đang mượn",
-        OVERDUE: "Quá hạn",
-        RETURNED: "Đã trả"
-    };
-
-    return labels[status] || status || "Không xác định";
-}
-
-function returnGetStatusClass(status) {
-    const classes = {
-        BORROWING: "t-info",
-        OVERDUE: "t-bad",
-        RETURNED: "t-ok"
-    };
-
-    return classes[status] || "t-mut";
+    return PTIT.getLoanStatus(loan).displayStatus;
 }
 
 function returnShowMessage(message) {
@@ -183,11 +141,11 @@ async function returnLoadFine(loan) {
 
 function returnUpdateStatistics() {
     const borrowingLoans = allReturnLoans.filter(
-        loan => String(loan.status || "").toUpperCase() === "BORROWING"
+        loan => PTIT.getLoanStatus(loan).status === "BORROWING"
     );
 
     const returnedLoans = allReturnLoans.filter(
-        loan => String(loan.status || "").toUpperCase() === "RETURNED"
+        loan => PTIT.getLoanStatus(loan).status === "RETURNED"
     );
 
     const overdueLoans = borrowingLoans.filter(returnIsOverdue);
@@ -208,7 +166,8 @@ function returnGetFilteredLoans() {
     const selectedStatus = returnStatusFilter.value;
 
     return allReturnLoans.filter(loan => {
-        const status = returnGetStatus(loan);
+        const loanStatus = PTIT.getLoanStatus(loan);
+        const status = loanStatus.displayStatus;
         const loanId = String(returnGetValue(loan, ["id", "loan_id"])).toLowerCase();
         const readerName = returnGetReaderName(loan).toLowerCase();
         const readerCode = returnGetReaderCode(loan).toLowerCase();
@@ -268,8 +227,8 @@ function returnDisplayLoans() {
                     <td>${returnFormatDate(dueDate)}</td>
                     <td>${returnFormatMoney(fine)}</td>
                     <td>
-                        <span class="tag ${returnGetStatusClass(status)}">
-                            ${returnEscapeHTML(returnGetStatusText(status))}
+                        <span class="tag loan-status ${loanStatus.statusClass}">
+                            ${returnEscapeHTML(loanStatus.label)}
                         </span>
                     </td>
                     <td>
@@ -348,8 +307,7 @@ function returnUpdateUserInformation() {
         || "Thủ thư";
 
     document.getElementById("userName").textContent = displayName;
-    document.getElementById("userAvatar").textContent =
-        String(displayName).trim().charAt(0).toUpperCase() || "U";
+    PTIT.setAvatar(document.getElementById("userAvatar"), displayName);
 }
 
 returnStatusFilter.addEventListener("change", () => {
@@ -390,12 +348,24 @@ returnNextButton.addEventListener("click", () => {
     }
 });
 
-document.getElementById("logoutButton").addEventListener("click", () => {
-    if (typeof redirectToLogin === "function") {
-        redirectToLogin();
-    } else {
-        window.location.replace("index.html");
-    }
+document.getElementById("logoutButton").addEventListener("click", async () => {
+    await PTIT.confirm("Bạn có chắc chắn muốn đăng xuất?", {
+        confirmText: "Đăng xuất",
+        onConfirm: async () => {
+            if (typeof logoutAPI === "function") {
+                try {
+                    await logoutAPI();
+                } catch (error) {
+                    throw new Error("Không thể thu hồi token đăng xuất: " + error.message);
+                }
+            }
+            if (typeof redirectToLogin === "function") {
+                redirectToLogin();
+            } else {
+                window.location.replace("index.html");
+            }
+        }
+    });
 });
 
 function initializeReturnPage() {

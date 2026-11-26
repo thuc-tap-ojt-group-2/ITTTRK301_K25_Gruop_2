@@ -8,6 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="assets/js/theme-init.js?v=20261127-theme-1"></script>
     <title>Quản trị hệ thống | Thư viện PTIT</title>
     <link rel="icon" href="assets/images/logo.png">
     
@@ -17,14 +18,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
     
     <!-- Hệ thống CSS chuẩn hóa theo đúng thứ tự -->
-    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/variables.css?v=20261127-theme-1">
     <link rel="stylesheet" href="assets/css/base.css">
-    <link rel="stylesheet" href="assets/css/components.css?v=20261124-3">
+    <link rel="stylesheet" href="assets/css/components.css?v=20261127-avatar-theme-review-1">
     <link rel="stylesheet" href="assets/css/layout.css?v=20261124-3">
-    <link rel="stylesheet" href="assets/css/pages.css">
-    <link rel="stylesheet" href="assets/css/effects.css?v=20261124-3">
+    <link rel="stylesheet" href="assets/css/pages.css?v=20261127-theme-1">
+    <link rel="stylesheet" href="assets/css/effects.css?v=20261127-page-motion">
     <link rel="stylesheet" href="assets/css/preloader.css">
-    <link rel="stylesheet" href="assets/css/loader.css">
+    <link rel="stylesheet" href="assets/css/loader.css?v=20261126-bookflip">
     <link rel="stylesheet" href="assets/css/responsive.css?v=20261124-3">
 </head>
 <body data-roles="ADMIN">
@@ -99,19 +100,31 @@
             <!-- Hàng thẻ thống kê tổng quan tài khoản -->
             <section class="stats stats-grid" aria-label="Thống kê tài khoản">
                 <article class="stat card--stat">
-                    <p>Tổng số tài khoản</p>
+                    <div class="stat-heading">
+                        <span class="stat-icon stat-icon--readers" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                        <p>Tổng số tài khoản</p>
+                    </div>
                     <strong id="totalUsersCount">0</strong>
                 </article>
                 <article class="stat card--stat">
-                    <p>Quản trị viên (ADMIN)</p>
+                    <div class="stat-heading">
+                        <span class="stat-icon stat-icon--overdue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 3 7v5c0 5 3.8 8.4 9 10 5.2-1.6 9-5 9-10V7l-9-4Z"/><path d="M9 12l2 2 4-4"/></svg></span>
+                        <p>Quản trị viên (ADMIN)</p>
+                    </div>
                     <strong id="adminCount" style="color: var(--color-danger);">0</strong>
                 </article>
                 <article class="stat card--stat">
-                    <p>Thủ thư (LIBRARIAN)</p>
+                    <div class="stat-heading">
+                        <span class="stat-icon stat-icon--books" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+                        <p>Thủ thư (LIBRARIAN)</p>
+                    </div>
                     <strong id="librarianCount" style="color: var(--color-primary);">0</strong>
                 </article>
                 <article class="stat card--stat">
-                    <p>Độc giả (READER)</p>
+                    <div class="stat-heading">
+                        <span class="stat-icon stat-icon--copies" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3z"/><path d="M7 7V4h10v3M7 12h10M7 16h6"/></svg></span>
+                        <p>Độc giả (READER)</p>
+                    </div>
                     <strong id="readerCount" style="color: var(--color-info);">0</strong>
                 </article>
             </section>
@@ -120,7 +133,7 @@
             <section class="panel">
                 <div class="panel-head">
                     <div>
-                        <h2>Danh sách tài khoản</h2>
+                        <h2><span class="panel-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Danh sách tài khoản</h2>
                         <p class="panel-description">Phân quyền vai trò và khóa/mở khóa quyền truy cập của người dùng.</p>
                     </div>
                 </div>
@@ -152,7 +165,7 @@
             <section class="panel" style="margin-top: 24px;">
                 <div class="panel-head">
                     <div>
-                        <h2>Nhật ký hoạt động hệ thống</h2>
+                        <h2><span class="panel-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></span>Nhật ký hoạt động hệ thống</h2>
                         <p class="panel-description">Ghi lại các thao tác phục vụ mục đích kiểm toán và bảo mật.</p>
                     </div>
                 </div>
@@ -183,11 +196,11 @@
     <!-- Scripts -->
     <script src="auth.js"></script>
     <script src="api.js"></script>
-    <script src="assets/js/ui.js?v=20261123-modal"></script>
-    <script src="assets/js/loader.js" defer></script>
+    <script src="assets/js/ui.js?v=20261127-avatar-theme-review-1"></script>
+    <script src="assets/js/loader.js?v=20261126-bookflip" defer></script>
     <script src="assets/js/animations.js"></script>
     <script src="assets/js/effects.js"></script>
     <script src="assets/js/page-transition.js"></script>
-    <script src="admin.js"></script>
+    <script src="admin.js?v=20261127-avatar-1"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 /**
  * ====================================================================
  * THƯ VIỆN PTIT - CINEMATIC PRELOADER CONTROLLER (CHỈ Ở INDEX.HTML)
- * preloader.js: Điều khiển chuỗi hiệu ứng mở đầu "Logo -> Sách -> Cửa mở"
+ * preloader.js: Điều khiển chuỗi hiệu ứng mở đầu "Logo -> Sách lật trang -> Cửa mở"
  * Đặt trong <head> không defer để chống nhấp nháy giao diện
  * ====================================================================
  */
@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }, { once: true });
 
-    // Trường hợp prefers-reduced-motion: chỉ fade logo và rồng 0.5s
+    // Bỏ qua chuyển động trang sách nếu người dùng bật giảm chuyển động.
     if (prefersReducedMotion) {
         addTimeout(finishPreloader, 500);
         return;
@@ -108,14 +108,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // ================= CHUỖI HIỆU ỨNG CHUẨN 2,6S - 3,0S =================
     // B1: 0,0 - 0,5s: Logo hiện bằng fade + scale (CSS tự chạy)
 
-    // B2: 0,5 - 1,7s: Cuốn sách xuất hiện, rồng bay vào và đáp tại trung tâm
+    // B2: Cuốn sách mở ra và lần lượt lật từng trang.
     addTimeout(function () {
         if (bookContainer) {
             bookContainer.classList.add("is-visible", "is-opened", "is-flipping");
-        }
-        const dragon = preloaderEl.querySelector(".preloader-dragon");
-        if (dragon) {
-            dragon.classList.add("is-visible", "is-flying");
         }
 
         // Chạy thanh tiến trình từ 0% -> 100%
@@ -133,18 +129,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }, 500);
 
-    // B3: 1,6 - 2,0s: Logo, sách, chữ mờ dần và nhỏ đi nhẹ
+    // B3: Chờ sách lật hết trang rồi làm mờ phần giới thiệu.
     addTimeout(function () {
         preloaderEl.classList.add("is-fading-stage");
-    }, 2200);
+    }, 2600);
 
-    // B4: 2,0 - 2,8s: Hai cánh cửa trượt sang 2 bên
+    // B4: Hai cánh cửa trượt sang hai bên.
     addTimeout(function () {
         preloaderEl.classList.add("is-opening");
         document.documentElement.classList.remove("preloader-locked");
         document.body.classList.remove("preloader-locked");
         document.body.classList.add("hero-entrance-active");
-    }, 2500);
+    }, 2850);
 
     // B5: Hoàn tất sau 3,3s
     addTimeout(finishPreloader, 3300);
