@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
@@ -16,20 +16,11 @@ staff_only = RoleChecker(["LIBRARIAN", "ADMIN"])
 @router.get("", response_model=PageResponse)
 def get_books(
     page: int = Query(1, ge=1, description="Số trang (bắt đầu từ 1)"),
-    size: int = Query(10, ge=1, le=100, description="Số sách mỗi trang"),
-    keyword: Optional[str] = Query(None, description="Từ khóa tìm kiếm theo tên, tác giả, thể loại, ISBN"),
-    categoryId: Optional[int] = Query(None, gt=0, description="Lọc theo mã thể loại"),
-    availability: Optional[Literal["available", "empty"]] = Query(None, description="Lọc theo tình trạng còn/hết sách"),
+    size: int = Query(10, ge=1, le=10, description="Số sách mỗi trang"),
+    keyword: Optional[str] = Query(None, description="Từ khóa tìm kiếm theo tên, tác giả, thể loại"),
     db: Session = Depends(get_db)
 ):
-    return crud.get_books_paginated(
-        db=db,
-        page=page,
-        size=size,
-        keyword=keyword,
-        category_id=categoryId,
-        availability=availability,
-    )
+    return crud.get_books_paginated(db=db, page=page, size=size, keyword=keyword)
 
 
 @router.get("/categories", response_model=List[schemas.CategoryResponse])

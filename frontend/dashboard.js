@@ -161,28 +161,17 @@ async function loadDashboard() {
                     cell.className = "empty";
                     cell.textContent = "Hiện không có phiếu mượn nào đang trong trạng thái mượn.";
                 } else {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const sortedLoans = [...loanList].sort((a, b) => {
-                        const da = a.due_date ? new Date(a.due_date).getTime() : Number.MAX_SAFE_INTEGER;
-                        const db = b.due_date ? new Date(b.due_date).getTime() : Number.MAX_SAFE_INTEGER;
-                        return da - db;
-                    });
-                    sortedLoans.slice(0, 5).forEach(loan => {
+                    loanList.slice(0, 5).forEach(loan => {
                         const row = upcomingDueBody.insertRow();
                         dashboardCell(row, "#" + (loan.id || loan.loan_id || "—"));
                         dashboardCell(row, loan.user?.full_name || loan.reader?.full_name || loan.username || "Độc giả");
                         dashboardCell(row, loan.book?.title || loan.book_title || "Sách");
                         dashboardCell(row, loan.due_date ? new Date(loan.due_date).toLocaleDateString("vi-VN") : "14 ngày");
-
-                        const dueDateObj = loan.due_date ? new Date(loan.due_date) : null;
-                        if (dueDateObj) dueDateObj.setHours(0, 0, 0, 0);
-                        const isOverdue = Boolean(dueDateObj && !Number.isNaN(dueDateObj.getTime()) && dueDateObj < today);
-
+                        
                         const statusCell = row.insertCell();
                         const badge = document.createElement("span");
-                        badge.className = isOverdue ? "badge badge--danger" : "badge badge--info";
-                        badge.textContent = isOverdue ? "Quá hạn" : "Đang mượn";
+                        badge.className = "badge badge--info";
+                        badge.textContent = "Đang mượn";
                         statusCell.appendChild(badge);
                     });
                 }

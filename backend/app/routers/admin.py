@@ -93,7 +93,7 @@ def update_user_lock(
 
 @router.get("/logs", response_model=List[AuditLogResponse])
 def list_audit_logs(
-    limit: int = Query(100, ge=1, le=200),
+    limit: int = Query(10, ge=1, le=10),
     db: Session = Depends(get_db),
     _current_user: User = Depends(admin_only),
 ):

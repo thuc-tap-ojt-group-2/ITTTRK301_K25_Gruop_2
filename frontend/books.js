@@ -10,7 +10,6 @@ let categories = [];
 let editingId = null;
 let currentPage = 1;
 const pageSize = 10;
-let catalogStats = { totalTitles: 0, totalCopies: 0 };
 
 const bookTable = document.getElementById("bookTable");
 const bookModal = document.getElementById("bookModal");
@@ -90,27 +89,16 @@ function escapeHTML(value) {
 
 function updateStatistics() {
     document.getElementById("totalTitles").textContent =
-        Number(catalogStats.totalTitles || books.length).toLocaleString("vi-VN");
+        Number(books.length).toLocaleString("vi-VN");
 
     document.getElementById("totalCopies").textContent =
-        Number(
-            catalogStats.totalCopies ||
-            books.reduce((sum, book) => sum + Number(book.totalCopies || 0), 0)
-        ).toLocaleString("vi-VN");
+        Number(books.reduce(
+            (sum, book) => sum + Number(book.totalCopies || 0),
+            0
+        )).toLocaleString("vi-VN");
 
     document.getElementById("totalCategories").textContent =
         categories.length;
-}
-
-async function loadCatalogStats() {
-    try {
-        const overview = await getStatsOverview();
-        catalogStats.totalTitles = Number(overview.totalTitles ?? 0);
-        catalogStats.totalCopies = Number(overview.totalCopies ?? overview.totalBooks ?? 0);
-    } catch {
-        // Fallback handled in updateStatistics
-    }
-    updateStatistics();
 }
 
 function updateUserInformation() {
@@ -159,7 +147,7 @@ async function loadCategories() {
 
         if (filterCategorySelect) {
             const filterOption = document.createElement("option");
-            filterOption.value = category.id;
+            filterOption.value = category.name;
             filterOption.textContent = category.name;
             filterCategorySelect.appendChild(filterOption);
         }
@@ -287,19 +275,13 @@ async function loadBooks() {
 
     try {
         const keyword = searchInput ? searchInput.value.trim() : "";
-        const categoryId = filterCategorySelect ? filterCategorySelect.value : "";
-        const availability = filterAvailabilitySelect ? filterAvailabilitySelect.value : "";
-        const response = await getBooks(currentPage, pageSize, keyword, categoryId, availability);
+        const response = await getBooks(currentPage, pageSize, keyword);
 
         books = Array.isArray(response)
             ? response
             : response.content || response.items || response.books || [];
 
-        if (!keyword && !categoryId && !availability && response && response.totalElements !== undefined && !catalogStats.totalTitles) {
-            catalogStats.totalTitles = Number(response.totalElements);
-        }
-
-        displayBooks();
+        displayBooks(searchInput.value);
         updateStatistics();
 
         const totalItems = Number(response.totalElements ?? books.length);
@@ -354,8 +336,34 @@ async function loadBooks() {
     }
 }
 
-function displayBooks() {
-    const result = books;
+function displayBooks(keyword = "") {
+    const normalizedKeyword = keyword.trim().toLowerCase();
+    const selectedCategory = filterCategorySelect ? filterCategorySelect.value.trim().toLowerCase() : "";
+    const selectedAvail = filterAvailabilitySelect ? filterAvailabilitySelect.value : "";
+
+    const result = books.filter(book => {
+        const title = String(book.title || "").toLowerCase();
+        const author = String(book.author || "").toLowerCase();
+        const category = String(book.categoryName || "").toLowerCase();
+        const code = getBookCode(book.id).toLowerCase();
+        const available = Number(book.availableCopies || 0);
+
+        const matchesKeyword =
+            title.includes(normalizedKeyword)
+            || author.includes(normalizedKeyword)
+            || category.includes(normalizedKeyword)
+            || code.includes(normalizedKeyword);
+
+        const matchesCategory =
+            !selectedCategory || category === selectedCategory;
+
+        const matchesAvail =
+            !selectedAvail
+            || (selectedAvail === "available" && available > 0)
+            || (selectedAvail === "empty" && available <= 0);
+
+        return matchesKeyword && matchesCategory && matchesAvail;
+    });
 
     if (result.length === 0) {
         bookTable.innerHTML = `
@@ -436,16 +444,9 @@ function openAddModal() {
     bookModal.classList.add("show");
 }
 
-function closeModal(force = false) {
+function closeModal() {
     if (window.PTIT?.closeModal) {
-        PTIT.closeModal("bookModal", { force });
-        if (force) {
-            editingId = null;
-            if (bookCoverPreviewImage) {
-                bookCoverPreviewImage.src = bookPlaceholderUrl;
-            }
-            hideModalMessage();
-        }
+        PTIT.closeModal("bookModal");
         return;
     }
     bookModal.classList.remove("show");
@@ -547,9 +548,9 @@ function validateBook() {
         }
     }
 
-    if (imageUrl && !/^(https?:\/\/|\/|assets\/|covers\/)/i.test(imageUrl)) {
+    if (imageUrl && !bookImage.checkValidity()) {
         showModalMessage(
-            "Đường dẫn ảnh bìa phải bắt đầu bằng http(s):// hoặc /covers/.",
+            "Đường dẫn ảnh bìa không hợp lệ.",
             "error"
         );
         return null;
@@ -595,7 +596,7 @@ async function removeBook(id, button = null) {
         }
 
         showMessage("Xóa sách thành công.");
-        await Promise.all([loadCatalogStats(), loadBooks()]);
+        await loadBooks();
     } catch (error) {
         showMessage(
             "Không thể xóa sách: " + error.message,
@@ -624,15 +625,15 @@ bookForm.addEventListener("submit", async function(event) {
     try {
         if (editingId === null) {
             await createBook(bookData);
-            closeModal(true);
+            closeModal();
             showMessage("Thêm sách mới thành công.");
         } else {
             await updateBook(editingId, bookData);
-            closeModal(true);
+            closeModal();
             showMessage("Cập nhật thông tin sách thành công.");
         }
 
-        await Promise.all([loadCatalogStats(), loadBooks()]);
+        await loadBooks();
     } catch (error) {
         showModalMessage(error.message, "error");
     } finally {
@@ -670,18 +671,24 @@ searchInput.addEventListener("input", function() {
 });
 
 if (filterCategorySelect) {
-    filterCategorySelect.addEventListener("change", async function() {
+    filterCategorySelect.addEventListener("change", function() {
         currentPage = 1;
-        await loadBooks();
+        displayBooks(searchInput.value);
     });
 }
 
 if (filterAvailabilitySelect) {
-    filterAvailabilitySelect.addEventListener("change", async function() {
+    filterAvailabilitySelect.addEventListener("change", function() {
         currentPage = 1;
-        await loadBooks();
+        displayBooks(searchInput.value);
     });
 }
+
+bookModal.addEventListener("click", function(event) {
+    if (event.target === bookModal) {
+        closeModal();
+    }
+});
 
 document.getElementById("previousPage").addEventListener("click", async function() {
     if (currentPage > 1) {
@@ -714,14 +721,9 @@ async function initializePage() {
 
     updateUserInformation();
 
-    const initialKeyword = new URLSearchParams(window.location.search).get("keyword");
-    if (initialKeyword && searchInput) {
-        searchInput.value = initialKeyword.trim();
-    }
-
     try {
         await loadCategories();
-        await Promise.all([loadCatalogStats(), loadBooks()]);
+        await loadBooks();
     } catch (error) {
         showMessage(error.message, "error");
     }

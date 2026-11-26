@@ -16,7 +16,7 @@
         loader.setAttribute("aria-live", "polite");
         loader.innerHTML = `
             <div class="ptit-page-loader__card">
-                <img class="ptit-page-loader__dragon" src="assets/images/dragon.png" alt="" width="132" height="116" loading="eager">
+                <img class="ptit-page-loader__dragon" src="assets/images/dragon.svg" alt="" width="132" height="116" loading="eager">
                 <p>Đang tải...</p>
                 <div class="ptit-page-loader__track"><div class="ptit-page-loader__bar"></div></div>
             </div>

@@ -41,7 +41,6 @@ class BookResponse(BaseModel):
     id: int
     title: str
     author: str
-    categoryId: Optional[int] = None
     categoryName: str
     totalCopies: int
     availableCopies: int

@@ -79,8 +79,6 @@ function redirectToLogin() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("ptit_token");
-    localStorage.removeItem("ptit_user");
 
     window.location.replace("index.html");
 }

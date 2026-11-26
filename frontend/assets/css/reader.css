@@ -2088,61 +2088,35 @@ dialog.review-dialog#reviewDialog[open] {
 }
 
 html[data-theme="dark"] #appView {
-    background: #0c1412;
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #appView .sidebar {
-    background:
-        radial-gradient(circle at 5% 10%, rgba(59, 192, 143, 0.14), transparent 36%),
-        linear-gradient(165deg, #10241d 0%, #0b1915 60%, #091411 100%);
-    border-right: 1px solid rgba(162, 202, 186, 0.14);
-    box-shadow: none;
+    background: #0e1912;
+    color: #e2eee5;
 }
 
 html[data-theme="dark"] #appView > .main {
-    background: #0c1412;
+    background: #101b14;
 }
 
 html[data-theme="dark"] #appView .topbar {
-    border-bottom-color: rgba(162, 202, 186, 0.12);
-    background: rgba(15, 25, 22, 0.9);
+    border-bottom-color: rgba(224, 238, 229, 0.1);
+    background: rgba(19, 32, 24, 0.92);
 }
 
 html[data-theme="dark"] #appView .topbar-title,
 html[data-theme="dark"] #appView .page h1,
 html[data-theme="dark"] #appView .section-title {
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #appView .section-title::before {
-    background: rgba(34, 153, 109, 0.18);
-    color: #74e0b7;
+    color: #e3f0e7;
 }
 
 html[data-theme="dark"] #appView .content {
     background:
-        radial-gradient(ellipse at 92% 3%, rgba(34, 153, 109, 0.16), transparent 28rem),
-        linear-gradient(145deg, #0e1815 0%, #0c1412 58%, #101b18 100%);
-}
-
-html[data-theme="dark"] #appView .reader-eyebrow {
-    color: #74e0b7;
-}
-
-html[data-theme="dark"] #appView .reader-art {
-    border-color: rgba(162, 202, 186, 0.14);
-    background: linear-gradient(145deg, #162923, #111e1a);
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
-    color: #74e0b7;
+        radial-gradient(ellipse at 92% 3%, rgba(30, 94, 60, 0.25), transparent 28rem),
+        linear-gradient(145deg, #14231a 0%, #101b14 58%, #16251b 100%);
 }
 
 html[data-theme="dark"] #appView .reader-page-heading .text-muted,
 html[data-theme="dark"] #appView .stat-copy > span,
-html[data-theme="dark"] #appView .my-summary-card > span:not(.summary-icon),
-html[data-theme="dark"] #appView .my-summary-card small,
 html[data-theme="dark"] #appView .result-info {
-    color: #a3b8b0;
+    color: #a7bcad;
 }
 
 html[data-theme="dark"] #appView .card--stat,
@@ -2150,239 +2124,97 @@ html[data-theme="dark"] #appView .book-card,
 html[data-theme="dark"] #appView .book-open,
 html[data-theme="dark"] #appView .my-summary-card,
 html[data-theme="dark"] #appView .table-scroll {
-    border-color: rgba(162, 202, 186, 0.14);
-    background: #14211d;
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #appView .stat-icon,
-html[data-theme="dark"] #appView .summary-icon {
-    background: rgba(46, 184, 114, 0.16);
-    color: #74e8ab;
-}
-
-html[data-theme="dark"] #appView .card--stat:nth-child(2) .stat-icon,
-html[data-theme="dark"] #appView .my-summary-card:nth-child(2) .summary-icon {
-    background: rgba(234, 179, 8, 0.16);
-    color: #fde047;
-}
-
-html[data-theme="dark"] #appView .card--stat:nth-child(3) .stat-icon,
-html[data-theme="dark"] #appView .my-summary-card:nth-child(3) .summary-icon {
-    background: rgba(75, 150, 232, 0.16);
-    color: #93c5fd;
-}
-
-html[data-theme="dark"] #appView .card--stat:nth-child(4) .stat-icon,
-html[data-theme="dark"] #appView .my-summary-card:nth-child(4) .summary-icon {
-    background: rgba(167, 139, 250, 0.16);
-    color: #c4b5fd;
-}
-
-html[data-theme="dark"] #appView .library-card {
-    border-color: rgba(162, 202, 186, 0.22);
-    background:
-        radial-gradient(circle at 90% 8%, rgba(59, 192, 143, 0.22), transparent 36%),
-        linear-gradient(130deg, #103b2c 0%, #0e4c36 58%, #0a2e22 100%);
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
+    border-color: rgba(225, 238, 228, 0.1);
+    background: #1a2a20;
+    color: #e2eee5;
 }
 
 html[data-theme="dark"] #appView .stat-copy strong,
 html[data-theme="dark"] #appView .my-summary-card strong,
 html[data-theme="dark"] #appView .reader-table td {
-    color: #e6f0ec;
+    color: #deeee3;
 }
 
 html[data-theme="dark"] #appView .reader-table th {
-    border-bottom-color: rgba(162, 202, 186, 0.14);
-    background: #1b2c27;
-    color: #a3b8b0;
+    border-bottom-color: rgba(225, 238, 228, 0.1);
+    background: #24382a;
+    color: #b2c7b8;
 }
 
 html[data-theme="dark"] #appView .reader-table td {
-    border-top-color: rgba(162, 202, 186, 0.08);
-    background: transparent;
+    border-top-color: rgba(225, 238, 228, 0.08);
 }
 
 html[data-theme="dark"] #appView .reader-table tbody tr:hover {
-    background: rgba(34, 153, 109, 0.1);
-}
-
-html[data-theme="dark"] #appView .pill {
-    border-color: rgba(116, 232, 171, 0.28);
-    background: rgba(46, 184, 114, 0.16);
-    color: #74e8ab;
-}
-
-html[data-theme="dark"] #appView .pill-out,
-html[data-theme="dark"] #appView .status-rejected,
-html[data-theme="dark"] #appView .status-cancelled {
-    border-color: rgba(252, 165, 165, 0.28);
-    background: rgba(226, 93, 80, 0.16);
-    color: #fca5a5;
-}
-
-html[data-theme="dark"] #appView .status-pending {
-    border-color: rgba(253, 224, 71, 0.28);
-    background: rgba(234, 179, 8, 0.16);
-    color: #fde047;
-}
-
-html[data-theme="dark"] #appView .status-borrowing {
-    border-color: rgba(147, 197, 253, 0.28);
-    background: rgba(75, 150, 232, 0.16);
-    color: #93c5fd;
-}
-
-html[data-theme="dark"] #appView .favorite-button {
-    border-color: rgba(162, 202, 186, 0.25);
-    background: rgba(19, 31, 28, 0.88);
-    color: #ff8c87;
+    background: #213328;
 }
 
 html[data-theme="dark"] #appView .reader-search-box,
 html[data-theme="dark"] #appView .filter-chip,
 html[data-theme="dark"] #appView .utility-btn,
-html[data-theme="dark"] #appView .account-menu-button,
-html[data-theme="dark"] #appView .menu-toggle {
-    border-color: rgba(162, 202, 186, 0.16);
-    background: #162420;
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #appView .filter-chip.active,
-html[data-theme="dark"] #appView .page-btn.active {
-    border-color: #3bc08f;
-    background: linear-gradient(130deg, #22996d, #187250);
-    color: #ffffff;
+html[data-theme="dark"] #appView .account-menu-button {
+    border-color: rgba(225, 238, 228, 0.12);
+    background: #1a2a20;
+    color: #dcebe1;
 }
 
 html[data-theme="dark"] #appView .reader-search-box .hero-search-input {
-    color: #e6f0ec;
+    color: #e2eee5;
 }
 
 html[data-theme="dark"] #appView .table-empty,
 html[data-theme="dark"] #appView .my-empty-state,
 html[data-theme="dark"] #appView .empty {
-    border-color: rgba(162, 202, 186, 0.2);
-    background: rgba(22, 36, 32, 0.85);
-    color: #a3b8b0;
+    border-color: rgba(168, 205, 180, 0.22);
+    background: rgba(27, 46, 34, 0.88);
+    color: #b6c8bb;
 }
 
 html[data-theme="dark"] #appView .page-btn {
-    border-color: rgba(162, 202, 186, 0.16);
-    background: #162420;
-    color: #e6f0ec;
+    border-color: rgba(225, 238, 228, 0.12);
+    background: #1a2a20;
+    color: #dcebe1;
 }
 
 html[data-theme="dark"] dialog.utility-dialog#utilityDialog,
 html[data-theme="dark"] dialog#bookDialog,
 html[data-theme="dark"] dialog.review-dialog#reviewDialog {
-    border-color: rgba(162, 202, 186, 0.16);
-    background: #131f1c;
-    color: #e6f0ec;
+    border-color: rgba(225, 238, 228, 0.12);
+    background: #18271d;
+    color: #e2eee5;
 }
 
 html[data-theme="dark"] #utilityTitle,
 html[data-theme="dark"] #bookDetailTitle,
 html[data-theme="dark"] #reviewTitle {
-    border-bottom-color: rgba(162, 202, 186, 0.12);
-    background: linear-gradient(110deg, #192b26, #131f1c 72%);
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] dialog#bookDialog > .close-btn,
-html[data-theme="dark"] dialog.utility-dialog#utilityDialog > .close-btn {
-    border-color: rgba(162, 202, 186, 0.18);
-    background: #1b2c27;
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #bookDetailCover {
-    border-right-color: rgba(162, 202, 186, 0.12);
-    background:
-        radial-gradient(circle at 50% 12%, rgba(34, 153, 109, 0.18), transparent 56%),
-        #101b18;
-}
-
-html[data-theme="dark"] #bookDetailCover .book-cover,
-html[data-theme="dark"] #bookDetailCover .book-cover-image {
-    border-color: rgba(162, 202, 186, 0.16);
-    background-color: #162420;
-}
-
-html[data-theme="dark"] #bookDetailAvailability {
-    border-color: rgba(116, 232, 171, 0.25);
-    background: rgba(34, 153, 109, 0.16);
-    color: #8be6bf;
-}
-
-html[data-theme="dark"] #bookDetailMeta {
-    color: #a3b8b0;
-}
-
-html[data-theme="dark"] #bookDetailMeta p,
-html[data-theme="dark"] #bookDetailActions .reader-review {
-    border-bottom-color: rgba(162, 202, 186, 0.1);
+    border-bottom-color: rgba(225, 238, 228, 0.1);
+    background: linear-gradient(110deg, #1d3325, #18271d 72%);
+    color: #e3f0e7;
 }
 
 html[data-theme="dark"] #utilityContent .profile-row,
 html[data-theme="dark"] #utilityContent .password-change-form,
 html[data-theme="dark"] #utilityContent .notification-item,
 html[data-theme="dark"] #bookDetailActions .review-summary {
-    border-color: rgba(162, 202, 186, 0.12);
-    background: #182723;
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #utilityContent .profile-row .muted,
-html[data-theme="dark"] #utilityContent .password-change-form label,
-html[data-theme="dark"] #reviewDialog label,
-html[data-theme="dark"] #bookDetailActions .rating-score small,
-html[data-theme="dark"] #bookDetailActions .rating-bar-row,
-html[data-theme="dark"] #bookDetailActions .review-comment,
-html[data-theme="dark"] #bookDialog #loanHint {
-    color: #a3b8b0;
+    border-color: rgba(225, 238, 228, 0.1);
+    background: #203328;
+    color: #dcebe1;
 }
 
 html[data-theme="dark"] #utilityContent .profile-row strong,
 html[data-theme="dark"] #utilityContent .password-change-form h3,
 html[data-theme="dark"] #bookDetailTitle,
 html[data-theme="dark"] #bookDetailMeta strong,
-html[data-theme="dark"] #bookDetailActions .review-heading,
-html[data-theme="dark"] #bookDetailActions .rating-score strong,
-html[data-theme="dark"] #bookDetailActions .review-author,
-html[data-theme="dark"] #bookDialog #loanDaysFieldset legend {
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #bookDetailActions .rating-track {
-    background: #233831;
-}
-
-html[data-theme="dark"] #bookDetailActions .reader-review .avatar {
-    background: rgba(34, 153, 109, 0.22);
-    color: #8be6bf;
-}
-
-html[data-theme="dark"] #bookDialog .loan-day-option span {
-    border-color: rgba(162, 202, 186, 0.16);
-    background: #192924;
-    color: #e6f0ec;
-}
-
-html[data-theme="dark"] #bookDialog .loan-day-option input:checked + span {
-    border-color: #3bc08f;
-    background: rgba(34, 153, 109, 0.22);
-    color: #8be6bf;
+html[data-theme="dark"] #bookDetailActions .review-heading {
+    color: #e2eee5;
 }
 
 html[data-theme="dark"] #utilityContent .password-change-form input,
 html[data-theme="dark"] #reviewDialog select,
 html[data-theme="dark"] #reviewDialog textarea {
-    border-color: rgba(162, 202, 186, 0.16);
-    background: #0f1916;
-    color: #e6f0ec;
+    border-color: rgba(225, 238, 228, 0.15);
+    background: #132119;
+    color: #e2eee5;
 }
 
 @media (max-width: 640px) {

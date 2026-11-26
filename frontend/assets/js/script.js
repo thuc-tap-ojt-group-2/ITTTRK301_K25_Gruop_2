@@ -252,10 +252,6 @@ function showApp(user) {
   $('topbarUser').textContent = name;
   $('greeting').textContent = 'Xin chào, ' + name;
   $('greetingRole').textContent = 'Vai trò: ' + role;
-  if (typeof window.PTIT?.refreshAccountMenu === 'function') {
-    window.PTIT.refreshAccountMenu();
-  }
-  loadCategoryFilters();
   navigate('overview');
 }
 
@@ -322,7 +318,7 @@ function openModal(name) {
 
 function closeModal() {
   if (window.PTIT?.closeModal) {
-    PTIT.closeModal('overlay', { force: true });
+    PTIT.closeModal('overlay');
     return;
   }
   if (overlay) {
@@ -452,7 +448,7 @@ $('loginForm').addEventListener('submit', async e => {
 
   const d = res.data.data && typeof res.data.data === 'object' ? res.data.data : res.data;
   const token = d.access_token || d.token || d.accessToken || d.jwt;
-  if (!token) { err.textContent = 'Phản hồi đăng nhập không có token.'; err.hidden = false; return; }
+  if (!token) { err.textContent = 'Phản hồi đăng nhập không có token.'; return; }
 
   const payload = decodeJwt(token) || {};
   const user = d.user || {
@@ -464,7 +460,7 @@ $('loginForm').addEventListener('submit', async e => {
   };
   user.role = normalizeRole(user.role);
 
-  if (isLocked(user)) { err.textContent = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thư viện.'; err.hidden = false; return; }
+  if (isLocked(user)) { err.textContent = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ thư viện.'; return; }
 
   localStorage.setItem(STORAGE_TOKEN, token);
   localStorage.setItem(STORAGE_USER, JSON.stringify(user));
@@ -890,12 +886,11 @@ function openBookDetail(book) {
 
 function closeBookDetail(force = false) {
   if (loanState.busy && !force) return;
-  const skipDirtyCheck = force || ($('loanResult') && !$('loanResult').hidden);
   loanState.version++;
   loanState.book = null;
   setLoanBusy(false);
   if ($('bookDialog').open) {
-    if (window.PTIT?.closeModal) PTIT.closeModal('bookDialog', { force: skipDirtyCheck });
+    if (window.PTIT?.closeModal) PTIT.closeModal('bookDialog');
     else $('bookDialog').close();
   }
   document.body.style.overflow = '';
@@ -924,12 +919,12 @@ function showLoanError(message, code = '') {
   const fullMessage = (code ? code + ' — ' : '') + message;
   $('loanError').textContent = fullMessage;
 
-  const notify = window.PTIT?.alert || window.PTIT?.confirm;
-  if (notify) {
+  if (window.PTIT?.confirm) {
     closeBookDetail(true);
-    notify(fullMessage, {
+    PTIT.confirm(fullMessage, {
       title: 'Không thể đăng ký mượn',
       confirmText: 'Đã hiểu',
+      cancelText: 'Đóng',
       danger: true,
     });
   }
@@ -1209,44 +1204,11 @@ function updateFilterButtons() {
   document.querySelectorAll('[data-filter]').forEach(button => {
     const selected = button.dataset.filter === books.filter;
     button.classList.toggle('active', selected);
-    button.classList.toggle('btn--primary', selected);
-    button.classList.toggle('btn--secondary', !selected);
     button.setAttribute('aria-pressed', String(selected));
   });
 }
-
-async function loadCategoryFilters() {
-  const container = $('categoryFilters');
-  if (!container) return;
-  let categories = [];
-  if (!USE_MOCK_API) {
-    try {
-      const res = await request('/categories');
-      if (res.ok && Array.isArray(res.data)) {
-        categories = res.data.map(item => item.name).filter(Boolean);
-      }
-    } catch { /* fallback below */ }
-  }
-  if (!categories.length && Array.isArray(books.all)) {
-    categories = [...new Set(books.all.map(b => b.category).filter(Boolean))];
-  }
-  container.querySelectorAll('[data-dynamic-filter]').forEach(btn => btn.remove());
-  categories.forEach(name => {
-    const btn = el('button', 'btn btn--sm btn--secondary filter-chip', name);
-    btn.type = 'button';
-    btn.dataset.filter = name;
-    btn.dataset.dynamicFilter = 'true';
-    btn.setAttribute('aria-pressed', String(books.filter === name));
-    container.append(btn);
-  });
-  updateFilterButtons();
-}
-
-const categoryFiltersEl = $('categoryFilters');
-if (categoryFiltersEl) {
-  categoryFiltersEl.addEventListener('click', event => {
-    const button = event.target.closest('[data-filter]');
-    if (!button) return;
+document.querySelectorAll('[data-filter]').forEach(button => {
+  button.addEventListener('click', () => {
     clearTimeout(searchTimer);
     books.keyword = $('searchInput').value;
     books.filter = button.dataset.filter;
@@ -1254,7 +1216,7 @@ if (categoryFiltersEl) {
     updateFilterButtons();
     renderBooks();
   });
-}
+});
 
 function getReviews(bookId) {
   let saved = [];
@@ -1647,13 +1609,13 @@ $('reserveBookButton').addEventListener('click', async () => {
     closeBookDetail();
 
     if (!response.ok) {
-      const notify = window.PTIT?.alert || window.PTIT?.confirm;
-      if (notify) {
-        await notify(
+      if (window.PTIT?.confirm) {
+        await PTIT.confirm(
           response.message || 'Bạn đã đặt trước cuốn sách này và đang trong hàng chờ.',
           {
             title: 'Không thể đặt trước',
             confirmText: 'Đã hiểu',
+            cancelText: 'Đóng',
             danger: true,
           }
         );
@@ -1702,9 +1664,9 @@ function openReview(book) {
   document.body.style.overflow = 'hidden';
   $('reviewStars').focus();
 }
-function closeReview(force = false) {
+function closeReview() {
   if (!$('reviewDialog').open) return;
-  if (window.PTIT?.closeModal) PTIT.closeModal('reviewDialog', { force });
+  if (window.PTIT?.closeModal) PTIT.closeModal('reviewDialog');
   else $('reviewDialog').close();
   reviewBook = null;
   document.body.style.overflow = $('bookDialog').open ? 'hidden' : '';
@@ -1726,7 +1688,7 @@ $('reviewForm').addEventListener('submit', event => {
     if (!Array.isArray(saved)) throw new Error('Dữ liệu đánh giá không hợp lệ');
     const review = { bookId: reviewBook.id, userEmail: userEmail(), name: getUser().fullName || getUser().email, stars, comment, date: dateInVietnam() };
     localStorage.setItem(REVIEWS_KEY, JSON.stringify([...saved.filter(item => !(item.bookId === review.bookId && item.userEmail === review.userEmail)), review]));
-    closeReview(true);
+    closeReview();
     if (loanState.book) renderBookDetails(loanState.book);
     renderBooks();
     renderPopularBooks();
@@ -1777,6 +1739,29 @@ function getReaderNotifications() {
   });
 
   return items;
+}
+
+function goFromNotification(item) {
+  if (window.PTIT?.closeModal) PTIT.closeModal('utilityDialog');
+  else if ($('utilityDialog').open) $('utilityDialog').close();
+
+  navigate('mybooks');
+
+  // Chờ API tải xong bảng Sách của tôi rồi cuộn tới đúng dòng & nháy sáng
+  let attempts = 0;
+  const timer = setInterval(() => {
+    attempts++;
+    const row = document.querySelector(`tr[data-noti-key="${item.rowKey}"]`);
+    if (row) {
+      clearInterval(timer);
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.classList.remove('noti-highlight-row');
+      void row.offsetWidth; // reset animation nếu bấm lại
+      row.classList.add('noti-highlight-row');
+    } else if (attempts >= 20) {
+      clearInterval(timer);
+    }
+  }, 100);
 }
 
 function updateReaderNotificationBadge() {
@@ -1917,19 +1902,11 @@ $('notificationsButton').addEventListener('click', () => openUtility('Thông bá
 }));
 
 function applyTheme(theme) {
-  if (window.PTIT?.applyTheme) {
-    window.PTIT.applyTheme(theme);
-  } else {
-    document.documentElement.dataset.theme = theme;
-    $('themeButton').setAttribute('aria-pressed', String(theme === 'dark'));
-  }
+  document.documentElement.dataset.theme = theme;
+  $('themeButton').setAttribute('aria-pressed', String(theme === 'dark'));
 }
 try { applyTheme(localStorage.getItem('ptit_theme') === 'dark' ? 'dark' : 'light'); } catch { applyTheme('light'); }
 $('themeButton').addEventListener('click', () => {
-  if (window.PTIT?.toggleTheme) {
-    window.PTIT.toggleTheme();
-    return;
-  }
   const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   applyTheme(theme);
   try { localStorage.setItem('ptit_theme', theme); } catch { showToast('Giao diện đã đổi, nhưng không thể lưu lựa chọn.'); }

@@ -25,79 +25,36 @@ def _normalize_search_text(value: Optional[str]) -> str:
     )
 
 
-def _to_book_response(book: Book, reserved_copies: int = 0) -> BookResponse:
-    cover = book.cover_url or book.image_url
-    return BookResponse(
-        id=book.id,
-        title=book.title,
-        author=book.author,
-        categoryId=book.category_id,
-        categoryName=book.category.name if book.category else "Chưa phân loại",
-        totalCopies=book.total_copies,
-        availableCopies=max(0, book.available_copies - reserved_copies),
-        reservedCopies=reserved_copies,
-        imageUrl=cover,
-        coverUrl=cover,
-        isbn=book.isbn,
-        publisher=book.publisher,
-        publicationYear=book.publication_year,
-        description=book.description,
-    )
-
-
 def get_books_paginated(
-    db: Session,
-    page: int = 1,
-    size: int = 5,
-    keyword: Optional[str] = None,
-    category_id: Optional[int] = None,
-    availability: Optional[str] = None,
+    db: Session, 
+    page: int = 1, 
+    size: int = 5, 
+    keyword: Optional[str] = None
 ) -> PageResponse:
     page = max(1, page)
     size = max(1, size)
     skip = (page - 1) * size
 
     query = db.query(Book).join(Book.category)
-    if category_id is not None:
-        query = query.filter(Book.category_id == category_id)
 
-    has_keyword = bool(keyword and keyword.strip())
-    if has_keyword or availability in ("available", "empty"):
-        normalized_tokens = _normalize_search_text(keyword).split() if has_keyword else []
-        all_candidates = (
+    if keyword and keyword.strip():
+        normalized_tokens = _normalize_search_text(keyword).split()
+        matching_books = (
             query.options(joinedload(Book.category))
             .order_by(Book.id.desc())
             .all()
         )
-        hold_counts = {}
-        if all_candidates:
-            hold_counts = dict(
-                db.query(Reservation.book_id, func.count(Reservation.id))
-                .filter(
-                    Reservation.book_id.in_([book.id for book in all_candidates]),
-                    Reservation.status == "HOLDING",
-                    Reservation.hold_expires_at > datetime.now(timezone.utc),
+        matching_books = [
+            book
+            for book in matching_books
+            if normalized_tokens and all(
+                token
+                in _normalize_search_text(
+                    f"{book.title} {book.author} {book.category.name if book.category else ''}"
                 )
-                .group_by(Reservation.book_id)
-                .all()
+                for token in normalized_tokens
             )
-
-        matching_books = []
-        for book in all_candidates:
-            if normalized_tokens:
-                searchable = _normalize_search_text(
-                    f"{book.title} {book.author} {book.category.name if book.category else ''} {book.isbn or ''}"
-                )
-                if not all(token in searchable for token in normalized_tokens):
-                    continue
-            if availability in ("available", "empty"):
-                avail = max(0, book.available_copies - hold_counts.get(book.id, 0))
-                if availability == "available" and avail <= 0:
-                    continue
-                if availability == "empty" and avail > 0:
-                    continue
-            matching_books.append(book)
-
+        ]
         total_elements = len(matching_books)
         books = matching_books[skip : skip + size]
     else:
@@ -109,22 +66,37 @@ def get_books_paginated(
             .limit(size)
             .all()
         )
-        hold_counts = {}
-        if books:
-            hold_counts = dict(
-                db.query(Reservation.book_id, func.count(Reservation.id))
-                .filter(
-                    Reservation.book_id.in_([book.id for book in books]),
-                    Reservation.status == "HOLDING",
-                    Reservation.hold_expires_at > datetime.now(timezone.utc),
-                )
-                .group_by(Reservation.book_id)
-                .all()
-            )
     total_pages = math.ceil(total_elements / size) if total_elements > 0 else 0
 
+    hold_counts = {}
+    if books:
+        hold_counts = dict(
+            db.query(Reservation.book_id, func.count(Reservation.id))
+            .filter(
+                Reservation.book_id.in_([book.id for book in books]),
+                Reservation.status == "HOLDING",
+                Reservation.hold_expires_at > datetime.now(timezone.utc),
+            )
+            .group_by(Reservation.book_id)
+            .all()
+        )
+
     content = [
-        _to_book_response(b, hold_counts.get(b.id, 0))
+        BookResponse(
+            id=b.id,
+            title=b.title,
+            author=b.author,
+            categoryName=b.category.name if b.category else "",
+            totalCopies=b.total_copies,
+            availableCopies=max(0, b.available_copies - hold_counts.get(b.id, 0)),
+            reservedCopies=hold_counts.get(b.id, 0),
+                imageUrl=b.cover_url or b.image_url,
+                coverUrl=b.cover_url or b.image_url,
+                isbn=b.isbn,
+                publisher=b.publisher,
+                publicationYear=b.publication_year,
+                description=b.description
+        )
         for b in books
     ]
 
@@ -148,15 +120,14 @@ def create_book(
             detail={"message": f"Thể loại với ID {book_in.categoryId} không tồn tại"}
         )
 
-    cover = book_in.coverUrl or book_in.imageUrl
     new_book = Book(
         title=book_in.title.strip(),
         author=book_in.author.strip(),
         category_id=book_in.categoryId,
         total_copies=book_in.total,
         available_copies=book_in.total,
-        image_url=cover,
-        cover_url=cover,
+        image_url=book_in.coverUrl or book_in.imageUrl,
+        cover_url=book_in.coverUrl or book_in.imageUrl,
         isbn=book_in.isbn,
         publisher=book_in.publisher,
         publication_year=book_in.publicationYear,
@@ -176,7 +147,21 @@ def create_book(
     db.commit()
     db.refresh(new_book)
 
-    return _to_book_response(new_book, 0)
+    return BookResponse(
+        id=new_book.id,
+        title=new_book.title,
+        author=new_book.author,
+        categoryName=category.name,
+        totalCopies=new_book.total_copies,
+        availableCopies=new_book.available_copies,
+        reservedCopies=0,
+        imageUrl=new_book.cover_url or new_book.image_url,
+        coverUrl=new_book.cover_url or new_book.image_url,
+        isbn=new_book.isbn,
+        publisher=new_book.publisher,
+        publicationYear=new_book.publication_year,
+        description=new_book.description
+    )
 
 
 def delete_book(db: Session, book_id: int, actor_id: Optional[int] = None):
@@ -201,11 +186,6 @@ def delete_book(db: Session, book_id: int, actor_id: Optional[int] = None):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={"message": "Không thể xóa sách đang được mượn hoặc có phiếu chờ duyệt"}
-        )
-    if db.query(Loan).filter(Loan.book_id == book_id).first():
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={"message": "Không thể xóa sách đã có lịch sử phiếu mượn"},
         )
     if db.query(Reservation).filter(Reservation.book_id == book_id).first():
         raise HTTPException(
@@ -245,8 +225,6 @@ def update_book(
             detail=f"Không tìm thấy sách với ID {book_id}",
         )
 
-    ReservationService.sync_book(db, book)
-
     if book_in.total is not None:
         borrowed_copies = book.total_copies - book.available_copies
         reserved_copies = len(ReservationService.active_holds(db, book.id))
@@ -262,13 +240,12 @@ def update_book(
         book.title = book_in.title.strip()
     if book_in.author is not None:
         book.author = book_in.author.strip()
-    fields_set = getattr(book_in, "model_fields_set", set())
-    if "coverUrl" in fields_set or "imageUrl" in fields_set:
-        cover = book_in.coverUrl if "coverUrl" in fields_set else book_in.imageUrl
-        if not cover and "imageUrl" in fields_set and book_in.imageUrl:
-            cover = book_in.imageUrl
-        book.cover_url = cover
-        book.image_url = cover
+    if book_in.coverUrl is not None:
+        book.cover_url = book_in.coverUrl
+        book.image_url = book_in.coverUrl
+    elif book_in.imageUrl is not None:
+        book.image_url = book_in.imageUrl
+        book.cover_url = book_in.imageUrl
     if book_in.isbn is not None:
         book.isbn = book_in.isbn
     if book_in.publisher is not None:
@@ -297,7 +274,21 @@ def update_book(
     db.refresh(book)
 
     reserved_copies = len(ReservationService.active_holds(db, book.id))
-    return _to_book_response(book, reserved_copies)
+    return schemas.BookResponse(
+        id=book.id,
+        title=book.title,
+        author=book.author,
+        categoryName=book.category.name if book.category else "Chưa phân loại",
+        totalCopies=book.total_copies,
+        availableCopies=max(0, book.available_copies - reserved_copies),
+        reservedCopies=reserved_copies,
+        imageUrl=book.cover_url or book.image_url,
+        coverUrl=book.cover_url or book.image_url,
+        isbn=book.isbn,
+        publisher=book.publisher,
+        publicationYear=book.publication_year,
+        description=book.description,
+    )
 
 
 def get_categories(db: Session):
@@ -339,18 +330,8 @@ def update_category(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy thể loại"
         )
-    new_name = cat_in.name.strip()
-    duplicate = (
-        db.query(Category)
-        .filter(Category.id != cat_id, func.lower(Category.name) == new_name.lower())
-        .first()
-    )
-    if duplicate:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Thể loại đã tồn tại"
-        )
     previous_name = cat.name
-    cat.name = new_name
+    cat.name = cat_in.name.strip()
     LogService.record(
         db=db,
         action="UPDATE_CATEGORY",
@@ -638,11 +619,7 @@ def get_public_stats(db: Session) -> schemas.PublicStatsResponse:
 def get_stats_overview(db: Session) -> schemas.StatsOverviewResponse:
     total_titles = db.query(func.count(Book.id)).scalar()
     total_copies = db.query(func.coalesce(func.sum(Book.total_copies), 0)).scalar()
-    total_readers = (
-        db.query(func.count(User.id))
-        .filter(User.role.in_(["READER", "USER"]))
-        .scalar()
-    )
+    total_readers = db.query(func.count(User.id)).filter(User.role == "READER").scalar()
     total_books = total_copies
 
     borrowing_count = (
