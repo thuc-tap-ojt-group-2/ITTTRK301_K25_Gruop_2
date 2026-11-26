@@ -749,7 +749,9 @@ function getBookCover(b) {
   if (!rawUrl) return cover;
 
   let cleanUrl = rawUrl;
-  if (!/^https?:\/\//i.test(cleanUrl) && !cleanUrl.startsWith('//')) {
+  if (cleanUrl.startsWith('/covers/')) {
+    cleanUrl = '.' + cleanUrl; // Trỏ thẳng tới ./covers/xxx.svg trong thư mục frontend
+  } else if (!/^https?:\/\//i.test(cleanUrl) && !cleanUrl.startsWith('//')) {
     cleanUrl = API_BASE_URL + (cleanUrl.startsWith('/') ? '' : '/') + cleanUrl;
   }
 
