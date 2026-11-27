@@ -37,8 +37,14 @@ function getUser() {
 
 function decodeJwt(token) {
   try {
-    const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(decodeURIComponent(escape(atob(b64))));
+    const part = String(token || '').split('.')[1];
+    if (!part) return null;
+    const b64 = part
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+      .padEnd(Math.ceil(part.length / 4) * 4, '=');
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch { return null; }
 }
 
@@ -106,9 +112,9 @@ function mockLoadUsers() {
   try { users = JSON.parse(localStorage.getItem(MOCK_USERS_KEY)); } catch { /* bỏ qua */ }
   if (!Array.isArray(users)) {
     users = [
-      { fullName: 'Quản trị viên', studentId: '', email: 'admin@ptit.edu.vn', password: '123456', role: 'ADMIN', status: 'ACTIVE' },
-      { fullName: 'Thủ thư', studentId: '', email: 'thuthu@ptit.edu.vn', password: '123456', role: 'LIBRARIAN', status: 'ACTIVE' },
-      { fullName: 'Nguyễn Hoàng An', studentId: 'B22DCCN101', email: 'docgia@ptit.edu.vn', password: '123456', role: 'READER', status: 'ACTIVE' },
+      { fullName: 'Quản trị viên Hệ thống', studentId: 'admin', email: 'admin@ptit.edu.vn', password: 'secret', role: 'ADMIN', status: 'ACTIVE' },
+      { fullName: 'Nguyễn Thị Minh Thư', studentId: 'thuthu01', email: 'librarian@ptit.edu.vn', password: 'secret', role: 'LIBRARIAN', status: 'ACTIVE' },
+      { fullName: 'Trần Minh Khôi', studentId: 'B22DCCN001', email: 'reader1@ptit.edu.vn', password: 'secret', role: 'READER', status: 'ACTIVE' },
     ];
     localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
   }
@@ -247,6 +253,8 @@ function showApp(user) {
   $('topbarUser').textContent = name;
   $('greeting').textContent = 'Xin chào, ' + name;
   $('greetingRole').textContent = 'Vai trò: ' + role;
+  if (typeof PTIT.refreshAccountMenu === 'function') PTIT.refreshAccountMenu();
+  if (typeof PTIT.applyTheme === 'function') PTIT.applyTheme(PTIT.resolveTheme(), false);
   navigate('overview');
 }
 
@@ -446,10 +454,14 @@ $('loginForm').addEventListener('submit', async e => {
   if (!token) { err.textContent = 'Phản hồi đăng nhập không có token.'; err.hidden = false; return; }
 
   const payload = decodeJwt(token) || {};
+  const fullName = d.fullName || payload.full_name || payload.fullName || payload.name || '';
+  const studentId = d.studentId || payload.student_id || payload.username || payload.sub || '';
   const user = d.user || {
     id: payload.user_id || payload.id,
-    fullName: d.fullName || payload.full_name || payload.fullName || payload.name,
-    studentId: d.studentId || payload.student_id || payload.username || payload.sub,
+    fullName,
+    full_name: fullName,
+    studentId,
+    username: studentId,
     email: d.email || payload.email || payload.sub || email,
     role: d.role || payload.role || payload.roles,
   };
@@ -1087,7 +1099,7 @@ $('logoutBtn').addEventListener('click', async event => {
 });
 
 /* ---------- Giao diện độc giả theo ảnh tham chiếu ---------- */
-const READER_DEMO_EMAIL = 'docgia@ptit.edu.vn';
+const READER_DEMO_EMAIL = 'reader1@ptit.edu.vn';
 const FAVORITES_KEY = 'ptit_reader_favorites_v1';
 const REVIEWS_KEY = 'ptit_reader_reviews_v1';
 const SEED_KEY = 'ptit_reader_demo_seed_v1';
@@ -2003,8 +2015,14 @@ function openUtility(title, render) {
 }
 $('utilityDialog').addEventListener('close', () => { document.body.style.overflow = ''; });
 $('profileButton').addEventListener('click', () => openUtility('Hồ sơ độc giả', content => {
-  const user = getUser();
-  [['Họ và tên', user.fullName || user.name], ['Mã sinh viên', user.studentId || user.studentCode], ['Email', user.email], ['Vai trò', ROLE_LABELS[normalizeRole(user.role)]]].forEach(([label, value]) => {
+  const user = (typeof PTIT.getAccountUser === 'function' ? PTIT.getAccountUser() : null) || getUser() || {};
+  const claims = decodeJwt(getToken()) || {};
+  const profileName = user.fullName || user.full_name || user.name || claims.full_name || claims.fullName || claims.name;
+  const profileCode = user.studentId || user.studentCode || user.username || claims.student_id || claims.username || claims.sub;
+  const profileEmail = user.email || claims.email;
+  const profileRole = ROLE_LABELS[normalizeRole(user.role || claims.role)] || 'Độc giả';
+
+  [['Họ và tên', profileName], ['Mã sinh viên', profileCode], ['Email', profileEmail], ['Vai trò', profileRole]].forEach(([label, value]) => {
     const row = el('p', 'profile-row');
     row.append(el('span', 'muted', label), el('strong', '', value || 'Chưa cập nhật'));
     content.append(row);

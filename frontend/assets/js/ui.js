@@ -903,6 +903,92 @@ PTIT.initMobileNav = function () {
     }
 };
 
+PTIT.decodeJwtPayload = function (token) {
+    try {
+        const part = String(token || "").split(".")[1];
+        if (!part) return {};
+        const normalized = part
+            .replace(/-/g, "+")
+            .replace(/_/g, "/")
+            .padEnd(Math.ceil(part.length / 4) * 4, "=");
+        const bytes = Uint8Array.from(atob(normalized), character => character.charCodeAt(0));
+        return JSON.parse(new TextDecoder().decode(bytes)) || {};
+    } catch {
+        return {};
+    }
+};
+
+PTIT.getAccountUser = function () {
+    let parsedUser = {};
+    ["user", "ptit_user"].some(function (key) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return false;
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                parsedUser = parsed;
+                return true;
+            }
+        } catch {
+            return false;
+        }
+        return false;
+    });
+
+    const token = localStorage.getItem("access_token") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("ptit_token");
+    const claims = token ? PTIT.decodeJwtPayload(token) : {};
+
+    const fullName = parsedUser.full_name || parsedUser.fullName || parsedUser.name ||
+        claims.full_name || claims.fullName || claims.name || "";
+    const username = parsedUser.username || parsedUser.student_id || parsedUser.studentId ||
+        parsedUser.studentCode || claims.username || claims.student_id || claims.sub || "";
+    const email = parsedUser.email || claims.email || "";
+    const role = String(parsedUser.role || claims.role || claims.roles || "").toUpperCase();
+
+    return {
+        ...parsedUser,
+        full_name: fullName,
+        fullName: fullName,
+        username: username,
+        studentId: username,
+        email: email,
+        role: role,
+    };
+};
+
+PTIT.refreshAccountMenu = function () {
+    const accountUser = PTIT.getAccountUser();
+    const role = accountUser.role;
+    const displayName = accountUser.full_name || accountUser.username || accountUser.email || "Người dùng";
+    const roleLabel = role === "ADMIN" ? "Quản trị viên" : role === "LIBRARIAN" ? "Thủ thư" : "Độc giả";
+
+    document.body.classList.remove("theme-admin", "theme-librarian", "theme-reader");
+    if (role === "ADMIN") {
+        document.body.classList.add("theme-admin");
+    } else if (role === "LIBRARIAN") {
+        document.body.classList.add("theme-librarian");
+    } else {
+        document.body.classList.add("theme-reader");
+    }
+
+    const menu = document.querySelector(".topbar .account-menu");
+    if (menu) {
+        const avatar = menu.querySelector(".account-menu-button .avatar");
+        const nameEl = menu.querySelector(".account-menu-name");
+        const roleSmall = menu.querySelector("[data-account-action='profile'] small");
+        if (avatar) {
+            avatar.textContent = PTIT.getInitials(displayName);
+            avatar.style.backgroundColor = PTIT.getAvatarColor(displayName);
+        }
+        if (nameEl) nameEl.textContent = displayName;
+        if (roleSmall) roleSmall.textContent = roleLabel;
+    }
+
+    return { accountUser, displayName, role, roleLabel };
+};
+
 PTIT.initAccountMenu = function () {
     const topbar = document.querySelector(".topbar");
     if (!topbar) return;
@@ -933,25 +1019,7 @@ PTIT.initAccountMenu = function () {
         }
     });
 
-    let role = "";
-    let name = "";
-    let accountUser = {};
-    try {
-        const storedUser = JSON.parse(localStorage.getItem("user") || localStorage.getItem("ptit_user") || "{}");
-        accountUser = storedUser && typeof storedUser === "object" ? storedUser : {};
-        name = accountUser.full_name || accountUser.fullName || accountUser.name || accountUser.username || accountUser.email || "Người dùng";
-        role = String(accountUser.role || "").toUpperCase();
-    } catch {
-        name = "Người dùng";
-    }
-
-    if (role === "ADMIN") {
-        document.body.classList.add("theme-admin");
-    } else if (role === "LIBRARIAN") {
-        document.body.classList.add("theme-librarian");
-    } else {
-        document.body.classList.add("theme-reader");
-    }
+    const { displayName, roleLabel } = PTIT.refreshAccountMenu();
 
     document.querySelectorAll(".logout-btn, .lo").forEach(function (button) {
         button.hidden = true;
@@ -961,19 +1029,27 @@ PTIT.initAccountMenu = function () {
 
     const menu = document.createElement("div");
     menu.className = "account-menu";
-    const initials = PTIT.getInitials(name);
-    const roleLabel = role === "ADMIN" ? "Quản trị viên" : role === "LIBRARIAN" ? "Thủ thư" : "Độc giả";
-
-    menu.innerHTML = `
-        <button type="button" class="account-menu-button" aria-expanded="false" aria-haspopup="menu">
-            <span class="avatar" aria-hidden="true" style="background-color:${PTIT.getAvatarColor(name)}">${initials}</span>
-            <span class="account-menu-name">${name}</span>
-            <span aria-hidden="true">⌄</span>
-        </button>
-        <div class="account-menu-dropdown" role="menu" hidden>
+    const initials = PTIT.getInitials(displayName);
+    const hasExternalReaderControls = Boolean(
+        document.getElementById("profileButton") &&
+        document.getElementById("themeButton")
+    );
+    const dropdownItemsHtml = hasExternalReaderControls
+        ? `<button type="button" role="menuitem" class="account-logout" data-account-action="logout"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg></span><span>Đăng xuất</span></button>`
+        : `
             <button type="button" role="menuitem" data-account-action="profile"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span><span>Hồ sơ <small>${roleLabel}</small></span></button>
             <button type="button" role="menuitem" data-account-action="theme" aria-pressed="false" title="Chuyển đổi giao diện sáng / tối"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span><span id="accountThemeLabel">Giao diện tối (đang tắt)</span></button>
             <button type="button" role="menuitem" class="account-logout" data-account-action="logout"><span class="account-menu-item-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg></span><span>Đăng xuất</span></button>
+        `;
+
+    menu.innerHTML = `
+        <button type="button" class="account-menu-button" aria-expanded="false" aria-haspopup="menu">
+            <span class="avatar" aria-hidden="true" style="background-color:${PTIT.getAvatarColor(displayName)}">${initials}</span>
+            <span class="account-menu-name">${displayName}</span>
+            <span aria-hidden="true">⌄</span>
+        </button>
+        <div class="account-menu-dropdown" role="menu" hidden>
+            ${dropdownItemsHtml}
         </div>
     `;
 
@@ -1008,6 +1084,13 @@ PTIT.initAccountMenu = function () {
             updateThemeLabel();
             PTIT.showToast("Đã chuyển sang giao diện " + (nextTheme === "dark" ? "tối." : "sáng."), "success");
         } else if (action === "profile") {
+            const readerProfileButton = document.getElementById("profileButton");
+            if (readerProfileButton && document.getElementById("utilityDialog")) {
+                readerProfileButton.click();
+                return;
+            }
+
+            const { accountUser: liveUser, roleLabel: liveRoleLabel } = PTIT.refreshAccountMenu();
             let profileDialog = document.getElementById("accountProfileDialog");
             if (!profileDialog) {
                 profileDialog = document.createElement("dialog");
@@ -1033,10 +1116,10 @@ PTIT.initAccountMenu = function () {
             }
 
             const profileValues = {
-                name: accountUser.full_name || accountUser.fullName || accountUser.name,
-                username: accountUser.username || accountUser.student_id || accountUser.studentId || accountUser.studentCode,
-                email: accountUser.email,
-                role: roleLabel,
+                name: liveUser.full_name || liveUser.fullName || liveUser.name,
+                username: liveUser.username || liveUser.student_id || liveUser.studentId || liveUser.studentCode,
+                email: liveUser.email,
+                role: liveRoleLabel,
             };
             Object.keys(profileValues).forEach(function (key) {
                 const field = profileDialog.querySelector(`[data-profile-field="${key}"]`);
