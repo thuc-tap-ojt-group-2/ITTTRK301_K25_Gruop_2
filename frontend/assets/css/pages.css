@@ -69,16 +69,16 @@
 /* Thanh tìm kiếm Hero: cao 60px */
 .hero-search-box {
     width: 100%;
-    height: 60px;
     min-height: 60px;
     background-color: var(--color-bg-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 8px 30px rgba(15, 92, 66, 0.08);
-    padding: 6px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: 0 10px 30px rgba(15, 92, 66, 0.08);
+    padding: 8px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-2);
+    gap: 8px;
     margin-bottom: var(--space-6);
     box-sizing: border-box;
     position: relative;
@@ -94,11 +94,12 @@
 
 .hero-search-scopes {
     display: grid;
-    grid-template-columns: repeat(3, auto);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: center;
-    flex: 0 0 auto;
-    gap: 3px;
-    min-height: 46px;
+    flex: 1 0 100%;
+    width: 100%;
+    gap: 4px;
+    min-height: 44px;
     margin: 0;
     padding: 4px;
     border: none;
@@ -124,10 +125,11 @@
 
 .hero-search-scope span {
     display: inline-flex;
+    width: 100%;
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    padding: 0 11px;
+    padding: 0 10px;
     border-radius: 9px;
     color: var(--color-text-muted);
     font-size: 13px;
@@ -154,12 +156,12 @@
 }
 
 .hero-search-input {
-    flex: 1 1 auto;
+    flex: 1 1 220px;
     min-width: 0;
-    height: 100%;
+    height: 46px;
     border: none;
     background: transparent;
-    font-size: 16px;
+    font-size: 15.5px;
     color: var(--color-text-main);
     padding: 0 var(--space-3);
     box-sizing: border-box;
@@ -173,10 +175,10 @@
 .hero-search-btn {
     flex: 0 0 auto;
     white-space: nowrap;
-    height: 100%;
-    min-height: 48px;
-    padding: 0 24px;
-    font-size: 16px;
+    min-height: 46px;
+    height: 46px;
+    padding: 0 22px;
+    font-size: 15px;
     font-weight: 700;
     border-radius: var(--radius-md);
     box-sizing: border-box;
@@ -838,13 +840,23 @@
 }
 
 /* Về thư viện PTIT - 2 cột */
+.about-section .eyebrow {
+    margin-bottom: var(--space-4);
+}
+
 .about-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-10);
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: var(--space-8);
     align-items: center;
+    padding: var(--space-10);
     margin-bottom: var(--space-10);
     width: 100%;
+    box-sizing: border-box;
+}
+
+.about-grid h2 {
+    margin-bottom: var(--space-4);
 }
 
 .about-grid p {
@@ -853,14 +865,18 @@
     font-size: 16px;
 }
 
+.about-grid p + p {
+    margin-top: var(--space-3);
+}
+
 .about-note {
-    background: linear-gradient(135deg, var(--color-primary-soft) 0%, #f0f7f3 100%);
+    background: linear-gradient(135deg, var(--color-primary-soft) 0%, var(--color-bg-subtle) 100%);
     border-left: 4px solid var(--color-accent-gold);
-    border-radius: 0 var(--radius-card) var(--radius-card) 0;
-    padding: var(--space-8) var(--space-10);
+    border-radius: var(--radius-btn) var(--radius-card) var(--radius-card) var(--radius-btn);
+    padding: var(--space-7) var(--space-8);
     display: flex;
     align-items: flex-start;
-    gap: var(--space-5);
+    gap: var(--space-4);
     box-shadow: var(--shadow-sm);
 }
 
@@ -871,10 +887,17 @@
 }
 
 .about-note p {
-    font-size: 17px;
+    font-size: 16.5px;
     font-style: italic;
     color: var(--color-primary-dark);
-    line-height: 1.6;
+    line-height: 1.65;
+    margin: 0;
+}
+
+html[data-theme="dark"] .about-note p,
+html[data-theme="dark"] .hero-search-scope:hover span,
+html[data-theme="dark"] .hero-search-scope input:checked + span {
+    color: var(--color-primary-light);
 }
 
 /* Dịch vụ thư viện */
